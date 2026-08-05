@@ -101,6 +101,26 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                             </div>
 
                                             <div class="form-group">
+                                                <label class="col-sm-2 control-label">Department</label>
+                                                <div class="col-sm-5">
+                                                    <select name="department_id" class="form-control">
+                                                        <option value="">Select Department (All)</option>
+                                                        <?php
+                                                        if (!empty($department_result)) {
+                                                            foreach ($department_result as $dept) {
+                                                        ?>
+                                                                <option value="<?= $dept->department_id ?>" <?= (isset($rule->department_id) && $rule->department_id == $dept->department_id) ? 'selected' : '' ?>>
+                                                                    <?= htmlspecialchars($dept->department_name) ?>
+                                                                </option>
+                                                        <?php
+                                                            }
+                                                        }
+                                                        ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
                                                 <label class="col-sm-2 control-label">Min Amount</label>
                                                 <div class="col-sm-5">
                                                     <input type="number" name="min_amount" class="form-control" step="0.01" value="<?= $rule->min_amount ?>">

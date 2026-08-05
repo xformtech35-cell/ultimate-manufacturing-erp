@@ -82,8 +82,10 @@ class ApprovalMatrixController extends MY_Controller
     // ---------------------------------------------------------
     public function edit($id)
     {
+        $this->load->model('department');
         $data['rule'] = $this->ApprovalMatrixModel->getById($id);
         $data['role'] = $this->role->get_role();
+        $data['department_result'] = $this->department->get_departments();
 
         if ($this->input->post()) {
             $this->form_validation->set_rules('document_type', 'Document Type', 'required');
@@ -94,6 +96,7 @@ class ApprovalMatrixController extends MY_Controller
                 $update_data = [
                     'document_type' => $this->input->post('document_type'),
                     'level' => $this->input->post('level'),
+                    'department_id' => $this->input->post('department_id') ?: null,
                     'approver_role' => $this->input->post('approver_role'),
                     'min_amount' => $this->input->post('min_amount') ?: 0,
                     'max_amount' => $this->input->post('max_amount') ?: 0,
