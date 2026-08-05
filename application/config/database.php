@@ -79,10 +79,10 @@ $is_live = isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'uwsenv
 if ($is_live) {
 	$db['default'] = array(
 		'dsn'	=> '',
-		'hostname' => 'localhost',
-		'username' => 'LIVE_DB_USERNAME_HERE',
-		'password' => 'LIVE_DB_PASSWORD_HERE',
-		'database' => 'LIVE_DB_NAME_HERE',
+		'hostname' => 'p3nlmysql7plsk.secureserver.net',
+		'username' => 'uwsenvirotech',
+		'password' => '754br8~rO',
+		'database' => 'xformtech_employee',
 		'dbdriver' => 'mysqli',
 		'dbprefix' => 'uwsaccounting_',
 		'pconnect' => FALSE,
