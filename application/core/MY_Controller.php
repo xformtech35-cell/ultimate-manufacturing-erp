@@ -353,9 +353,6 @@ class MY_Controller extends CI_Controller {
             'created_at' => date('Y-m-d H:i:s')
         );
         
-        $orig_prefix = $this->db->dbprefix;
-        $this->db->dbprefix = '';
-        $this->db->insert('sameeppayroll_audit_trail', $data);
-        $this->db->dbprefix = $orig_prefix;
+        $this->db->insert('audit_trail', $data);
     }
 }

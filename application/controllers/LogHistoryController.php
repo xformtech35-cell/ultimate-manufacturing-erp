@@ -103,10 +103,7 @@ class LogHistoryController extends MY_Controller
                                           ->get()
                                           ->result_array();
 
-        // 5. General Activity Logs (sameeppayroll_audit_trail - prefix-less)
-        $orig_prefix = $this->db->dbprefix;
-        $this->db->dbprefix = '';
-
+        // 5. General Activity Logs (audit_trail)
         // --- Filter parameters ---
         $filter_user_id     = $this->input->get('filter_user_id');
         $filter_module      = $this->input->get('filter_module');
@@ -116,8 +113,8 @@ class LogHistoryController extends MY_Controller
         $filter_keyword     = $this->input->get('filter_keyword');
 
         $this->db->select('a.*, u.username as operator_name')
-                 ->from('sameeppayroll_audit_trail a')
-                 ->join($orig_prefix . 'user u', 'u.user_id = a.user_id', 'left');
+                 ->from('audit_trail a')
+                 ->join('user u', 'u.user_id = a.user_id', 'left');
 
         if (!empty($filter_user_id)) {
             $this->db->where('a.user_id', (int)$filter_user_id);

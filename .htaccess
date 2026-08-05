@@ -1,5 +1,5 @@
 RewriteEngine on
-RewriteBase /manufacturing-erp/ultimate-manufacturing-erp/
+RewriteBase /MERP/ultimate-manufacturing-erp/
 
 # Increase PHP input limits to allow large job orders (50+ line items)
 php_value max_input_vars 15000
