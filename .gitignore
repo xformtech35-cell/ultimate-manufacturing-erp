@@ -1,0 +1,23 @@
+# Ignore log files
+application/logs/
+*.log
+
+# Ignore uploads directory contents
+uploads/
+uploads/*
+
+# Ignore session cache
+application/cache/
+system/serp/accounting/application/cache/
+
+# Ignore compiled/exported docs & spreadsheets
+*.pdf
+*.xlsx
+*.xls
+*.csv
+test_autofit.xlsx
+
+# IDE / OS junk
+.DS_Store
+Thumbs.db
+*.tmp

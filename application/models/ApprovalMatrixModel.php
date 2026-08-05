@@ -15,9 +15,12 @@ class ApprovalMatrixModel extends CI_Model
     // Get all approval rules
     public function getAll()
     {
-        return $this->db->order_by('document_type', 'ASC')
-            ->order_by('level', 'ASC')
-            ->get($this->table)
+        return $this->db->select('approval_matrix.*, department_master.department_name')
+            ->from($this->table)
+            ->join('department_master', 'department_master.department_id = approval_matrix.department_id', 'left')
+            ->order_by('approval_matrix.document_type', 'ASC')
+            ->order_by('approval_matrix.level', 'ASC')
+            ->get()
             ->result();
     }
 

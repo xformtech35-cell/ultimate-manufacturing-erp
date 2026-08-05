@@ -85,6 +85,24 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                             </div>
 
                                             <div class="form-group">
+                                                <label class="col-sm-2 control-label">Department</label>
+                                                <div class="col-sm-5">
+                                                    <select name="department_id" class="form-control">
+                                                        <option value="">Select Department (All)</option>
+                                                        <?php
+                                                        if (!empty($department_result)) {
+                                                            foreach ($department_result as $dept) {
+                                                        ?>
+                                                                <option value="<?= $dept->department_id ?>"><?= htmlspecialchars($dept->department_name) ?></option>
+                                                        <?php
+                                                            }
+                                                        }
+                                                        ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
                                                 <label class="col-sm-2 control-label">Approver Role <span style="color:red;">*</span></label>
                                                 <div class="col-sm-5">
                                                     <select name="approver_role" class="form-control" required>
@@ -146,6 +164,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                         <th>Sr.No.</th>
                                         <th>Document Type</th>
                                         <th>Level</th>
+                                        <th>Department</th>
                                         <th>Approver Role</th>
                                         <th>Min Amount</th>
                                         <th>Max Amount</th>
@@ -160,6 +179,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                             <td><?= $i ?></td>
                                             <td><?= $row->document_type ?></td>
                                             <td><?= $row->level ?></td>
+                                            <td><?= !empty($row->department_name) ? html_escape($row->department_name) : '<span class="label label-default">All</span>' ?></td>
                                             <td><strong><?= html_escape($row->approver_role) ?></strong> <span class="label label-info" style="font-size: 10px; margin-left: 3px;" title="Admin can also approve">+ Admin</span></td>
                                             <td><?= $row->min_amount ?></td>
                                             <td><?= $row->max_amount ?></td>

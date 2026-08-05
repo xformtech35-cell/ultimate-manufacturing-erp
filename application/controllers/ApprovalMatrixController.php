@@ -33,15 +33,10 @@ class ApprovalMatrixController extends MY_Controller
     // ---------------------------------------------------------
     public function index()
     {
+        $this->load->model('department');
         $data['approvals'] = $this->ApprovalMatrixModel->getAll();
-
         $data['role'] = $this->role->get_role();
-
-
-
-        // var_dump($data['role']) ;
-        // die();
-
+        $data['department_result'] = $this->department->get_departments();
 
         $session_data_head = $this->session->userdata('session_data_head');
         $this->load->view('admin/header_side_bar', $session_data_head);
@@ -62,6 +57,7 @@ class ApprovalMatrixController extends MY_Controller
                 $data = [
                     'document_type' => $this->input->post('document_type'),
                     'level' => $this->input->post('level'),
+                    'department_id' => $this->input->post('department_id') ?: null,
                     'approver_role' => $this->input->post('approver_role'),
                     'min_amount' => $this->input->post('min_amount') ?: 0,
                     'max_amount' => $this->input->post('max_amount') ?: 0,
