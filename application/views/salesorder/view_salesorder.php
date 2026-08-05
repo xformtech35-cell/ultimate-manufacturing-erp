@@ -170,7 +170,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
                                                             <li><a href="<?php echo base_url() . 'SalesOrderController/show_salesorder/' . $key->id; ?>" class="js-gear-view">View</a></li>
                                                             <li><a href="<?php echo base_url() . 'SalesOrderController/edit_salesorder_details/' . $key->id ?>" class="js-gear-edit">Edit</a></li>
-                                                            <li><a class="change-so-status-btn" href="#" data-id="<?php echo $key->id; ?>" data-number="<?php echo $key->number; ?>" data-status="<?php echo $key->status; ?>"><i class="fa fa-refresh"></i> Change Status</a></li>
+                                                            <li><a class="change-so-status-btn" href="#" data-id="<?php echo $key->id; ?>" data-number="<?php echo $key->number; ?>" data-status="<?php echo $key->status; ?>" data-remarks="<?php echo htmlspecialchars($key->remarks ?? ''); ?>"><i class="fa fa-refresh"></i> Change Status</a></li>
                                                             <li><a href="<?php echo base_url() . 'SalesOrderController/delete_salesorder_by_quote_number/' . $key->number; ?>" class="js-gear-delete">Delete</a></li>
                                                         </ul>
                                                      </div>
@@ -343,6 +343,10 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                 <option value="6">Canceled</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label>Remark / Note</label>
+                            <textarea name="remarks" id="so_status_remarks" class="form-control" rows="2" placeholder="Enter status change remark..."></textarea>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-check"></i> Update</button>
@@ -468,9 +472,11 @@ defined('BASEPATH') or exit('No direct script access allowed');
                 var id = $(this).data('id');
                 var number = $(this).data('number');
                 var status = $(this).data('status');
+                var remarks = $(this).data('remarks') || '';
                 $('#so_status_id').val(id);
                 $('#so_status_number').val(number);
                 $('#so_status_select').val(status);
+                $('#so_status_remarks').val(remarks);
                 $('#soStatusModal').modal('show');
             });
 

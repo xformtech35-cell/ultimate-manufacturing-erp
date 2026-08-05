@@ -421,7 +421,7 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
                                                             </li>
 
                                                             <li>
-                                                                <a href="#" class="change-po-status-btn" data-id="<?php echo $key->id; ?>" data-number="<?php echo $key->number; ?>" data-status="<?php echo $key->status; ?>">
+                                                                <a href="#" class="change-po-status-btn" data-id="<?php echo $key->id; ?>" data-number="<?php echo $key->number; ?>" data-status="<?php echo $key->status; ?>" data-remarks="<?php echo htmlspecialchars($key->remarks ?? ''); ?>">
                                                                     <i class="fa fa-refresh text-primary"></i> Change Status
                                                                 </a>
                                                             </li>
@@ -602,6 +602,10 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
                                 <option value="5">Rejected</option>
                                 <option value="6">Canceled</option>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Remark / Note</label>
+                            <textarea name="remarks" id="po_status_remarks" class="form-control" rows="2" placeholder="Enter status change remark..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -1077,9 +1081,11 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
                 var id = $(this).data('id');
                 var number = $(this).data('number');
                 var status = $(this).data('status');
+                var remarks = $(this).data('remarks') || '';
                 $('#po_status_id').val(id);
                 $('#po_status_number').val(number);
                 $('#po_status_select').val(status);
+                $('#po_status_remarks').val(remarks);
                 $('#poStatusModal').modal('show');
             });
 

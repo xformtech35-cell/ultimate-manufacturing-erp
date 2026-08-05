@@ -1470,7 +1470,8 @@ public function edit_salesorder_salesorder()
     {
         $so_number = $this->input->post('so_number');
         $status = $this->input->post('status');
-        $data_status = array('status' => $status);
+        $remarks = $this->input->post('remarks');
+        $data_status = array('status' => $status, 'remarks' => $remarks);
 
         if ($status == 4) { // Approved
             $data_status['approved_by'] = $this->user_id;
