@@ -164,7 +164,7 @@ class LogHistoryController extends MY_Controller
         // class name from the URL (first segment before '/') and pair it with
         // the human-readable title so the dropdown shows "Sales Order" but
         // filters on "SalesOrderController" (which is what MY_Controller stores
-        // in the table_name column of sameeppayroll_audit_trail).
+        // in the table_name column of audit_trail).
         // ---------------------------------------------------------------
         $sidebar_rows = $this->db
             ->select('id, title, url, permission')
@@ -196,8 +196,6 @@ class LogHistoryController extends MY_Controller
             return strcmp($a['title'], $b['title']);
         });
         $data['all_modules'] = $sidebar_modules;
-
-        $this->db->dbprefix = $orig_prefix;
 
         // Pass back the current filter values so the view can pre-populate them
         $data['filter_user_id']     = $filter_user_id;
