@@ -1186,10 +1186,9 @@ class SupplierController extends MY_Controller
         if ($result == TRUE) {
             $this->session->set_flashdata('SUCCESSMSG', "Purchase Order deleted successfully!!");
             redirect('SupplierController/view_purchase_order');
-        } else {
-            $this->session->set_flashdata('INFOMSG', "Purchase Order not deleted successfully!!");
-            redirect('SupplierController/view_purchase_order');
         }
+    }
+
     public function update_po_status()
     {
         $po_number = $this->input->post('po_number');
