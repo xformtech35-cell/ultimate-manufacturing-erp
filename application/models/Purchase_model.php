@@ -110,16 +110,14 @@ class Purchase_model extends CI_Model
             // Get linked PR details to inherit Project/SO/OC details
             $pr_record = $this->db->where('pr_id', $rfq['pr_id'])->get('purchase_requisition')->row_array();
             $location_id = $pr_record ? ($pr_record['location_id_fk'] ?? null) : null;
-
-            // Generate PO number
-            $po_number = $this->generate_po_number();
-            $total_amount = $quotation['final_amount'] ?? 0;
-
-            // Get 3-level approval workflow
-            $approval_workflow = $this->get_3level_approval_workflow($total_amount, $location_id);
             $pr_proj = $pr_record ? ($pr_record['project_code'] ?? null) : null;
             $pr_so = $pr_record ? ($pr_record['so_no'] ?? null) : null;
             $pr_oc = $pr_record ? ($pr_record['oc_no'] ?? null) : null;
+
+            // Generate PO number formatted with SO suffix
+            $po_number = $this->generate_po_number($pr_so);
+            $total_amount = $quotation['final_amount'] ?? 0;
+            $approval_workflow = $this->get_3level_approval_workflow($total_amount, $location_id);
 
             // Insert PO header
             $po_total_data = [
