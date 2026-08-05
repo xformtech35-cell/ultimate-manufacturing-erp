@@ -353,6 +353,8 @@ class MY_Controller extends CI_Controller {
             'created_at' => date('Y-m-d H:i:s')
         );
         
-        $this->db->insert('audit_trail', $data);
+        if ($this->db->table_exists('audit_trail')) {
+            $this->db->insert('audit_trail', $data);
+        }
     }
 }

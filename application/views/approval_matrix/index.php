@@ -85,24 +85,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                             </div>
 
                                             <div class="form-group">
-                                                <label class="col-sm-2 control-label">Department</label>
-                                                <div class="col-sm-5">
-                                                    <select name="department_id" class="form-control">
-                                                        <option value="">Select Department (All)</option>
-                                                        <?php
-                                                        if (!empty($department_result)) {
-                                                            foreach ($department_result as $dept) {
-                                                        ?>
-                                                                <option value="<?= $dept->department_id ?>"><?= htmlspecialchars($dept->department_name) ?></option>
-                                                        <?php
-                                                            }
-                                                        }
-                                                        ?>
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group">
                                                 <label class="col-sm-2 control-label">Approver Role <span style="color:red;">*</span></label>
                                                 <div class="col-sm-5">
                                                     <select name="approver_role" class="form-control" required>
@@ -112,6 +94,24 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                             foreach ($role as $r) {
                                                         ?>
                                                                 <option value="<?= $r->role_name ?>"><?= $r->role_name ?></option>
+                                                        <?php
+                                                            }
+                                                        }
+                                                        ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label class="col-sm-2 control-label">Department</label>
+                                                <div class="col-sm-5">
+                                                    <select name="department_id" class="form-control">
+                                                        <option value="">Select Department (All)</option>
+                                                        <?php
+                                                        if (!empty($department_result)) {
+                                                            foreach ($department_result as $dept) {
+                                                        ?>
+                                                                <option value="<?= $dept->department_id ?>"><?= htmlspecialchars($dept->department_name) ?></option>
                                                         <?php
                                                             }
                                                         }
