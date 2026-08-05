@@ -253,6 +253,10 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
                                                     $status_class = 'label-warning';
                                                     $status_text = 'Cancelled';
                                                     break;
+                                                case 7:
+                                                    $status_class = 'label-success';
+                                                    $status_text = 'Accepted';
+                                                    break;
                                                 default:
                                                     $status_class = 'label-default';
                                                     $status_text = 'Pending';
@@ -362,8 +366,8 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
                                                 </td>
                                                 <td>
                                                     <div class="btn-group">
-                                                        <button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">
-                                                            <span class="caret"></span></button>
+                                                        <button class="btn btn-primary dropdown-toggle" id="menu<?php echo $i; ?>" type="button" data-toggle="dropdown">
+                                                            <span class="caret"></span>
                                                         </button>
                                                         <ul class="dropdown-menu dropdown-menu-right">
                                                             <li>
@@ -601,6 +605,7 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
                                 <option value="4">Approved</option>
                                 <option value="5">Rejected</option>
                                 <option value="6">Canceled</option>
+                                <option value="7">Accepted</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -971,12 +976,6 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
                     }
                 });
             });
-                        if ($('#modal').attr('data-current-number') !== String(number)) return;
-                        $('#to_email').val('');
-                        $('#modal').modal('show');
-                    }
-                });
-            });
 
             // WhatsApp URL builder
             function buildPoWhatsAppUrl() {
@@ -1082,11 +1081,13 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
                 var number = $(this).data('number');
                 var status = $(this).data('status');
                 var remarks = $(this).data('remarks') || '';
-                $('#po_status_id').val(id);
-                $('#po_status_number').val(number);
-                $('#po_status_select').val(status);
-                $('#po_status_remarks').val(remarks);
-                $('#poStatusModal').modal('show');
+                setTimeout(function() {
+                    $('#po_status_id').val(id);
+                    $('#po_status_number').val(number);
+                    $('#po_status_select').val(status);
+                    $('#po_status_remarks').val(remarks);
+                    $('#poStatusModal').modal('show');
+                }, 50);
             });
 
             // Auto-approve checkbox handler
