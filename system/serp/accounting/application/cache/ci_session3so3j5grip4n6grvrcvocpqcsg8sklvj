@@ -1,0 +1,163 @@
+__ci_last_regenerate|i:1785919793;session_data_head|a:4:{s:6:"result";a:25:{s:7:"user_id";s:1:"1";s:8:"username";s:11:"Mr Shivansh";s:8:"password";s:60:"$2y$10$WkZo2bkOcD07u3jIw0if0eCIqxiXQfbOLbD/bQ8J572amMiPyz/8u";s:10:"user_email";s:15:"pravin@xform.in";s:4:"role";s:1:"1";s:16:"department_id_fk";s:1:"7";s:11:"location_id";s:1:"5";s:12:"created_date";s:19:"2026-01-05 13:31:30";s:7:"role_id";s:1:"1";s:9:"role_name";s:5:"Admin";s:13:"location_name";s:4:"Pune";s:7:"address";s:0:"";s:4:"city";s:0:"";s:5:"state";s:0:"";s:7:"country";s:0:"";s:8:"zip_code";s:0:"";s:5:"phone";s:0:"";s:5:"email";s:0:"";s:12:"updated_date";N;s:6:"status";s:1:"1";s:13:"department_id";s:1:"7";s:15:"department_name";s:5:"Admin";s:11:"description";s:5:"Admin";s:10:"created_at";s:19:"2026-01-09 00:41:43";s:10:"updated_at";s:19:"2026-01-09 00:41:43";}s:12:"password_str";s:4:"3756";s:8:"settings";a:84:{s:10:"setting_id";s:1:"1";s:12:"company_logo";s:22:"./uploads/UWS_LOGO.png";s:20:"quotation_subheading";s:28:"Default subheading Quotation";s:15:"quotation_title";s:23:"Default title Quotation";s:16:"quotation_footer";s:15:"Arcon Partition";s:14:"quotation_memo";s:42:"<p>Standard memo for quotation&nbsp;</p>
+";s:28:"invoice_default_payment_term";s:1:"1";s:13:"invoice_title";s:0:"";s:18:"invoice_subheading";s:0:"";s:14:"invoice_footer";s:100:"         VARSITY INDUSTRIAL PARK
+GAT NO. 462/2, VILLAGE NIGHOJE,
+NEAR MAHINDRA GATE NO. 8,
+TAL-KH";s:12:"invoice_memo";s:173:"1. Scope of requirement may change application cost will be change in future.
+
+2. Payment Terms
+-Advance 70% required before work start.
+
+3. GST Number: 27AAACX1482C1ZJ";s:13:"invoice_notes";s:383:"Payment by: Cheque or Online Transfer Company Bank Account Details for
+Online Transfer Name: Xform Technologies Private Limited Account No: 0668102000008075
+IFSC Code: IBKL0000668
+Account Type: Current Account
+Branch: IDBI Bank, S. N. 39/3, Siddheshwar, Tingre Nagar Road, Pune-411015
+Cheque will be drawn “Xform Technologies Private Limited” and sent to our company address";s:7:"address";s:105:"Plot No.19/C, Block D-1,
+Heuu Industrial Spaces, Shop No.342,
+3rd Floor, MIDC Chinchwad
+PUNE - 411019.";s:10:"state_code";s:2:"27";s:12:"company_name";s:9:"Xformtech";s:11:"company_gst";s:15:"27AAACX1482C1ZJ";s:11:"company_pan";s:10:"AAACX1482C";s:5:"notes";s:38:"<p>Notes for new quotation&nbsp;</p>
+";s:8:"po_title";s:28:"Default title Purchase Order";s:13:"po_subheading";s:34:" Default subheading Purchase Order";s:9:"po_footer";s:80:"Default footer  Purchase Order                                                  ";s:7:"po_memo";s:29:" Standard memo Purchase Order";s:7:"po_note";s:39:"<p>Note&nbsp;&nbsp;Purchase Order</p>
+";s:6:"mobile";s:10:"9890726453";s:5:"email";s:16:"contact@xform.in";s:3:"uid";s:1:"1";s:20:"terms_and_conditions";s:1152:"<p><strong>Transportation</strong></p>
+
+<ol>
+	<li>Cost of transportation from our warehouse to your designated warehouse or project site is payable extra and is not included in quoted price (unless specified)</li>
+</ol>
+
+<p><strong>Packaging</strong></p>
+
+<ol>
+	<li>Cost of normal packaging in corrugated carton/wrapping is included in quoted price but does not cover cost of wooden crating, palletisation, weather proof packing or any other special packing or fumigation charges.</li>
+</ol>
+
+<p><strong>Loading/Unloading/Handling</strong></p>
+
+<ol>
+	<li>Cost of one time loading in our warehouse is included in quoted price cost of unloading at your designated warehouse or project site is not included in quoted price.</li>
+	<li>In case of unloading is included and specifically mentioned in our quote, it shall be only at ground floor level nearest to the entrance.</li>
+</ol>
+
+<p><strong>Unloading by Mathadi</strong></p>
+
+<ol>
+	<li>Unloading by local mathadi/or any labor union member is at your cost and risk, we shall not interact/engage in any dealing with them of any kind for loading and handling of goods.</li>
+</ol>
+";s:13:"payment_terms";s:712:"<ol>
+	<li>&nbsp;50% ADVANCE,40% BEFOR GLASS,10% AFTER COMPLETION (INCLUDING GST AMOUNT)</li>
+	<li>&nbsp;Payment shall be in favour of &quot;ARCON PARTITION&quot;</li>
+	<li>&nbsp;There is No retention on behalf of &quot;ARCON PARTITION&quot;</li>
+</ol>
+
+<p><strong>Delay in project schedule</strong></p>
+
+<ol>
+	<li>&nbsp;On changing of approved specification by the client</li>
+	<li>&nbsp;On delay in approval of samples,</li>
+	<li>&nbsp;On non-receipt of payment in scheduled time by the client</li>
+	<li>&nbsp;On noncompliance of site handover or any local authority or legal approval</li>
+	<li>&nbsp;Due to natural calamity, strike, traffic problem not attributed to system installer</li>
+</ol>
+";s:16:"process_schedule";s:1314:"<p><strong>Installation</strong></p>
+
+<ol>
+	<li>&nbsp;Installation unless specifically mentioned in this offer, is not in our scope and is not included in&nbsp; &nbsp;the quoted price</li>
+	<li>&nbsp;Where installation is part of our scope same shall be specifically mentioned in our office and&nbsp; &nbsp;such installation shall not include any types of civil work whatsoever in our civil works, if any&nbsp; &nbsp;shall be scope of customer.</li>
+	<li>&nbsp;Arcon&nbsp;partition system work will start only after clearance of full site, means no part work will be done, once started Arcon partition system will finish in single trough.</li>
+	<li>&nbsp;Any changing in drawing or verbal communication at site will not be accepted until it is done on mail along with designated person only.</li>
+	<li>&nbsp;We are taking glass pannel width in partition upto 1200 mm only,if changes in above width&nbsp; &nbsp;required at site than inform us before glass measurment,if any additional cost arise from this will not be paid by us</li>
+	<li>GLASS WILL BE HAVING BEND UPTO 1MM TO 6MM PER MTR</li>
+	<li>&nbsp;INSTALLATION SCHEDULE IS SUBJECT TO PAYMENT</li>
+	<li>Delivery Schedule : 15 days after receiving PO and advance</li>
+	<li>Validity of Quotation: 15 Days from the date of this quotation</li>
+</ol>
+";s:5:"taxes";s:305:"<ol>
+	<li>&nbsp;Gst is payable extra as actual, if not included in quote</li>
+	<li>&nbsp;Any other levies and taxes, if any as mandated by the statuary authorities from time to time, at time of placing of order shall be payable extra, and is not included in quoted price (unless specified)</li>
+</ol>
+";s:10:"exclusions";s:532:"<p><strong>Security for physical material</strong></p>
+
+<ol>
+	<li>It is the responsibility of the client for security of physical material lying at site. The liability from our side ceases as soon as the acknowledged of receipt of physical material duly signed by authorized representative of client. Once the duly acknowledged received at site will not be returnable under any circumstances</li>
+</ol>
+
+<p><strong>Jurisdiction</strong></p>
+
+<ol>
+	<li>All disputes shall be subject to Mumbai jurisdiction only</li>
+</ol>
+";s:23:"po_terms_and_conditions";s:57:"<p>Terms &amp; Conditions&nbsp;&nbsp;Purchase Order</p>
+";s:16:"po_payment_terms";s:65:"<p>&nbsp;</p>
+
+<p>Payment Terms&nbsp;&nbsp;Purchase Order</p>
+";s:19:"po_process_schedule";s:68:"<p>&nbsp;</p>
+
+<p>Process Schedule&nbsp;&nbsp;Purchase Order</p>
+";s:8:"po_taxes";s:57:"<p>&nbsp;</p>
+
+<p>Taxes&nbsp;&nbsp;Purchase Order</p>
+";s:13:"po_exclusions";s:45:"<p>Exclusions&nbsp;&nbsp;Purchase Order</p>
+";s:3:"cin";s:21:"U72500PN2013PTC149350";s:13:"company_stamp";s:25:"./uploads/londhe_sign.jpg";s:26:"purchase_requisition_notes";s:778:"All purchases must comply with the specifications mentioned in the requisition. Prices are exclusive of applicable taxes unless otherwise stated. Suppliers are required to ensure proper packaging and timely delivery of goods. Any deviations from the requisition must be approved in writing by the procurement department. Partial deliveries may be accepted only with prior consent. Invoices must reference the Purchase Requisition number for proper processing. Warranty, after-sales service, and any relevant certifications should accompany the delivery. Discrepancies, damages, or shortages must be reported immediately to the requesting department to facilitate resolution. For urgent items, suppliers are expected to coordinate delivery directly with the designated requestor.";s:14:"proforma_title";s:31:" Default title Proforma Invoice";s:19:"proforma_subheading";s:36:" Default subheading Proforma Invoice";s:15:"proforma_footer";s:31:"Default footer Proforma Invoice";s:13:"proforma_memo";s:44:"<p>Standard memo&nbsp;Proforma Invoice</p>
+";s:13:"proforma_note";s:35:"<p>Note&nbsp;Proforma Invoice</p>
+";s:29:"proforma_terms_and_conditions";s:38:"<p>Terms &amp; Conditions for PI</p>
+";s:22:"proforma_payment_terms";s:29:"<p>Payment Terms for PI</p>
+";s:25:"proforma_process_schedule";s:32:"<p>Process Schedule for pi</p>
+";s:14:"proforma_taxes";s:38:"<p>&nbsp;</p>
+
+<p>Taxes for pi</p>
+";s:19:"proforma_exclusions";s:43:"<p>&nbsp;</p>
+
+<p>Exclusions for pi</p>
+";s:8:"so_title";s:17:" Default title so";s:13:"so_subheading";s:21:"Default subheading so";s:9:"so_footer";s:18:" Default footer so";s:7:"so_memo";s:42:"<p>&nbsp;</p>
+
+<p>Standard memo so</p>
+";s:7:"so_note";s:33:"<p>&nbsp;</p>
+
+<p>Note so</p>
+";s:23:"so_terms_and_conditions";s:36:"<p>Terms and conditions for so</p>
+";s:16:"so_payment_terms";s:42:"<p>&nbsp;</p>
+
+<p>Payment Terms so</p>
+";s:19:"so_process_schedule";s:45:"<p>&nbsp;</p>
+
+<p>Process Schedule so</p>
+";s:8:"so_taxes";s:34:"<p>&nbsp;</p>
+
+<p>Taxes so</p>
+";s:13:"so_exclusions";s:39:"<p>&nbsp;</p>
+
+<p>Exclusions so</p>
+";s:28:"invoice_terms_and_conditions";s:41:"<p>Terms and conditions for invoice</p>
+";s:21:"invoice_payment_terms";s:40:"<p>payment terms&nbsp; for invoice</p>
+";s:24:"invoice_process_schedule";s:37:"<p>process schedule for invoice</p>
+";s:13:"invoice_taxes";s:32:"<p>taxes&nbsp; for invoice</p>
+";s:18:"invoice_exclusions";s:30:"<p>Exclusion for invoice</p>
+";s:8:"dc_title";s:22:"Title Delivery Challan";s:13:"dc_subheading";s:27:"Subheading Delivery Challan";s:9:"dc_footer";s:20:"<p>ghjfykgulhi</p>
+";s:7:"dc_memo";s:19:"<p>utrheghjkl</p>
+";s:7:"dc_note";s:29:"<p>djtrshehrjtfykguhi/j</p>
+";s:23:"dc_terms_and_conditions";s:26:"<p>odzsacAVDFXGNHLJK</p>
+";s:16:"dc_payment_terms";s:31:"<p>LUGKYTRHSEFDZXGCHJVGKI</p>
+";s:19:"dc_process_schedule";s:45:"<p>ETSHXGFYGOR6KFYGU;YTILF.H;GULKIH;GOU</p>
+";s:8:"dc_taxes";s:26:"<p>KDHFZDXGJHVBK.L/J</p>
+";s:13:"dc_exclusions";s:33:"<p>KLJHXGFZGDHXRGTJKULI;OHJ</p>
+";s:8:"pv_title";s:22:"Title Purchase Voucher";s:13:"pv_subheading";s:27:"Subheading Purchase Voucher";s:9:"pv_footer";s:54:"<p>&nbsp;</p>
+
+<p>Footer&nbsp;Purchase Voucher</p>
+";s:7:"pv_memo";s:35:"<p>Memo&nbsp;Purchase Voucher</p>
+";s:7:"pv_note";s:52:"<p>&nbsp;</p>
+
+<p>Note&nbsp;Purchase Voucher</p>
+";s:23:"pv_terms_and_conditions";s:70:"<p>&nbsp;</p>
+
+<p>Terms &amp; Conditions&nbsp;Purchase Voucher</p>
+";s:16:"pv_payment_terms";s:61:"<p>&nbsp;</p>
+
+<p>Payment Terms&nbsp;Purchase Voucher</p>
+";s:19:"pv_process_schedule";s:64:"<p>&nbsp;</p>
+
+<p>Process Schedule&nbsp;Purchase Voucher</p>
+";s:8:"pv_taxes";s:53:"<p>&nbsp;</p>
+
+<p>Taxes&nbsp;Purchase Voucher</p>
+";s:13:"pv_exclusions";s:58:"<p>&nbsp;</p>
+
+<p>Exclusions&nbsp;Purchase Voucher</p>
+";}s:10:"permission";a:56:{i:0;s:9:"Dashboard";i:1;s:17:"Financial_Summary";i:2;s:21:"Procurement_Dashboard";i:3;s:17:"Business_Overview";i:4;s:13:"Monthly_Sales";i:5;s:21:"Purchase_And_Expenses";i:6;s:5:"Sales";i:7;s:8:"Customer";i:8;s:10:"Salesorder";i:9;s:8:"Accounts";i:10;s:8:"Proforma";i:11;s:7:"Invoice";i:12;s:7:"Receipt";i:13;s:13:"Ledger_Report";i:14;s:16:"Purchase_Voucher";i:15;s:26:"Returnable_Challan_Account";i:16;s:11:"Credit_Note";i:17;s:11:"Engineering";i:18;s:3:"Bom";i:19;s:13:"BOM_Approvals";i:20;s:6:"Design";i:21;s:7:"Drawing";i:22;s:15:"Store_Inventory";i:23;s:16:"Item_Code_Master";i:24;s:17:"Inventory_History";i:25;s:3:"GRN";i:26;s:19:"GRN_Approvals_Store";i:27;s:13:"Stock_Summary";i:28;s:18:"Stock_Verification";i:29;s:15:"Stock_Valuation";i:30;s:9:"Low_Stock";i:31;s:24:"Returnable_Challan_Store";i:32;s:14:"Material_Issue";i:33;s:21:"Material_Issue_Report";i:34;s:26:"Material_Allocation_Report";i:35;s:24:"Material_Reversal_Report";i:36;s:8:"Delivery";i:37;s:3:"MRP";i:38;s:15:"Sales_Order_MRP";i:39;s:8:"Purchase";i:40;s:3:"RFQ";i:41;s:14:"Purchase_Order";i:42;s:15:"Purchase_Master";i:43;s:10:"Production";i:44;s:8:"JobOrder";i:45;s:7:"Quality";i:46;s:21:"GRN_Approvals_Quality";i:47;s:8:"Services";i:48;s:5:"Users";i:49;s:9:"GST_Class";i:50;s:6:"Groups";i:51;s:14:"Email_Settings";i:52;s:15:"DataBase_Backup";i:53;s:3:"BOM";i:54;s:8:"Settings";i:55;s:11:"Log_History";}}session_data_head2|a:8:{s:16:"email_setting_id";s:1:"7";s:12:"company_name";s:18:"Xform technologies";s:15:"company_website";s:17:"https://xform.in/";s:12:"company_logo";s:18:"./uploads/logo.jpg";s:10:"from_email";s:21:"XFORMTECH27@GMAIL.COM";s:14:"password_email";s:4:"1234";s:8:"cc_email";s:21:"XFORMTECH27@GMAIL.COM";s:3:"uid";s:1:"1";}

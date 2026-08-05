@@ -1,0 +1,623 @@
+[
+  {
+    "title": "Dashboard",
+    "icon": "fa fa-dashboard",
+    "url": "Home/index",
+    "permission": "Dashboard",
+    "active_cond": {
+      "currentPage": "Home",
+      "page": "index"
+    }
+  },
+  {
+    "title": "Sales",
+    "icon": "fa fa-external-link",
+    "permission": "Sales",
+    "active_cond": {
+      "controllers": ["EstimateController", "CustomerController", "SalesOrderController"]
+    },
+    "submenu": [
+      {
+        "title": "Customer master",
+        "icon": "fa fa-circle-o",
+        "url": "CustomerController/index",
+        "permission": "Customer",
+        "active_cond": {
+          "currentPage": "CustomerController",
+          "pages": ["index", "get_customer_by_id"]
+        }
+      },
+      {
+        "title": "Quotation",
+        "icon": "fa fa-circle-o",
+        "url": "EstimateController/index",
+        "permission": "Quotation",
+        "active_cond": {
+          "currentPage": "EstimateController"
+        }
+      },
+      {
+        "title": "Sales Order",
+        "icon": "fa fa-circle-o",
+        "url": "SalesOrderController/index",
+        "permission": "Salesorder",
+        "active_cond": {
+          "currentPage": "SalesOrderController"
+        }
+      },
+      {
+        "title": "Projects",
+        "icon": "fa fa-circle-o",
+        "url": "SalesOrderController/index",
+        "permission": "Salesorder",
+        "active_cond": {
+          "currentPage": "SalesOrderController"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Account",
+    "icon": "fa fa-money",
+    "permission": "Accounts",
+    "active_cond": {
+      "controllers": ["ProformaInvoiceController", "InvoiceController", "PaymentController"],
+      "custom_check": "accounts"
+    },
+    "submenu": [
+      {
+        "title": "Proforma Invoice",
+        "icon": "fa fa-circle-o",
+        "url": "ProformaInvoiceController/index",
+        "permission": "Proforma",
+        "active_cond": {
+          "currentPage": "ProformaInvoiceController"
+        }
+      },
+      {
+        "title": "Sales Invoice",
+        "icon": "fa fa-circle-o",
+        "url": "InvoiceController/index",
+        "permission": "Invoice",
+        "active_cond": {
+          "currentPage": "InvoiceController",
+          "pages": ["index", "create_invoice", "create_central_gst_invoice", "show_invoice", "edit_invoice_details"]
+        }
+      },
+      {
+        "title": "Bank Entry",
+        "icon": "fa fa-circle-o",
+        "url": "BankentryController/index",
+        "permission": "Receipt",
+        "active_cond": {
+          "currentPage": "InvoiceController",
+          "page": "payment_in"
+        }
+      },
+      {
+        "title": "Ledger",
+        "icon": "fa fa-circle-o",
+        "url": "PaymentController/ledger_report",
+        "permission": "Ledger_Report",
+        "active_cond": {
+          "currentPage": "PaymentController",
+          "page": "ledger_report"
+        }
+      },
+      {
+        "title": "Purchase Voucher",
+        "icon": "fa fa-circle-o",
+        "url": "SupplierController/view_purchase_bill",
+        "permission": "Purchase_Voucher",
+        "active_cond": {
+          "currentPage": "SupplierController",
+          "pages": ["view_purchase_bill", "purchase_bill"]
+        }
+      },
+      {
+        "title": "Returnable Challan",
+        "icon": "fa fa-reply",
+        "url": "SupplierController/view_purchase_return",
+        "permission": "Returnable_Challan",
+        "active_cond": {
+          "currentPage": "SupplierController",
+          "custom_page_match": "purchase_return"
+        }
+      },
+      {
+        "title": "Credit note",
+        "icon": "fa fa-circle-o",
+        "url": "SalesReturnController/view_sales_return",
+        "permission": "Credit_Note",
+        "active_cond": {
+          "page": "sales_return"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Engineering",
+    "icon": "fa fa-sitemap",
+    "permission": "Engineering",
+    "active_cond": {
+      "currentPage": "BomController"
+    },
+    "submenu": [
+      {
+        "title": "BOM",
+        "icon": "fa fa-list-alt",
+        "url": "BomController/index",
+        "permission": "Bom",
+        "active_cond": {
+          "currentPage": "BomController"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Design",
+    "icon": "fa fa-pencil-square-o",
+    "permission": "Design",
+    "active_cond": {
+      "currentPage": "DrawingController"
+    },
+    "submenu": [
+      {
+        "title": "Drawing",
+        "icon": "fa fa-file-image-o",
+        "url": "DrawingController/index",
+        "permission": "Drawing",
+        "active_cond": {
+          "currentPage": "DrawingController",
+          "pages": ["index", "view_drawing"]
+        }
+      },
+      {
+        "title": "Add Drawing",
+        "icon": "fa fa-paint-brush",
+        "url": "DrawingController/add_drawing",
+        "permission": "Add_Drawing",
+        "active_cond": {
+          "currentPage": "DrawingController",
+          "page": "add_drawing"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Store / Inventory",
+    "icon": "fa fa-archive",
+    "permission": "Store_Inventory",
+    "active_cond": {
+      "controllers": ["InventoryController", "ItemCategoryController", "GrnController", "GstController", "UnitController", "ItemGroupController", "MaterialIssueController", "DeliveryChallanController"],
+      "custom_check": "store_inventory"
+    },
+    "submenu": [
+      {
+        "title": "Item code master",
+        "icon": "fa fa-cube",
+        "permission": "Item_Code_Master",
+        "active_cond": {
+          "controllers": ["InventoryController", "ItemCategoryController", "GstController", "UnitController", "ItemGroupController"],
+          "custom_check": "item_code_master"
+        },
+        "submenu": [
+          {
+            "title": "GST",
+            "icon": "fa fa-percent",
+            "url": "GstController/gst_index",
+            "active_cond": { "currentPage": "GstController", "page": "gst_index" }
+          },
+          {
+            "title": "Units",
+            "icon": "fa fa-balance-scale",
+            "url": "UnitController/unit_index",
+            "active_cond": { "currentPage": "UnitController", "page": "unit_index" }
+          },
+          {
+            "title": "Item Code",
+            "icon": "fa fa-cube",
+            "url": "InventoryController/index",
+            "active_cond": { "currentPage": "InventoryController", "pages": ["index", "get_inventory_by_id"] }
+          },
+          {
+            "title": "Item Category",
+            "icon": "fa fa-tags",
+            "url": "ItemCategoryController/index",
+            "active_cond": { "currentPage": "ItemCategoryController", "page": "index" }
+          },
+          {
+            "title": "Item Group",
+            "icon": "fa fa-object-group",
+            "url": "ItemGroupController/index",
+            "active_cond": { "currentPage": "ItemGroupController", "page": "index" }
+          }
+        ]
+      },
+      {
+        "title": "Inventory History",
+        "icon": "fa fa-history",
+        "url": "InventoryController/inventory_history",
+        "permission": "Inventory_History",
+        "active_cond": {
+          "currentPage": "InventoryController",
+          "page": "inventory_history"
+        }
+      },
+      {
+        "title": "GRN",
+        "icon": "fa fa-truck",
+        "url": "GrnController/grn_index",
+        "permission": "GRN",
+        "active_cond": {
+          "currentPage": "GrnController",
+          "pages": ["grn_index", "show_grn", "create_grn", "edit_grn", "conduct_inspection"]
+        }
+      },
+      {
+        "title": "GRN Approvals",
+        "icon": "fa fa-check-circle",
+        "url": "GrnController/grn_approvals",
+        "permission": "GRN",
+        "active_cond": {
+          "currentPage": "GrnController",
+          "pages": ["grn_approvals", "show_grn_approval_details"]
+        },
+        "badge": {
+          "type": "grn_approvals"
+        }
+      },
+      {
+        "title": "Stock Summary",
+        "icon": "fa fa-bar-chart",
+        "url": "MaterialIssueController/stock_summary",
+        "permission": "Stock_Summary",
+        "active_cond": {
+          "currentPage": "MaterialIssueController",
+          "page": "stock_summary"
+        }
+      },
+      {
+        "title": "Stock Verification",
+        "icon": "fa fa-check-square",
+        "url": "MaterialIssueController/stock_verification",
+        "permission": "Stock_Verification",
+        "active_cond": {
+          "currentPage": "MaterialIssueController",
+          "page": "stock_verification"
+        }
+      },
+      {
+        "title": "Stock Valuation",
+        "icon": "fa fa-calculator",
+        "url": "MaterialIssueController/stock_valuation",
+        "permission": "Stock_Valuation",
+        "active_cond": {
+          "currentPage": "MaterialIssueController",
+          "page": "stock_valuation"
+        }
+      },
+      {
+        "title": "Low Stock Alert",
+        "icon": "fa fa-bell",
+        "url": "MaterialIssueController/low_stock",
+        "permission": "Low_Stock",
+        "active_cond": {
+          "currentPage": "MaterialIssueController",
+          "page": "low_stock"
+        }
+      },
+      {
+        "title": "Returnable Challan",
+        "icon": "fa fa-reply",
+        "url": "SupplierController/view_purchase_return",
+        "permission": "Returnable_Challan",
+        "active_cond": {
+          "currentPage": "SupplierController",
+          "custom_page_match": "purchase_return"
+        }
+      },
+      {
+        "title": "Material Issue",
+        "icon": "fa fa-exchange",
+        "url": "MaterialIssueController/index",
+        "permission": "Material_Issue",
+        "active_cond": {
+          "currentPage": "MaterialIssueController",
+          "pages": ["index", "view", "create", "print_slip", "approve", "cancel"]
+        }
+      },
+      {
+        "title": "Material Issue Report",
+        "icon": "fa fa-file-text-o",
+        "url": "ReportController/create_material_issue_report",
+        "permission": "Material_Issue_Report",
+        "active_cond": {
+          "currentPage": "ReportController",
+          "pages": ["create_material_issue_report", "get_material_issue_report_by_date_xlsx"]
+        }
+      },
+      {
+        "title": "Material Allocation Report",
+        "icon": "fa fa-file-text-o",
+        "url": "ReportController/material_allocation_report",
+        "permission": "Material_Allocation_Report",
+        "active_cond": {
+          "currentPage": "ReportController",
+          "page": "material_allocation_report"
+        }
+      },
+      {
+        "title": "Material Reversal Report",
+        "icon": "fa fa-file-text-o",
+        "url": "ReportController/material_reversal_report",
+        "permission": "Material_Reversal_Report",
+        "active_cond": {
+          "currentPage": "ReportController",
+          "pages": ["material_reversal_report", "get_material_reversal_report_xlsx"]
+        }
+      },
+      {
+        "title": "Delivery Challan",
+        "icon": "fa fa-send",
+        "url": "DeliveryChallanController/index",
+        "permission": "Delivery",
+        "active_cond": {
+          "currentPage": "DeliveryChallanController"
+        }
+      },
+      {
+        "title": "MRP",
+        "icon": "fa fa-cogs",
+        "permission": "MRP",
+        "active_cond": {
+          "currentPage": "MaterialIssueController",
+          "pages": ["sales_order_mrp", "run_sales_order_mrp"]
+        },
+        "submenu": [
+          {
+            "title": "BOM Order MRP",
+            "icon": "fa fa-list-alt",
+            "url": "MaterialIssueController/sales_order_mrp",
+            "permission": "Sales_Order_MRP",
+            "active_cond": {
+              "currentPage": "MaterialIssueController",
+              "pages": ["sales_order_mrp", "run_sales_order_mrp"]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Purchase",
+    "icon": "fa fa-shopping-basket",
+    "permission": "Purchase",
+    "active_cond": {
+      "currentPage": "SupplierController",
+      "custom_check": "purchase"
+    },
+    "submenu": [
+      {
+        "title": "Purchase Requisition",
+        "icon": "fa fa-file-text-o",
+        "active_cond": {
+          "pages": ["view_requisition_order", "create_purchase_requisition", "show_requisition", "edit_requisition", "my_requisitions"]
+        },
+        "submenu": [
+          {
+            "title": "Create New PR",
+            "icon": "fa fa-plus-circle",
+            "url": "RequisitionController/create_purchase_requisition",
+            "active_cond": { "page": "create_purchase_requisition" }
+          },
+          {
+            "title": "View all PRs",
+            "icon": "fa fa-list",
+            "url": "RequisitionController/view_requisition_order",
+            "active_cond": { "page": "view_requisition_order" }
+          },
+          {
+            "title": "My Requisitions",
+            "icon": "fa fa-user",
+            "url": "RequisitionController/my_requisitions",
+            "active_cond": { "page": "my_requisitions" }
+          }
+        ]
+      },
+      {
+        "title": "Approval Workflow",
+        "icon": "fa fa-check-circle-o",
+        "active_cond": {
+          "pages": ["approval_dashboard", "view_for_approval", "view_approval_history", "test_approval"]
+        },
+        "submenu": [
+          {
+            "title": "Pending Approvals",
+            "icon": "fa fa-clock-o",
+            "url": "RequisitionController/approval_dashboard",
+            "active_cond": { "page": "approval_dashboard" }
+          },
+          {
+            "title": "Approval History",
+            "icon": "fa fa-history",
+            "url": "RequisitionController/list_approval_history",
+            "active_cond": { "page": "list_approval_history" }
+          }
+        ]
+      },
+      {
+        "title": "RFQ",
+        "icon": "fa fa-circle-o",
+        "url": "RFQController/index",
+        "permission": "RFQ",
+        "active_cond": {
+          "currentPage": "RFQController"
+        }
+      },
+      {
+        "title": "Purchase Order",
+        "icon": "fa fa-circle-o",
+        "url": "SupplierController/view_purchase_order",
+        "permission": "Purchase_Order",
+        "active_cond": {
+          "currentPage": "SupplierController",
+          "pages": ["view_purchase_order", "create_purchase_", "show_po", "edit_po_details"]
+        }
+      },
+      {
+        "title": "Purchase Master(Vender)",
+        "icon": "fa fa-circle-o",
+        "url": "SupplierController/index",
+        "permission": "Purchase_Master",
+        "active_cond": {
+          "currentPage": "SupplierController",
+          "pages": ["index", "get_supplier_by_id"]
+        }
+      },
+      {
+        "title": "PO Approval",
+        "icon": "fa fa-check-circle",
+        "url": "SupplierController/po_approvals",
+        "active_cond": {
+          "page": "po_approvals"
+        },
+        "badge": {
+          "type": "po_approvals"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Production",
+    "icon": "fa fa-industry",
+    "permission": "Production",
+    "active_cond": {
+      "currentPage": "JobOrderController"
+    },
+    "submenu": [
+      {
+        "title": "Job Order",
+        "icon": "fa fa-circle-o",
+        "url": "JobOrderController/index",
+        "permission": "JobOrder",
+        "active_cond": {
+          "currentPage": "JobOrderController"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Quality",
+    "icon": "fa fa-shield",
+    "permission": "Quality",
+    "active_cond": {
+      "currentPage": "GrnController",
+      "page": "grn_approvals"
+    },
+    "submenu": [
+      {
+        "title": "GRN Approvals",
+        "icon": "fa fa-check-circle",
+        "url": "GrnController/grn_approvals",
+        "permission": "GRN",
+        "active_cond": {
+          "currentPage": "GrnController",
+          "pages": ["grn_approvals", "show_grn_approval_details"]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Service",
+    "icon": "fa fa-wrench",
+    "permission": "Services",
+    "active_cond": {
+      "currentPage": "ServiceOrderController"
+    },
+    "submenu": [
+      {
+        "title": "Service Order",
+        "icon": "fa fa-circle-o",
+        "url": "ServiceOrderController/index",
+        "active_cond": {
+          "currentPage": "ServiceOrderController"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Users",
+    "icon": "fa fa-users",
+    "url": "UserController/index",
+    "permission": "Users",
+    "active_cond": {
+      "currentPage": "UserController",
+      "page": "index"
+    }
+  },
+  {
+    "title": "Approval Matrix",
+    "icon": "fa fa-building",
+    "url": "ApprovalMatrixController/index",
+    "permission": "GST_Class",
+    "active_cond": {
+      "page": "index"
+    }
+  },
+  {
+    "title": "Group and Roles",
+    "icon": "fa fa-users",
+    "permission": "Groups",
+    "active_cond": {
+      "controllers": ["team", "role", "group"],
+      "pages": ["teammember", "createteam", "role", "group"]
+    },
+    "submenu": [
+      {
+        "title": "Roles",
+        "icon": "fa fa-circle-o",
+        "url": "RoleController/index",
+        "active_cond": {
+          "currentPage": "role"
+        }
+      },
+      {
+        "title": "Groups",
+        "icon": "fa fa-circle-o",
+        "url": "RoleController/show_group",
+        "active_cond": {
+          "currentPage": "group"
+        }
+      }
+    ]
+  },
+  {
+    "title": "Email Setting",
+    "icon": "fa fa-envelope",
+    "url": "EmailController/email_setting",
+    "permission": "Email_Settings",
+    "active_cond": {
+      "page": "email_setting"
+    }
+  },
+  {
+    "title": "Database Backup",
+    "icon": "fa fa-database",
+    "url": "Welcome/database_backup",
+    "permission": "DataBase_Backup",
+    "active_cond": {
+      "page": "database_backup"
+    }
+  },
+  {
+    "title": "Company Settings",
+    "icon": "fa fa-cogs",
+    "url": "LoginController/get_settings",
+    "permission": "Settings",
+    "active_cond": {
+      "controllers": ["LoginController"],
+      "pages": ["settings", "get_settings"]
+    }
+  }
+]

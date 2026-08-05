@@ -1,0 +1,54 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Feb 5, 2018, 1:42:45 PM
+    Author     : Sharad
+*/
+
+/*
+	 CSS-Tricks Example
+	 by Chris Coyier
+	 http://css-tricks.com
+*/
+
+* { margin: 0; padding: 0; }
+body { font: 14px Georgia, serif; }
+
+article, aside, figure, footer, header, hgroup,
+menu, nav, section { display: block; }
+
+#page-wrap { width: 960px; margin: 70px auto; }
+
+input[type=search] { 
+
+	margin: 0 0 20px 0; 
+	
+	/* Will be ignored 
+	padding: 30px;            /* Overridden by padding: 1px; 
+	font-family: Georgia;     /* Overridden by font: -webkit-small-control; 
+	border: 5px solid black;  /* Overridden by border: 2px inset; 
+	background: red;          /* Overridden by background-color: white; 
+	line-height: 3;           /* Irrelevant, I guess 
+	*/
+	
+	/* Will break it! 
+	text-indent: 20px;
+	*/ 
+	
+	
+	/* Works fine 
+	color: red;  
+	letter-spacing: 4px;
+	text-align: right;
+	cursor: pointer;
+	display: block; 
+	width: 100%; 
+	text-shadow: 0 0 2px black;        /* Probably shouldn't
+	word-spacing: 20px;                /* Probably shouldn't
+	*/ 
+	
+}
+

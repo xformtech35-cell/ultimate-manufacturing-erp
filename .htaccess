@@ -1,0 +1,28 @@
+RewriteEngine on
+RewriteBase /manufacturing-erp/ultimate-manufacturing-erp/
+
+# Increase PHP input limits to allow large job orders (50+ line items)
+php_value max_input_vars 15000
+php_value max_multipart_body_parts 15000
+php_value post_max_size 64M
+php_value upload_max_filesize 64M
+php_value max_execution_time 300
+php_value memory_limit 256M
+
+RewriteCond $1 !^(index\.php|(.*)\.swf|forums|images|css|downloads|jquery|js|robots\.txt|favicon\.ico)
+
+RewriteCond %{REQUEST_URI} ^system.*
+RewriteRule ^(.*)$ /index.php?/$1[L]
+
+RewriteCond %{REQUEST_URI} ^application.*
+RewriteRule ^(.*)$ /index.php?/$1[L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]
+
+#php_value upload_max_filesize 70M
+
+
+
+

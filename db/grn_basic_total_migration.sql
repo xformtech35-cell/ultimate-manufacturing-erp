@@ -1,0 +1,2 @@
+ALTER TABLE grn_total ADD COLUMN basic_total DECIMAL(15,2) DEFAULT 0.00 AFTER total;
+

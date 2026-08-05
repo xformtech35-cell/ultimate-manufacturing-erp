@@ -1,0 +1,94 @@
+<?php
+$session_data_head1 = $this->session->userdata('session_data_head');
+if (isset($session_data_head1)) {
+    
+} else {
+    header($this->config->item('header'));
+}
+defined('BASEPATH') OR exit('No direct script access allowed');
+?>
+<body class="hold-transition skin-blue sidebar-mini">
+    <div class="wrapper">
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <section class="content-header">
+                <h1>
+                    Row Item Delivered
+                </h1>
+                <ol class="breadcrumb">
+                    <li><a href="<?php echo base_url() . 'Home/index/' ?>"><i class="fa fa-dashboard"></i>Home</a></li>
+                    <li><a href="#">Item Delivered</a></li>
+                    <li class="active">Row Item Delivered</li>
+                </ol>
+            </section>
+
+            <!-- Main content -->
+            <section class="content">
+                <div class="row">
+                    <!-- left column -->
+                    <div class="col-md-6">
+                        <!-- Horizontal Form -->
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Row Item Delivered</h3>
+                            </div>
+                            <!-- /.box-header -->
+                            <!-- form start -->
+                            <form class="form-horizontal form_overlay" method="post" action="<?php echo base_url(); ?>PlanningController/get_total_row_item_delivered">
+                                <div class="box-body">
+                                    <div class="form-group">
+                                        <label for="inputEmail3" class="col-sm-3 control-label ">From Date<span style="color: red;">*</span></label>
+
+                                        <div class="col-sm-9">
+                                            <input type="text" id="from_date" class="form-control backdate" name="from_date" required="">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="inputEmail3" class="col-sm-3 control-label ">To Date<span style="color: red;">*</span></label>
+
+                                        <div class="col-sm-9">
+                                            <input type="text" id="to_date" class="form-control backdate" name="to_date" required="">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <label for="inputEmail3" class="col-sm-3 control-label">Row Item</label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control input-sm company_search_name" required="" name="raw_item_name" id="raw_item_name">
+                                                <option value="">Select Row Item</option>
+                                                <?php foreach ($row_item_name as $key) { ?>
+                                                    <option value="<?php echo $key->raw_item_name; ?>"><?php echo $key->raw_item_name; ?></option> 
+                                                <?php } ?>  
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- /.box-body -->
+                                <div class="box-footer">
+                                    <button type="reset" class="btn btn-default">Cancel</button>
+                                    <button type="submit" class="btn btn-success pull-right">Submit</button>
+                                </div>
+                                <!-- /.box-footer -->
+                            </form>
+                        </div>
+                        <!-- /.box -->
+
+                    </div>
+                    <!--/.col (left ) -->
+
+                    
+                </div>
+                <!-- /.row -->
+                
+            </section>
+            <!-- /.content -->
+
+        </div>
+
+        <?php $this->load->view('admin/footer'); ?>
+        <div class="control-sidebar-bg"></div>
+    </div>
+    <!-- ./wrapper -->
+
+
