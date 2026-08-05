@@ -1200,7 +1200,7 @@ class SupplierController extends MY_Controller
         }
 
         $this->db->where('number_fk', $po_number);
-        $result = $this->db->update('purchase_order_total', $data_status);
+        $result = $this->db->update('po_total', $data_status);
 
         if ($result) {
             $this->session->set_flashdata('SUCCESSMSG', "Purchase Order status updated successfully!!");
