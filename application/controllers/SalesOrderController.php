@@ -134,7 +134,16 @@ private function get_invoice_total_id($invoice_number)
         $data['salesorder_draft_count'] = $this->salesorder->get_salesorder_draft_count($draft_status, $this->user_id);
         $sent_status = 2;
         $data['salesorder_sent_count'] = $this->salesorder->get_salesorder_draft_count($sent_status, $this->user_id);
-        // print_r($data['salesorder_sent_count']);die();
+        // Load system team users for CC selection
+        $team_users = $this->db->select('username, user_email')
+                                ->from('user')
+                                ->where('user_email IS NOT NULL')
+                                ->where('user_email !=', '')
+                                ->group_by('user_email')
+                                ->get()
+                                ->result_array();
+        $data['team_users'] = $team_users;
+
         $session_data_head = $this->session->userdata('session_data_head');
         $this->load->view('admin/header_side_bar', $session_data_head);
         $this->load->view('salesorder/view_salesorder', $data);
@@ -161,6 +170,14 @@ private function get_invoice_total_id($invoice_number)
         $data['salesorder_id'] = $this->salesorder->get_last_salesorder_number($this->user_id);
         $data['company_name'] = $this->salesorder->get_company_name($this->user_id);
         $data['result'] = $this->salesorder->get_customer($this->user_id);
+        // Load system team users for CC selection
+        $data['team_users'] = $this->db->select('username, user_email')
+                                       ->from('user')
+                                       ->where('user_email IS NOT NULL')
+                                       ->where('user_email !=', '')
+                                       ->group_by('user_email')
+                                       ->get()
+                                       ->result_array();
         $session_data_head = $this->session->userdata('session_data_head');
         $this->load->view('admin/header_side_bar', $session_data_head);
         $this->load->view('salesorder/view_salesorder', $data);
@@ -1245,8 +1262,24 @@ public function edit_salesorder_salesorder()
         $this->email->to($to_email);
         $this->email->subject($subject);
 
-        if ($copy_email) {
-            $this->email->cc($set_cc_email);
+        // Collect CC emails (array of checkboxes and custom entries)
+        $cc_list = array();
+        $cc_emails_post = $this->input->post('cc_emails');
+        if (!empty($cc_emails_post) && is_array($cc_emails_post)) {
+            foreach ($cc_emails_post as $cc_item) {
+                $cc_item = trim($cc_item);
+                if (!empty($cc_item) && filter_var($cc_item, FILTER_VALIDATE_EMAIL)) {
+                    $cc_list[] = $cc_item;
+                }
+            }
+        }
+        // Fallback for single checkbox option
+        if ($copy_email && !empty($set_cc_email) && !in_array($set_cc_email, $cc_list)) {
+            $cc_list[] = $set_cc_email;
+        }
+
+        if (!empty($cc_list)) {
+            $this->email->cc(array_unique($cc_list));
         }
 
         $htmlContent11 = '
@@ -1431,6 +1464,25 @@ public function edit_salesorder_salesorder()
                 redirect('SalesOrderController/index');
             }
         }
+    }
+
+    public function update_salesorder_status()
+    {
+        $so_number = $this->input->post('so_number');
+        $status = $this->input->post('status');
+        $data_status = array('status' => $status);
+
+        if ($status == 4) { // Approved
+            $data_status['approved_by'] = $this->user_id;
+        }
+
+        $result = $this->salesorder->edit_gst_salesorder_status($data_status, $so_number, $this->user_id);
+        if ($result) {
+            $this->session->set_flashdata('SUCCESSMSG', "Sales Order status updated successfully!!");
+        } else {
+            $this->session->set_flashdata('INFOMSG', "Failed to update status!");
+        }
+        redirect('SalesOrderController/index');
     }
 
     public function get_customer_email()

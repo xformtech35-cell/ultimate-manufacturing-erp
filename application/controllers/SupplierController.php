@@ -1190,6 +1190,25 @@ class SupplierController extends MY_Controller
             $this->session->set_flashdata('INFOMSG', "Purchase Order not deleted successfully!!");
             redirect('SupplierController/view_purchase_order');
         }
+    public function update_po_status()
+    {
+        $po_number = $this->input->post('po_number');
+        $status = $this->input->post('status');
+        $data_status = array('status' => $status);
+
+        if ($status == 4) { // Approved
+            $data_status['approved_by'] = $this->user_id;
+        }
+
+        $this->db->where('number_fk', $po_number);
+        $result = $this->db->update('purchase_order_total', $data_status);
+
+        if ($result) {
+            $this->session->set_flashdata('SUCCESSMSG', "Purchase Order status updated successfully!!");
+        } else {
+            $this->session->set_flashdata('INFOMSG', "Failed to update status!");
+        }
+        redirect('SupplierController/view_purchase_order');
     }
 
     public function send_po_email()

@@ -170,10 +170,10 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
                                                             <li><a href="<?php echo base_url() . 'SalesOrderController/show_salesorder/' . $key->id; ?>" class="js-gear-view">View</a></li>
                                                             <li><a href="<?php echo base_url() . 'SalesOrderController/edit_salesorder_details/' . $key->id ?>" class="js-gear-edit">Edit</a></li>
-                                                            <!--                                                            <li><a href="<?php echo base_url() . 'SalesOrderController/print_salesorder/' . $key->id ?>">Print</a></li>-->
+                                                            <li><a class="change-so-status-btn" href="#" data-id="<?php echo $key->id; ?>" data-number="<?php echo $key->number; ?>" data-status="<?php echo $key->status; ?>"><i class="fa fa-refresh"></i> Change Status</a></li>
                                                             <li><a href="<?php echo base_url() . 'SalesOrderController/delete_salesorder_by_quote_number/' . $key->number; ?>" class="js-gear-delete">Delete</a></li>
                                                         </ul>
-                                                    </div>
+                                                     </div>
 
                                                 </td>
                                             </tr>
@@ -267,9 +267,44 @@ defined('BASEPATH') or exit('No direct script access allowed');
                             </div>
 
                             <div class="form-group row">
-                                <label for="inputEmail3" class="col-sm-4 control-label">Send a copy to</label>
-                                <div class="col-sm-7">
-                                    <input type="checkbox" name="copy_email" id="copy_email"> <?php echo $set_cc_email; ?>
+                                <label for="inputEmail3" class="col-sm-3 control-label">Copy to (CC)</label>
+                                <div class="col-sm-8">
+                                    <div style="border: 1px solid #d2d6de; border-radius: 4px; padding: 10px; background: #fafafa;">
+                                        <div style="max-height: 140px; overflow-y: auto; padding-right: 5px; margin-bottom: 6px;">
+                                            <?php if (!empty($set_cc_email)): ?>
+                                                <div style="margin-bottom: 6px;">
+                                                    <label style="font-weight: 600; cursor: pointer; margin-bottom: 0;">
+                                                        <input type="checkbox" name="cc_emails[]" value="<?php echo htmlspecialchars($set_cc_email); ?>" checked>
+                                                        <i class="fa fa-envelope-o text-primary"></i> <?php echo htmlspecialchars($set_cc_email); ?>
+                                                        <small class="text-muted">(Default CC)</small>
+                                                    </label>
+                                                </div>
+                                            <?php endif; ?>
+
+                                            <?php if (!empty($team_users)): ?>
+                                                <?php foreach ($team_users as $t_user): ?>
+                                                    <?php if (!empty($t_user['user_email']) && $t_user['user_email'] !== $set_cc_email): ?>
+                                                        <div style="margin-bottom: 6px;">
+                                                            <label style="font-weight: normal; cursor: pointer; margin-bottom: 0;">
+                                                                <input type="checkbox" name="cc_emails[]" value="<?php echo htmlspecialchars($t_user['user_email']); ?>">
+                                                                <?php echo htmlspecialchars($t_user['username']); ?> <small class="text-muted">(<?php echo htmlspecialchars($t_user['user_email']); ?>)</small>
+                                                            </label>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
+
+                                            <div id="so_custom_cc_container"></div>
+                                        </div>
+
+                                        <div style="padding-top: 8px; border-top: 1px dashed #ccc; display: flex; gap: 6px; align-items: center;">
+                                            <input type="email" id="so_new_custom_cc_email" class="form-control input-sm" placeholder="Add custom CC email (e.g. name@company.com)" onkeydown="if(event.key==='Enter'){event.preventDefault();addSoCustomCcEmail();}">
+                                            <button type="button" class="btn btn-sm btn-info" onclick="addSoCustomCcEmail()" style="white-space: nowrap;">
+                                                <i class="fa fa-plus"></i> Add
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <small class="help-block" style="margin-top: 3px; font-size: 11px; margin-bottom: 0;">Select team emails or add custom email addresses to CC on this Sales Order.</small>
                                 </div>
                             </div>
 
@@ -279,6 +314,39 @@ defined('BASEPATH') or exit('No direct script access allowed');
                         <button type="submit" id="btnSave" class="btn btn-success"><i class="fa fa-paper-plane" aria-hidden="true"></i>
                             Send</button>
                         <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="glyphicon glyphicon-remove"></i> Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Status Modal -->
+    <div id="soStatusModal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header btn-primary">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title"><i class="fa fa-refresh"></i> Change Status</h4>
+                </div>
+                <form method="post" action="<?php echo base_url(); ?>SalesOrderController/update_salesorder_status">
+                    <div class="modal-body">
+                        <input type="hidden" name="so_id" id="so_status_id">
+                        <input type="hidden" name="so_number" id="so_status_number">
+                        <div class="form-group">
+                            <label>Status<span style="color:red;">*</span></label>
+                            <select name="status" id="so_status_select" class="form-control" required>
+                                <option value="1">Draft</option>
+                                <option value="2">Sent</option>
+                                <option value="3">Viewed</option>
+                                <option value="4">Approved</option>
+                                <option value="5">Rejected</option>
+                                <option value="6">Canceled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-check"></i> Update</button>
+                        <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
                     </div>
                 </form>
             </div>
@@ -395,6 +463,17 @@ defined('BASEPATH') or exit('No direct script access allowed');
                 buildSoWhatsAppUrl();
             });
 
+            $(document).on('click', '.change-so-status-btn', function(e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+                var number = $(this).data('number');
+                var status = $(this).data('status');
+                $('#so_status_id').val(id);
+                $('#so_status_number').val(number);
+                $('#so_status_select').val(status);
+                $('#soStatusModal').modal('show');
+            });
+
             $(document).on('click', '#so_whatsapp_send_btn', function() {
                 var mobile = $('#so_whatsapp_mobile').val().replace(/[^0-9]/g, '');
                 var message = $('#so_whatsapp_message').val();
@@ -405,4 +484,37 @@ defined('BASEPATH') or exit('No direct script access allowed');
                 window.open('https://wa.me/' + mobile + '?text=' + encodeURIComponent(message), '_blank', 'noopener');
             });
         });
+
+        function addSoCustomCcEmail() {
+            var emailInput = $('#so_new_custom_cc_email');
+            var emailVal = $.trim(emailInput.val());
+            if (!emailVal) {
+                alert('Please enter an email address.');
+                return;
+            }
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailVal)) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+            var exists = false;
+            $('input[name="cc_emails[]"]').each(function() {
+                if ($(this).val().toLowerCase() === emailVal.toLowerCase()) {
+                    exists = true;
+                    $(this).prop('checked', true);
+                }
+            });
+            if (exists) {
+                emailInput.val('');
+                return;
+            }
+            var html = '<div style="margin-bottom: 6px;">' +
+                       '<label style="font-weight: normal; cursor: pointer; margin-bottom: 0;">' +
+                       '<input type="checkbox" name="cc_emails[]" value="' + emailVal + '" checked> ' +
+                       emailVal + ' <small class="text-info">(Custom)</small>' +
+                       '</label>' +
+                       '</div>';
+            $('#so_custom_cc_container').append(html);
+            emailInput.val('');
+        }
     </script>

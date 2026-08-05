@@ -420,6 +420,11 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
                                                                 <?php endif; ?>
                                                             </li>
 
+                                                            <li>
+                                                                <a href="#" class="change-po-status-btn" data-id="<?php echo $key->id; ?>" data-number="<?php echo $key->number; ?>" data-status="<?php echo $key->status; ?>">
+                                                                    <i class="fa fa-refresh text-primary"></i> Change Status
+                                                                </a>
+                                                            </li>
 
                                                             <li role="separator" class="divider"></li>
                                                             <li>
@@ -569,6 +574,39 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary"><i class="fa fa-send"></i> Send </button>
                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change PO Status Modal -->
+    <div id="poStatusModal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title"><i class="fa fa-refresh"></i> Change PO Status</h4>
+                </div>
+                <form method="post" action="<?php echo base_url(); ?>SupplierController/update_po_status">
+                    <div class="modal-body">
+                        <input type="hidden" name="po_id" id="po_status_id">
+                        <input type="hidden" name="po_number" id="po_status_number">
+                        <div class="form-group">
+                            <label>Status<span style="color:red;">*</span></label>
+                            <select name="status" id="po_status_select" class="form-control" required>
+                                <option value="1">Draft</option>
+                                <option value="2">Sent</option>
+                                <option value="3">Viewed</option>
+                                <option value="4">Approved</option>
+                                <option value="5">Rejected</option>
+                                <option value="6">Canceled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-check"></i> Update</button>
+                        <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
                     </div>
                 </form>
             </div>
@@ -1031,6 +1069,18 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
                 }, 50);
 
                 return false;
+            });
+
+            // Change PO Status modal handler
+            $(document).on('click', '.change-po-status-btn', function(e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+                var number = $(this).data('number');
+                var status = $(this).data('status');
+                $('#po_status_id').val(id);
+                $('#po_status_number').val(number);
+                $('#po_status_select').val(status);
+                $('#poStatusModal').modal('show');
             });
 
             // Auto-approve checkbox handler

@@ -88,7 +88,12 @@ class Salesorder extends CI_Model
 
     public function get_customer_email($number, $uid)
     {
-        $this->db->select("customer.email, COALESCE(customer.customer_mobile, customer.mobile, '') as mobile", FALSE);
+        $has_customer_mobile = $this->db->field_exists('customer_mobile', 'customer');
+        if ($has_customer_mobile) {
+            $this->db->select("customer.email, COALESCE(customer.customer_mobile, customer.mobile, '') as mobile", FALSE);
+        } else {
+            $this->db->select("customer.email, customer.mobile as mobile");
+        }
         $this->db->from('salesorder_total');
         $this->db->where('salesorder_total.number_fk', $number);
         // $this->db->where('salesorder_total.uid', $uid);
