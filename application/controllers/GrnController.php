@@ -162,11 +162,11 @@ class GrnController extends MY_Controller
         $invoice_date = $this->input->post('invoice_date');
         $total_grn_amount1 = $this->input->post('total_quotation_amount');
 
-        $item_count = count($product_name);
+        $item_count = is_array($product_name) ? count($product_name) : 0;
         $data = array();
 
         for ($i = 0; $i < $item_count; $i++) {
-            if ($product_name[$i] != '' && $quantity[$i] != '' && $price[$i] != '') {
+            if (!empty($product_name[$i]) && $quantity[$i] != '' && $price[$i] != '') {
                 $data[] = array(
                     'supplier_id' => $supplier_id,
                     'grn_number' => $grn_number,
@@ -197,6 +197,13 @@ class GrnController extends MY_Controller
             }
         }
 
+        // Guard against empty item list
+        if (empty($data)) {
+            $this->session->set_flashdata('INFOMSG', "Please add at least one product item to create a GRN.");
+            redirect('GrnController/create_grn');
+            return;
+        }
+
         $this->db->insert_batch('grn', $data);
 
         // Add GRN total with approval status - Round off the final amount
@@ -207,52 +214,63 @@ class GrnController extends MY_Controller
             'approval_status' => 'pending_approval'
         );
 
-        // Stock updates and ledger entries are removed from GRN creation.
-        // They are processed only upon GRN approval to prevent double-counting.
-
         $result = $this->grn->add_total_grn_amount($data_toatl_amount);
 
-        // Get PO location context
-        $location_id = $this->grn->get_po_location($po_number);
+        // Handle approval workflow — wrapped in try/catch so GRN always saves
+        // even if approval configuration is incomplete
+        $approval_message = '';
+        try {
+            // Fix: use $po_number_fk (was incorrectly $po_number — undefined variable)
+            $location_id = $this->grn->get_po_location($po_number_fk);
 
-        // Get GRN approval workflow
-        $approval_workflow = $this->grn->get_grn_approval_workflow($total_grn_amount1, 'GRN', $location_id);
+            // Get GRN approval workflow
+            $approval_workflow = $this->grn->get_grn_approval_workflow($total_grn_amount1, 'GRN', $location_id);
 
-        // Create approval requests
-        foreach ($approval_workflow['workflow'] as $level => $approval) {
-            $this->db->insert('grn_approvals', [
-                'grn_number' => $grn_number,
-                'approval_level' => $approval['level_name'],
-                'approver_role' => $approval['role'],
-                'approver_email' => $approval['email'],
-                'status' => $approval['status'],
-                'level' => $level,
-                'created_at' => date('Y-m-d H:i:s'),
-                'uid' => $this->user_id
-            ]);
-        }
-        // Update grn_total with approval status
-        $this->db->where('number_fk', $grn_number);
-        $this->db->update('grn_total', [
-            'approval_status' => 'pending_approval',
-            'approval_level' => $approval_workflow['current_level'],
-            'current_approver' => $approval_workflow['current_approver']
-        ]);
+            // Create approval requests
+            if (!empty($approval_workflow['workflow'])) {
+                foreach ($approval_workflow['workflow'] as $level => $approval) {
+                    $this->db->insert('grn_approvals', [
+                        'grn_number' => $grn_number,
+                        'approval_level' => $approval['level_name'],
+                        'approver_role' => $approval['role'],
+                        'approver_email' => !empty($approval['email']) ? $approval['email'] : 'admin@system.local',
+                        'status' => $approval['status'],
+                        'level' => $level,
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'uid' => $this->user_id
+                    ]);
+                }
 
-        // Send approval notification email
-        $grn_data = $this->grn->get_grn_data_group_by($grn_number, $this->user_id);
-        if ($grn_data && !empty($approval_workflow['current_approver'])) {
-            $this->Email_model->send_grn_approval_notification(
-                $grn_number,
-                $approval_workflow['current_approver'],
-                $total_grn_amount1,
-                ucfirst(str_replace('_', ' ', $approval_workflow['current_level'])),
-                $grn_data
-            );
+                // Update grn_total with approval status
+                $this->db->where('number_fk', $grn_number);
+                $this->db->update('grn_total', [
+                    'approval_status' => 'pending_approval',
+                    'approval_level' => $approval_workflow['current_level'] ?? 'quality',
+                    'current_approver' => $approval_workflow['current_approver'] ?? ''
+                ]);
+
+                // Send approval notification email
+                $grn_data = $this->grn->get_grn_data_group_by($grn_number, $this->user_id);
+                if ($grn_data && !empty($approval_workflow['current_approver'])) {
+                    $this->Email_model->send_grn_approval_notification(
+                        $grn_number,
+                        $approval_workflow['current_approver'],
+                        $total_grn_amount1,
+                        ucfirst(str_replace('_', ' ', $approval_workflow['current_level'] ?? 'quality')),
+                        $grn_data
+                    );
+                }
+
+                $current_level_label = ucfirst(str_replace('_', ' ', $approval_workflow['current_level'] ?? 'Quality'));
+                $approval_message = " Waiting for approval from " . $current_level_label . ".";
+            }
+        } catch (Exception $e) {
+            // Log the error but don't block GRN creation
+            error_log("GRN approval workflow error: " . $e->getMessage());
         }
 
         if ($result == TRUE) {
-            $this->session->set_flashdata('SUCCESSMSG', "GRN added successfully! Waiting for approval from " . ucfirst(str_replace('_', ' ', $approval_workflow['current_level'])));
+            $this->session->set_flashdata('SUCCESSMSG', "GRN added successfully!" . $approval_message);
             redirect('GrnController/grn_index');
         } else {
             $this->session->set_flashdata('INFOMSG', "GRN not added successfully!!");
