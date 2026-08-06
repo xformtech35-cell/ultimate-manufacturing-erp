@@ -148,7 +148,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 </h3>
                             </div>
                             <div class="box-body table-responsive">
-                                <table id="budgetsTable" class="table table-bordered table-striped">
+                                <table id="budgetsTable" class="table table-bordered table-striped no-datatable">
                                     <thead>
                                         <tr>
                                             <th style="width: 50px;">#</th>
