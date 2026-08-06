@@ -213,6 +213,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <script>
         $(document).ready(function() {
             if ($.fn.DataTable) {
+                if ($.fn.DataTable.isDataTable('#budgetsTable')) {
+                    $('#budgetsTable').DataTable().destroy();
+                }
                 $('#budgetsTable').DataTable({
                     "ordering": true,
                     "responsive": true

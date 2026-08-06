@@ -35,20 +35,20 @@ class Engineering_model extends CI_Model {
     public function get_bom_items_by_so($so_number) {
         if (empty($so_number)) return array();
         
-        $this->db->select('b.id as bom_item_id, b.item_name, b.bom_code, b.qty, b.unit');
+        $this->db->select('bt.id as bom_item_id, bt.number_fk as bom_code, bt.project_code');
         $this->db->from('bom_total bt');
-        $this->db->join('bom b', 'b.bom_id_fk = bt.id', 'inner');
-        $this->db->where('bt.salesorder_id', $so_number);
-        $this->db->order_by('b.id', 'ASC');
+        $this->db->where('bt.project_code', $so_number);
+        $this->db->or_where('bt.number_fk', $so_number);
+        $this->db->order_by('bt.id', 'ASC');
         return $this->db->get()->result();
     }
 
     // ================= DATASHEETS METHODS =================
 
     public function get_all_datasheets() {
-        $this->db->select('d.*, b.item_name as bom_item_name');
+        $this->db->select('d.*, bt.number_fk as bom_code');
         $this->db->from('engineering_datasheets d');
-        $this->db->join('bom b', 'b.id = d.bom_item_id_fk', 'left');
+        $this->db->join('bom_total bt', 'bt.id = d.bom_item_id_fk', 'left');
         $this->db->order_by('d.id', 'DESC');
         return $this->db->get()->result();
     }

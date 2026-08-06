@@ -180,7 +180,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                     <td><?= $cnt++; ?></td>
                                                     <td><strong><?= htmlspecialchars($ds->so_number); ?></strong></td>
                                                     <td><?= htmlspecialchars($ds->equipment_name ?: '-'); ?></td>
-                                                    <td><?= htmlspecialchars($ds->bom_item_name ?: '-'); ?></td>
+                                                    <td><?= htmlspecialchars($ds->bom_code ?: '-'); ?></td>
                                                     <td>
                                                         <i class="fa <?= ($ds->file_type === 'pdf') ? 'fa-file-pdf-o text-danger' : 'fa-file-excel-o text-success'; ?>"></i>
                                                         <?= htmlspecialchars($ds->original_name); ?>
@@ -243,7 +243,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     var options = '<option value="">-- Select BOM Item (Optional) --</option>';
                     if (data && data.length > 0) {
                         $.each(data, function(idx, item) {
-                            options += '<option value="' + item.bom_item_id + '">' + item.item_name + ' (Qty: ' + item.qty + ' ' + (item.unit || '') + ')</option>';
+                            options += '<option value="' + item.bom_item_id + '">' + item.bom_code + '</option>';
                         });
                     } else {
                         options = '<option value="">-- No BOM Items found for this SO --</option>';
@@ -258,6 +258,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
         $(document).ready(function() {
             if ($.fn.DataTable) {
+                if ($.fn.DataTable.isDataTable('#datasheetsTable')) {
+                    $('#datasheetsTable').DataTable().destroy();
+                }
                 $('#datasheetsTable').DataTable({
                     "ordering": true,
                     "responsive": true
