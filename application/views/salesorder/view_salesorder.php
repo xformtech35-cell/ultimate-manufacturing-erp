@@ -109,47 +109,68 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                 <td><?php echo $i; ?></td>
                                                 
 
-                                                <?php if ($key->status == 1) { ?>
-                                                    <td>Draft</td>
-                                                <?php } ?>
-                                                <?php if ($key->status == 2) { ?>
-                                                    <td>Sent</td>
-                                                <?php } ?>
-                                                <?php if ($key->status == 3) { ?>
-                                                    <td>Viewed</td>
-                                                <?php } ?>
-                                                <?php if ($key->status == 4) { ?>
-                                                    <td>Approved</td>
-                                                <?php } ?>
-                                                <?php if ($key->status == 5) { ?>
-                                                    <td>Rejected</td>
-                                                <?php } ?>
-                                                <?php if ($key->status == 6) { ?>
-                                                    <td>Canceled</td>
-                                                <?php }
-                                                if ($key->status == 0) { ?>
-                                                    <td></td><?php } ?>
-                                                <td> <?php
-                                                        // avoid passing null/empty to strtotime, which triggers a deprecation warning
-                                                        if (!empty($key->date) && $key->date !== '0000-00-00') {
-                                                            echo date('d-m-Y', strtotime($key->date));
-                                                        } else {
-                                                            echo '';
-                                                        }
-                                                        ?> </td>
-                                                <td><a href="<?php echo base_url() . 'SalesOrderController/show_salesorder/' . $key->id ?>"><?php echo $key->number; ?> </a></td>
-                                                <td> <?php echo $key->fullname; ?> </td>
-                                                <td> <?php echo $key->customer_name; ?> </td>
-
-                                                <td><?php if ($key->gst_type != 'I') { ?>
-                                                        CGST/ SGST
-                                                    <?php } else { ?>
-                                                        IGST
-                                                    <?php } ?>
-                                                </td>
-                                                <td> <?php require_once(APPPATH . '/third_party/amount_convert.php'); echo indian_number_format(round($key->total), 0); ?> </td>
-                                                <td><span class="label label-info" style="font-size: 11px; font-weight: normal;"><?php echo !empty($key->created_by_name) ? htmlspecialchars($key->created_by_name) : 'Admin'; ?></span></td>
-                                                <td><span class="label label-success" style="font-size: 11px; font-weight: normal;"><?php echo !empty($key->approved_by_name) ? htmlspecialchars($key->approved_by_name) : ($key->status == 4 ? 'Admin' : '-'); ?></span></td>
+                                                 <?php 
+                                                 $status_class = 'label-default';
+                                                 $status_text = 'Draft';
+                                                 switch ($key->status) {
+                                                     case 1:
+                                                         $status_class = 'label-default';
+                                                         $status_text = 'Draft';
+                                                         break;
+                                                     case 2:
+                                                         $status_class = 'label-info';
+                                                         $status_text = 'Sent';
+                                                         break;
+                                                     case 3:
+                                                         $status_class = 'label-primary';
+                                                         $status_text = 'Viewed';
+                                                         break;
+                                                     case 4:
+                                                         $status_class = 'label-success';
+                                                         $status_text = 'Approved';
+                                                         break;
+                                                     case 5:
+                                                         $status_class = 'label-danger';
+                                                         $status_text = 'Rejected';
+                                                         break;
+                                                     case 6:
+                                                         $status_class = 'label-warning';
+                                                         $status_text = 'Canceled';
+                                                         break;
+                                                     default:
+                                                         $status_class = 'label-default';
+                                                         $status_text = 'Draft';
+                                                         break;
+                                                 }
+                                                 ?>
+                                                 <td><span class="label <?php echo $status_class; ?>" style="font-size: 11px; font-weight: normal;"><?php echo $status_text; ?></span></td>
+                                                 <td> <?php
+                                                         // avoid passing null/empty to strtotime, which triggers a deprecation warning
+                                                         if (!empty($key->date) && $key->date !== '0000-00-00') {
+                                                             echo date('d-m-Y', strtotime($key->date));
+                                                         } else {
+                                                             echo '';
+                                                         }
+                                                         ?> </td>
+                                                 <td><a href="<?php echo base_url() . 'SalesOrderController/show_salesorder/' . $key->id ?>"><?php echo $key->number; ?> </a></td>
+                                                 <td> <?php echo $key->fullname; ?> </td>
+                                                 <td> <?php echo $key->customer_name; ?> </td>
+ 
+                                                 <td><?php if ($key->gst_type != 'I') { ?>
+                                                         CGST/ SGST
+                                                     <?php } else { ?>
+                                                         IGST
+                                                     <?php } ?>
+                                                 </td>
+                                                 <td> <?php require_once(APPPATH . '/third_party/amount_convert.php'); echo indian_number_format(round($key->total), 0); ?> </td>
+                                                 <td style="min-width: 130px;"><span class="label label-info" style="font-size: 11px; font-weight: normal; white-space: normal; display: inline-block; text-align: left; word-break: break-word;"><?php echo !empty($key->created_by_name) ? htmlspecialchars($key->created_by_name) : 'Admin'; ?></span></td>
+                                                 <td style="min-width: 130px;">
+                                                     <?php if (!empty($key->approved_by_name)) { ?>
+                                                         <span class="label label-success" style="font-size: 11px; font-weight: normal; white-space: normal; display: inline-block; text-align: left; word-break: break-word;"><?php echo htmlspecialchars($key->approved_by_name); ?></span>
+                                                     <?php } else { ?>
+                                                         <?php echo ($key->status == 4 ? '<span class="label label-success" style="font-size: 11px; font-weight: normal;">Admin</span>' : '-'); ?>
+                                                     <?php } ?>
+                                                 </td>
 
                                                 <td>
                                                     <div class="dropdown">
