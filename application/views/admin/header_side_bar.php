@@ -994,7 +994,7 @@ if ($currentPage == 'InventoryController') {
 
                 if (!$eng_parent) {
                     $ci->db->insert('sidebar_menu', [
-                        'parent_id'   => 0,
+                        'parent_id'   => NULL,
                         'title'       => 'Engineering',
                         'icon'        => 'fa fa-sitemap',
                         'url'         => NULL,
