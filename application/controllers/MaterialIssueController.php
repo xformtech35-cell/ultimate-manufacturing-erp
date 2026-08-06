@@ -1356,7 +1356,7 @@ class MaterialIssueController extends MY_Controller
             'success' => true,
             'pr_id'   => $pr_id,
             'pr_url'  => base_url() . 'RequisitionController/show_requisition/' . $pr_id,
-            'message' => 'Purchase Requisition generated successfully! (PR ID: ' . $pr_id . ')'
+            'message' => 'Purchase Requisition generated successfully! (PR Number: ' . $pr_no . ')'
         ));
     }
 
