@@ -45,7 +45,7 @@ class Requisition extends CI_Model
         // Get the last PR number from purchase_requisition_items
         $this->db->select('pr_no');
         $this->db->from('purchase_requisition_items');
-        $this->db->like('pr_no', $financial_year, 'before');
+        $this->db->like('pr_no', $financial_year, 'both');
         $this->db->order_by('pr_no', 'DESC');
         $this->db->limit(1);
         $query = $this->db->get();
