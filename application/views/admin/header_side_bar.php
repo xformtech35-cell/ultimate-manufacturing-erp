@@ -1142,7 +1142,7 @@ if ($currentPage == 'InventoryController') {
                     // Safe guard: Always keep critical security/management menus open for Admin
                     if ($is_admin && !empty($item['permission'])) {
                         $perm_lower = strtolower($item['permission']);
-                        if (in_array($perm_lower, ['role', 'groups', 'settings', 'users', 'permission'])) {
+                        if (in_array($perm_lower, ['role', 'groups', 'settings', 'users', 'permission', 'engineering', 'datasheet_upload', 'budget_sheet_upload'])) {
                             return true;
                         }
                     }
