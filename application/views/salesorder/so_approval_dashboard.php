@@ -26,12 +26,12 @@ defined('BASEPATH') or exit('No direct script access allowed');
             <!-- Content Header (Page header) -->
             <section class="content-header">
                 <h1>
-                    Sales Order
+                    Sales Order Approvals
                 </h1>
                 <ol class="breadcrumb">
                     <li><a href="<?php echo base_url() . 'Home/index/' ?>"><i class="fa fa-dashboard"></i> Home</a></li>
                     <li><a href="#">Sales Order</a></li>
-                    <li class="active">Sales Order details</li>
+                    <li class="active">Approvals</li>
                 </ol>
             </section>
             <!-- Main content -->
@@ -42,45 +42,16 @@ defined('BASEPATH') or exit('No direct script access allowed');
                             <div class="box-header with-border" style="padding: 12px 15px; display: block !important; clear: both !important;">
                                 <div style="float: left !important; display: inline-block;">
                                     <h3 class="box-title" style="float: left !important; font-weight: 600; margin: 0; font-size: 18px; color: #1e293b; display: inline-flex; align-items: center; gap: 8px; line-height: 30px;">
-                                        <i class="fa fa-table" style="color: #3b82f6;"></i> Sales Orders List
+                                        <i class="fa fa-check-square-o" style="color: #3b82f6;"></i> Pending Sales Orders Approvals
                                     </h3>
                                 </div>
                                 <div style="float: right !important; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px;">
-                                    <form action="<?php echo base_url(); ?>SalesOrderController/get_monthyearwise_record" method="post" class="form-inline" style="margin: 0; display: inline-block;">
-                                        <div class="input-group input-group-sm" style="width: 220px; display: table;">
-                                            <span class="input-group-addon" style="height: 30px; padding: 5px 10px; border-radius: 4px 0 0 4px !important;"><i class="fa fa-calendar"></i></span>
-                                            <input type="text" class="form-control onlymonth input-sm" name="month_year" id="month_year" onkeydown="return false;" autocomplete="off" required="" placeholder="Select Month/Year" style="height: 30px; border-radius: 0 !important;">
-                                            <span class="input-group-btn" style="width: 1%;">
-                                                <button class="btn btn-primary btn-sm btn-flat" name="submit" value="" type="submit" style="height: 30px; padding: 5px 15px; border-radius: 0 4px 4px 0 !important; font-weight: 600; border: none;">Filter</button>
-                                            </span>
-                                        </div>
-                                    </form>
-                                    <a href="<?php echo base_url(); ?>SalesOrderController/index?str=All" class="btn btn-success btn-sm" style="height: 30px; line-height: 20px; font-weight: 600; padding: 5px 15px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; border: none; background-color: #2e7d32 !important;">
-                                        <i class="fa fa-list"></i> Show All
-                                    </a>
-                                    <a href="<?php echo base_url('SalesOrderController/export_all_salesorders'); ?>" class="btn btn-warning btn-sm" style="height: 30px; line-height: 20px; font-weight: 600; padding: 5px 15px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; border: none; background-color: #f57c00 !important; color: white !important;">
-                                        <i class="fa fa-file-excel-o"></i> Export SO
-                                    </a>
-                                    <a href="<?php echo base_url(); ?>SalesOrderController/create_gst_salesorder" class="btn btn-primary btn-sm" style="height: 30px; line-height: 20px; font-weight: 600; padding: 5px 15px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; border: none;">
-                                        <i class="fa fa-plus"></i> Create Sales Order
-                                    </a>
+                                    <span class="label label-warning" style="font-size: 13px; font-weight: normal; padding: 6px 12px;">
+                                        <?php echo $salesorder_count; ?> Pending Approval
+                                    </span>
                                 </div>
                                 <div style="clear: both !important;"></div>
                             </div>
-
-
-
-                            <ul class="nav nav-tabs">
-                                <li class="nav-item">
-                                    <a class="nav-link <?php echo ($this->uri->segment(2) == 'get_salesorder_data_by_status' && $this->uri->segment(3) == '2') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SalesOrderController/get_salesorder_data_by_status/2">Sent <span class="badge badge-light"> <?php echo $salesorder_sent_count; ?></span></a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link <?php echo ($this->uri->segment(2) == 'get_salesorder_data_by_status' && $this->uri->segment(3) == '1') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SalesOrderController/get_salesorder_data_by_status/1">Draft <span class="badge badge-light"> <?php echo $salesorder_draft_count; ?></span></a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link <?php echo ($this->uri->segment(2) == 'index' || $this->uri->segment(2) == '' || $this->uri->segment(2) == 'get_monthyearwise_record') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SalesOrderController/index?str=All">All Sales Orders <span class="badge badge-light"> <?php echo $salesorder_count; ?></span></a>
-                                </li>
-                            </ul>
 
                             <!-- /.box-header -->
                             <div class="box-body">
@@ -363,6 +334,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                     <div class="modal-body">
                         <input type="hidden" name="so_id" id="so_status_id">
                         <input type="hidden" name="so_number" id="so_status_number">
+                        <input type="hidden" name="redirect_to" value="so_approval_dashboard">
                         <div class="form-group">
                             <label>Status<span style="color:red;">*</span></label>
                             <select name="status" id="so_status_select" class="form-control" required>

@@ -478,7 +478,7 @@ if (!empty($stock_items)) {
                                                         <td><?= $item['category_name'] ?? 'N/A' ?></td>
                                                         <td><?= $item['group_name'] ?? 'N/A' ?></td>
                                                         <td class="text-center"><?= $item['unit'] ?></td>
-                                                        <td class="text-right <?= get_stock_status_class($item['stock'], 10) ?>">
+                                                        <td class="text-right <?= get_stock_status_class($item['stock'], 5) ?>">
                                                             <?php require_once(APPPATH . '/third_party/amount_convert.php'); echo indian_number_format($item['stock'], 2); ?>
                                                         </td>
                                                         <td class="text-right text-primary">
@@ -492,7 +492,7 @@ if (!empty($stock_items)) {
                                                         <td class="text-center">
                                                             <?php if ($item['stock'] <= 0): ?>
                                                                 <span class="label label-danger">Out of Stock</span>
-                                                            <?php elseif ($item['stock'] <= 10): ?>
+                                                            <?php elseif ($item['stock'] <= 5): ?>
                                                                 <span class="label label-warning">Low Stock</span>
                                                             <?php else: ?>
                                                                 <span class="label label-success">In Stock</span>
@@ -503,7 +503,7 @@ if (!empty($stock_items)) {
                                                                 class="btn btn-info btn-xs" title="View Ledger">
                                                                 <i class="fa fa-history"></i> Ledger
                                                             </a>
-                                                            <?php if ($item['stock'] <= 10 && $item['stock'] > 0): ?>
+                                                            <?php if ($item['stock'] <= 5 && $item['stock'] > 0): ?>
                                                                 <button class="btn btn-warning btn-xs" title="Low Stock Alert">
                                                                     <i class="fa fa-exclamation"></i>
                                                                 </button>
@@ -540,7 +540,7 @@ if (!empty($stock_items)) {
     </div>
 
     <?php
-    function get_stock_status_class($current_stock, $reorder_level = 10)
+    function get_stock_status_class($current_stock, $reorder_level = 5)
     {
         if ($current_stock <= 0) {
             return 'stock-out';

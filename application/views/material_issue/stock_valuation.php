@@ -87,7 +87,7 @@ require_once(APPPATH . '/third_party/amount_convert.php');
 
                                 <?php
                                 // Inline function at top of view file
-                                function get_stock_status_class($current_stock, $reorder_level = 10)
+                                function get_stock_status_class($current_stock, $reorder_level = 5)
                                 {
                                     if ($current_stock <= 0) {
                                         return 'stock-out';
@@ -129,7 +129,7 @@ require_once(APPPATH . '/third_party/amount_convert.php');
                                                         <td><strong><?= $item['code'] ?></strong></td>
                                                         <td><?= $item['item_name'] ?></td>
                                                         <td><?= $item['unit'] ?></td>
-                                                        <td class="<?= get_stock_status_class($item['stock'], 10) ?>">
+                                                        <td class="<?= get_stock_status_class($item['stock'], 5) ?>">
                                                             <?= indian_number_format($item['stock'], 2) ?>
                                                         </td>
                                                         <td>₹<?= indian_number_format($item['cost_price'], 2) ?></td>

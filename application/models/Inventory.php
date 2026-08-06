@@ -646,7 +646,7 @@ class Inventory extends CI_Model
     }
 
     // Add this method to your Inventory model (inventory.php)
-    public function get_filtered_inventory($uid = null, $search_item = null, $item_type = null, $stock_status = null, $sort_by = 'date_added', $limit = 1000)
+    public function get_filtered_inventory($uid = null, $search_item = null, $item_type = null, $stock_status = null, $sort_by = 'date_added', $limit = 0)
     {
         $this->db->select('inventory.*, item_category_master.category_name, item_group_master.group_name');
         $this->db->from('inventory as inventory');

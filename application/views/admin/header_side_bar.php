@@ -762,6 +762,34 @@ if ($currentPage == 'InventoryController') {
                         ]);
                     }
                 }
+
+                // Auto-ensure SO Approval menu item exists in sidebar_menu DB table
+                $has_so_approval = $ci->db->where('permission', 'SO_Approval')->get('sidebar_menu')->row();
+                if (!$has_so_approval) {
+                    $ci->db->insert('sidebar_menu', [
+                        'parent_id' => 2, // Sales
+                        'title' => 'SO Approval',
+                        'icon' => 'fa fa-check-square-o',
+                        'url' => 'SalesOrderController/so_approval_dashboard',
+                        'permission' => 'SO_Approval',
+                        'sort_order' => 3,
+                        'active_cond' => json_encode([
+                            'controllers' => ['SalesOrderController'],
+                            'pages' => ['so_approval_dashboard']
+                        ])
+                    ]);
+                }
+
+                // Ensure permission entry exists for Admin role in 'permission' table for SO_Approval
+                if ($ci->db->table_exists('permission')) {
+                    $admin_so_perm = $ci->db->where('role_id_fk', 1)->where('grp_perm', 'SO_Approval')->get('permission')->row();
+                    if (!$admin_so_perm) {
+                        $ci->db->insert('permission', [
+                            'role_id_fk' => 1,
+                            'grp_perm' => 'SO_Approval'
+                        ]);
+                    }
+                }
             }
 
             $db_menu_rows = $ci->db->order_by('sort_order', 'ASC')->get('sidebar_menu')->result_array();

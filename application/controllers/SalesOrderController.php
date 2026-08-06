@@ -1468,9 +1468,19 @@ public function edit_salesorder_salesorder()
 
     public function update_salesorder_status()
     {
+        $session_data_head = $this->session->userdata('session_data_head');
+        $permissions = $session_data_head['permission'] ?? array();
+        $is_admin = (isset($session_data_head['result']['role_name']) && strtolower($session_data_head['result']['role_name']) === 'admin');
+
+        if (!$is_admin && !in_array('SO_Approval', $permissions)) {
+            $this->session->set_flashdata('ERRORMSG', 'You do not have permission to change status / approve Sales Orders.');
+            redirect('SalesOrderController/index');
+        }
+
         $so_number = $this->input->post('so_number');
         $status = $this->input->post('status');
         $remarks = $this->input->post('remarks');
+        $redirect_to = $this->input->post('redirect_to') ?: 'index';
         $data_status = array('status' => $status, 'remarks' => $remarks);
 
         if ($status == 4) { // Approved
@@ -1483,7 +1493,36 @@ public function edit_salesorder_salesorder()
         } else {
             $this->session->set_flashdata('INFOMSG', "Failed to update status!");
         }
-        redirect('SalesOrderController/index');
+        redirect('SalesOrderController/' . $redirect_to);
+    }
+
+    public function so_approval_dashboard()
+    {
+        $session_data_head = $this->session->userdata('session_data_head');
+        $permissions = $session_data_head['permission'] ?? array();
+        $is_admin = (isset($session_data_head['result']['role_name']) && strtolower($session_data_head['result']['role_name']) === 'admin');
+
+        if (!$is_admin && !in_array('SO_Approval', $permissions)) {
+            $this->session->set_flashdata('ERRORMSG', 'You do not have permission to access SO Approval Dashboard.');
+            redirect('Home/index');
+        }
+
+        $data['salesorders'] = $this->salesorder->get_pending_salesorders($this->user_id);
+        $data['salesorder_count'] = count($data['salesorders']);
+        $data['product_name'] = $this->inventory->get_product_part_name($this->user_id);
+        $data['settings'] = $this->login->get_settings($this->user_id);
+        $data['company_name'] = $this->salesorder->get_company_name($this->user_id);
+        $data['result'] = $this->salesorder->get_customer($this->user_id);
+        $data['team_users'] = $this->db->select('username, user_email')
+                                       ->from('user')
+                                       ->where('user_email IS NOT NULL')
+                                       ->where('user_email !=', '')
+                                       ->group_by('user_email')
+                                       ->get()
+                                       ->result_array();
+
+        $this->load->view('admin/header_side_bar', $session_data_head);
+        $this->load->view('salesorder/so_approval_dashboard', $data);
     }
 
     public function get_customer_email()

@@ -22,47 +22,45 @@ defined('BASEPATH') or exit('No direct script access allowed');
             </section>
 
  <!-- Summary -->
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="small-box bg-red">
-                                                <div class="inner">
-                                                    <h3><?= count(array_filter($low_stock_items, function ($item) {
-                                                            return $item['stock'] <= 0;
-                                                        })) ?></h3>
-                                                    <p>Out of Stock Items</p>
-                                                </div>
-                                                <div class="icon">
-                                                    <i class="fa fa-ban"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="small-box bg-yellow">
-                                                <div class="inner">
-                                                    <h3><?= count(array_filter($low_stock_items, function ($item) {
-                                                            return $item['stock'] > 0 && $item['stock'] <= 5;
-                                                        })) ?></h3>
-                                                    <p>Critical Items (≤5)</p>
-                                                </div>
-                                                <div class="icon">
-                                                    <i class="fa fa-exclamation-circle"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="small-box bg-aqua">
-                                                <div class="inner">
-                                                    <h3><?= count(array_filter($low_stock_items, function ($item) {
-                                                            return $item['stock'] > 5 && $item['stock'] <= 10;
-                                                        })) ?></h3>
-                                                    <p>Low Items (6-10)</p>
-                                                </div>
-                                                <div class="icon">
-                                                    <i class="fa fa-exclamation"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                     <div class="row">
+                                         <div class="col-md-4">
+                                             <div class="small-box bg-red">
+                                                 <div class="inner">
+                                                     <h3><?= count($low_stock_items) ?></h3>
+                                                     <p>Total Low Stock Items</p>
+                                                 </div>
+                                                 <div class="icon">
+                                                     <i class="fa fa-exclamation-triangle"></i>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                         <div class="col-md-4">
+                                             <div class="small-box bg-orange" style="background-color: #d35400 !important;">
+                                                 <div class="inner">
+                                                     <h3><?= count(array_filter($low_stock_items, function ($item) {
+                                                             return $item['stock'] <= 0;
+                                                         })) ?></h3>
+                                                     <p>Out of Stock</p>
+                                                 </div>
+                                                 <div class="icon">
+                                                     <i class="fa fa-ban"></i>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                         <div class="col-md-4">
+                                             <div class="small-box bg-yellow">
+                                                 <div class="inner">
+                                                     <h3><?= count(array_filter($low_stock_items, function ($item) {
+                                                             return $item['stock'] > 0 && $item['stock'] <= 5;
+                                                         })) ?></h3>
+                                                     <p>Low Stock (1-5)</p>
+                                                 </div>
+                                                 <div class="icon">
+                                                     <i class="fa fa-exclamation-circle"></i>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                     </div>
 
             <!-- Main content -->
             <section class="content">
@@ -83,36 +81,36 @@ defined('BASEPATH') or exit('No direct script access allowed');
                             <div class="box-body">
 
                                 <?php if (!empty($low_stock_items)): ?>
-                                    <div class="alert alert-danger">
-                                        <h4><i class="icon fa fa-warning"></i> Alert!</h4>
-                                        The following items are running low on stock and may need reordering.
-                                    </div>
+                                     <div class="alert alert-danger">
+                                         <h4><i class="icon fa fa-warning"></i> Alert!</h4>
+                                         The following items are running low on stock (≤5) and may need reordering.
+                                     </div>
 
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th>Sr.No.</th>
-                                                    <th>Item Code</th>
-                                                    <th>Item Name</th>
-                                                    <th>Category</th>
-                                                    <th>Current Stock</th>
-                                                    <th>Min. Required</th>
-                                                    <th>Shortfall</th>
-                                                    <th>Unit Price</th>
-                                                    <th>Stock Value</th>
-                                                    <th>Last Purchase</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php $i = 1; ?>
-                                                <?php foreach ($low_stock_items as $item): ?>
-                                                    <?php
-                                                    $minRequired = 10; // Default minimum required stock
-                                                    $shortfall = max(0, $minRequired - $item['stock']);
-                                                    $stockValue = $item['stock'] * $item['sell_price'];
-                                                    ?>
+                                     <div class="table-responsive">
+                                         <table class="table table-bordered table-striped">
+                                             <thead>
+                                                 <tr>
+                                                     <th>Sr.No.</th>
+                                                     <th>Item Code</th>
+                                                     <th>Item Name</th>
+                                                     <th>Category</th>
+                                                     <th>Current Stock</th>
+                                                     <th>Min. Required</th>
+                                                     <th>Shortfall</th>
+                                                     <th>Unit Price</th>
+                                                     <th>Stock Value</th>
+                                                     <th>Last Purchase</th>
+                                                     <th>Action</th>
+                                                 </tr>
+                                             </thead>
+                                             <tbody>
+                                                 <?php $i = 1; ?>
+                                                 <?php foreach ($low_stock_items as $item): ?>
+                                                     <?php
+                                                     $minRequired = 5; // Default minimum required stock
+                                                     $shortfall = max(0, $minRequired - $item['stock']);
+                                                     $stockValue = $item['stock'] * $item['sell_price'];
+                                                     ?>
                                                     <tr class="<?= $item['stock'] <= 0 ? 'danger' : 'warning' ?>">
                                                         <td><?= $i ?></td>
                                                         <td><strong><?= $item['code'] ?></strong></td>

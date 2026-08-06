@@ -571,6 +571,30 @@ public function get_so_list_for_bom($uid)
     return $query->result();
 }
 
+public function get_pending_salesorders($uid)
+{
+    $fy_year = $this->session->userdata('fy_year');
+    if (!empty($fy_year)) {
+        $fy_from = $fy_year . '-04-01';
+        $fy_to   = ($fy_year + 1) . '-03-31';
+        $this->db->where('salesorder_total.date >=', $fy_from);
+        $this->db->where('salesorder_total.date <=', $fy_to);
+    }
+
+    $this->db->select('salesorder_total.id, salesorder_total.project_code, customer.company_name as customer_name, customer.fullname, salesorder_total.number_fk as number, COALESCE(q.gst_type, "S") as gst_type, salesorder_total.date, salesorder_total.basic_total, salesorder_total.total, salesorder_total.status, salesorder_total.remarks, u1.username as created_by_name, u2.username as approved_by_name');
+    $this->db->join('user u1', 'u1.user_id = salesorder_total.uid', 'left');
+    $this->db->join('user u2', 'u2.user_id = salesorder_total.approved_by', 'left');
+    $this->db->from('salesorder_total');
+    $this->db->join('customer', 'customer.customer_id=salesorder_total.customer_id_fk', 'left');
+    $this->db->join('salesorder q', 'q.number=salesorder_total.number_fk', 'left');
+    $this->db->where_in('salesorder_total.status', [0, 1]); // Draft or Viewed
+    $this->db->group_by('salesorder_total.id');
+    $this->db->order_by('salesorder_total.id', 'DESC');
+    $query = $this->db->get();
+
+    return $query->result();
+}
+
 public function add_non_gst_invoice($data_invoice)
 {
     return $this->db->insert('non_gst_invoice', $data_invoice);
