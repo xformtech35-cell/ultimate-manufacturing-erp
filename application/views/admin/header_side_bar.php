@@ -646,33 +646,40 @@ $password = $session_data_head['password_str'] ?? '';
                 </li>
                 <script>
                 function updateDelBadgeCount() {
-                    $.ajax({
-                        url: '<?php echo base_url("DeleteApprovalController/get_pending_count"); ?>',
-                        type: 'GET',
-                        dataType: 'json',
-                        success: function(res) {
-                            if (res && res.count > 0) {
-                                $('#del-approval-badge').text(res.count).show();
-                                $('#del-approval-header-count').text(res.count + ' Pending');
-                            } else {
-                                $('#del-approval-badge').hide();
-                                $('#del-approval-header-count').text('0 Pending');
+                    if (typeof jQuery !== 'undefined') {
+                        jQuery.ajax({
+                            url: '<?php echo base_url("DeleteApprovalController/get_pending_count"); ?>',
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function(res) {
+                                if (res && res.count > 0) {
+                                    jQuery('#del-approval-badge').text(res.count).show();
+                                    jQuery('#del-approval-header-count').text(res.count + ' Pending');
+                                } else {
+                                    jQuery('#del-approval-badge').hide();
+                                    jQuery('#del-approval-header-count').text('0 Pending');
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
                 function loadPendingDelRequests() {
-                    $.ajax({
-                        url: '<?php echo base_url("DeleteApprovalController/get_pending_requests_html"); ?>',
-                        type: 'GET',
-                        success: function(html) {
-                            $('#del-approval-list').html(html);
-                        }
-                    });
+                    if (typeof jQuery !== 'undefined') {
+                        jQuery.ajax({
+                            url: '<?php echo base_url("DeleteApprovalController/get_pending_requests_html"); ?>',
+                            type: 'GET',
+                            success: function(html) {
+                                jQuery('#del-approval-list').html(html);
+                            }
+                        });
+                    }
                 }
-                $(document).ready(function() {
-                    updateDelBadgeCount();
-                    setInterval(updateDelBadgeCount, 30000); // refresh every 30 sec
+                // Use DOMContentLoaded or direct window.onload to defer checking until scripts are loaded
+                window.addEventListener('load', function() {
+                    if (typeof jQuery !== 'undefined') {
+                        updateDelBadgeCount();
+                        setInterval(updateDelBadgeCount, 30000); // refresh every 30 sec
+                    }
                 });
                 </script>
                 <?php endif; ?>
