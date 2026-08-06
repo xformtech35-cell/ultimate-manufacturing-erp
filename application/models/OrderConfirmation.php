@@ -131,12 +131,9 @@ class OrderConfirmation extends CI_Model {
         return $query->row_array();
     }
 
-    public function get_customers($uid) {
-        $this->db->select('*');
-        $this->db->from('customer');
-        $this->db->where('uid', $uid);
-        $this->db->order_by('company_name', 'asc');
-        return $this->db->get()->result();
+    public function get_customers($uid = NULL) {
+        $this->load->model('customer');
+        return $this->customer->get_customer();
     }
 
     public function get_orderconfirmation_by_number($number, $uid) {

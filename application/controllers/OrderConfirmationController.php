@@ -68,6 +68,7 @@ class OrderConfirmationController extends MY_Controller {
 
     public function create_order_confirmation() {
         $data['supplier_result'] = $this->orderconfirmation->get_supplier($this->user_id);
+        $data['customer_result'] = $this->orderconfirmation->get_customers($this->user_id);
         $data['oc_id'] = $this->orderconfirmation->get_last_oc_number($this->user_id);
         $data['paymentterm_result'] = $this->paymentterm->get_paymentterm($this->user_id);
         $data['item_name'] = $this->inventory->get_item_name($this->user_id);
@@ -97,6 +98,7 @@ class OrderConfirmationController extends MY_Controller {
         $data['oc'] = $this->orderconfirmation->get_orderconfirmation_by_number($number, $this->user_id);
         $data['oc_detail'] = $this->orderconfirmation->get_orderconfirmation_detail($number, $this->user_id);
         $data['supplier_result'] = $this->orderconfirmation->get_supplier($this->user_id);
+        $data['customer_result'] = $this->orderconfirmation->get_customers($this->user_id);
         $data['paymentterm_result'] = $this->paymentterm->get_paymentterm($this->user_id);
         $data['item_name'] = $this->inventory->get_item_name($this->user_id);
         $data['project_code_result'] = $this->orderconfirmation->get_project_code($this->user_id);
