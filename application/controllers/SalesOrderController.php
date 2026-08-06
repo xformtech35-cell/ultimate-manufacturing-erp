@@ -1483,7 +1483,7 @@ public function edit_salesorder_salesorder()
         $redirect_to = $this->input->post('redirect_to') ?: 'index';
         $data_status = array('status' => $status, 'remarks' => $remarks);
 
-        if ($status == 4) { // Approved
+        if (in_array($status, [2, 3, 4, 5, 6])) {
             $data_status['approved_by'] = $this->user_id;
         }
 

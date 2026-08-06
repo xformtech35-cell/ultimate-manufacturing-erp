@@ -136,13 +136,35 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                  </td>
                                                  <td> <?php require_once(APPPATH . '/third_party/amount_convert.php'); echo indian_number_format(round($key->total), 0); ?> </td>
                                                  <td style="min-width: 130px;"><span class="label label-info" style="font-size: 11px; font-weight: normal; white-space: normal; display: inline-block; text-align: left; word-break: break-word;"><?php echo !empty($key->created_by_name) ? htmlspecialchars($key->created_by_name) : 'Admin'; ?></span></td>
-                                                 <td style="min-width: 130px;">
-                                                     <?php if (!empty($key->approved_by_name)) { ?>
-                                                         <span class="label label-success" style="font-size: 11px; font-weight: normal; white-space: normal; display: inline-block; text-align: left; word-break: break-word;"><?php echo htmlspecialchars($key->approved_by_name); ?></span>
-                                                     <?php } else { ?>
-                                                         <?php echo ($key->status == 4 ? '<span class="label label-success" style="font-size: 11px; font-weight: normal;">Admin</span>' : '-'); ?>
-                                                     <?php } ?>
-                                                 </td>
+                                                  <td style="min-width: 130px;">
+                                                      <?php
+                                                      $handler_name = !empty($key->approved_by_name) ? htmlspecialchars($key->approved_by_name) : (($key->status == 4) ? 'Admin' : '');
+                                                      if (!empty($handler_name)) {
+                                                          switch ($key->status) {
+                                                              case 4: // Approved
+                                                                  echo '<span class="label label-success" style="font-size: 11px; font-weight: normal; white-space: normal; display: inline-block; text-align: left; word-break: break-word;">Approved by: ' . $handler_name . '</span>';
+                                                                  break;
+                                                              case 5: // Hold
+                                                                  echo '<span class="label label-danger" style="font-size: 11px; font-weight: normal; white-space: normal; display: inline-block; text-align: left; word-break: break-word;">Held by: ' . $handler_name . '</span>';
+                                                                  break;
+                                                              case 6: // Canceled
+                                                                  echo '<span class="label label-warning" style="font-size: 11px; font-weight: normal; white-space: normal; display: inline-block; text-align: left; word-break: break-word;">Canceled by: ' . $handler_name . '</span>';
+                                                                  break;
+                                                              case 2: // Sent
+                                                                  echo '<span class="label label-info" style="font-size: 11px; font-weight: normal; white-space: normal; display: inline-block; text-align: left; word-break: break-word;">Sent by: ' . $handler_name . '</span>';
+                                                                  break;
+                                                              case 3: // Viewed
+                                                                  echo '<span class="label label-primary" style="font-size: 11px; font-weight: normal; white-space: normal; display: inline-block; text-align: left; word-break: break-word;">Viewed by: ' . $handler_name . '</span>';
+                                                                  break;
+                                                              default:
+                                                                  echo '<span class="label label-default" style="font-size: 11px; font-weight: normal; white-space: normal; display: inline-block; text-align: left; word-break: break-word;">Changed by: ' . $handler_name . '</span>';
+                                                                  break;
+                                                          }
+                                                      } else {
+                                                          echo '-';
+                                                      }
+                                                      ?>
+                                                  </td>
                                                  <td style="max-width: 150px; font-size: 11px; word-break: break-word;"><?php echo !empty($key->remarks) ? htmlspecialchars($key->remarks) : '-'; ?></td>
  
                                                  <td>
