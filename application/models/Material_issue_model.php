@@ -1641,10 +1641,10 @@ class Material_issue_model extends CI_Model
             $processed_bom_numbers[$bom_no] = true;
             $boms_list[$bom_no] = $bom_no;
 
-            // Fetch BOM items (global across users)
+            // Fetch BOM items (global across users, match by code OR item_name)
             $bom_items = $this->db->select('b.*, i.item_name as component_name, i.available_stock as available_stock, i.allocated_stock as allocated_stock, i.unit as component_unit, i.inventory_id')
                                   ->from('bom b')
-                                  ->join('inventory i', 'i.code = b.product_name', 'left')
+                                  ->join('inventory i', 'i.code = b.product_name OR i.item_name = b.product_name', 'left')
                                   ->where('b.number', $bom_no)
                                   ->get()
                                   ->result_array();

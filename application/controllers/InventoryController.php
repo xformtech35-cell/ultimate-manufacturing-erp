@@ -396,6 +396,8 @@ public function add_expense_data_indirect()
             'item_type'       => $item_type,
             'gst_per'         => $gst_per,
             'stock'           => $stock,
+            'available_stock' => $stock,
+            'allocated_stock' => 0,
             'cost_price'      => $cost_price,
             'sell_price'      => $sell_price,
             'packing'         => $packing,
