@@ -299,8 +299,8 @@ if (!empty($mrp_items)) {
                                                     <td><small class="text-muted"><?php echo htmlspecialchars($item['bom_source']); ?></small></td>
                                                     <td><small class="text-muted"><?php echo htmlspecialchars($item['finished_good']); ?></small></td>
                                                     <td class="text-center" onclick="event.stopPropagation()">
-                                                         <div class="pr-action-container" style="margin-bottom: 5px;">
-                                                              <?php if ($row_status === 'shortage'): ?>
+                                                          <?php if ($row_status === 'shortage'): ?>
+                                                              <div class="pr-action-container" style="margin-bottom: 5px;">
                                                                   <?php if (!empty($item['has_pr'])): ?>
                                                                       <button class="btn-row-pr" style="background: #e2e8f0; border-color: #cbd5e1; color: #475569;" onclick="generateSinglePR(
                                                                           '<?php echo htmlspecialchars($item['item_code']); ?>',
@@ -325,30 +325,29 @@ if (!empty($mrp_items)) {
                                                                            <i class="fa fa-file-text"></i> PR
                                                                       </button>
                                                                   <?php endif; ?>
+                                                              </div>
+                                                              <?php if ($item['available_stock'] > 0): ?>
+                                                                  <button class="btn-row-allocate" style="margin-top: 5px; display: inline-block;" onclick="allocateSoItem(
+                                                                      '<?php echo htmlspecialchars($item['item_code']); ?>',
+                                                                      '<?php echo intval($item['inventory_id']); ?>',
+                                                                      '<?php echo $item['total_required_qty']; ?>'
+                                                                  )">
+                                                                      <i class="fa fa-check"></i> Allocate
+                                                                  </button>
                                                               <?php endif; ?>
-                                                          </div>
-                                                             <?php if ($item['available_stock'] > 0): ?>
-                                                                 <button class="btn-row-allocate" style="margin-top: 5px; display: inline-block;" onclick="allocateSoItem(
-                                                                     '<?php echo htmlspecialchars($item['item_code']); ?>',
-                                                                     '<?php echo intval($item['inventory_id']); ?>',
-                                                                     '<?php echo $item['total_required_qty']; ?>'
-                                                                 )">
-                                                                     <i class="fa fa-check"></i> Allocate
-                                                                 </button>
-                                                             <?php endif; ?>
-                                                             <?php if (isset($item['allocated_qty']) && $item['allocated_qty'] > 0): ?>
-                                                                 <div style="margin-top: 5px; border-top: 1px dashed #ddd; padding-top: 5px;">
-                                                                     <span style="color:#3b82f6; font-size:11px; font-weight:600; display:block; margin-bottom:4px;"><i class="fa fa-check-circle"></i> Allocated: <?php echo floatval($item['allocated_qty']); ?></span>
-                                                                     <button class="btn-row-deallocate" onclick="deallocateSoItem(
-                                                                         '<?php echo htmlspecialchars($item['item_code']); ?>',
-                                                                         '<?php echo intval($item['inventory_id']); ?>',
-                                                                         '<?php echo floatval($item['allocated_qty']); ?>'
-                                                                     )">
-                                                                         <i class="fa fa-undo"></i> Return
-                                                                     </button>
-                                                                 </div>
-                                                             <?php endif; ?>
-                                                         <?php elseif ($row_status === 'allocated'): ?>
+                                                              <?php if (isset($item['allocated_qty']) && $item['allocated_qty'] > 0): ?>
+                                                                  <div style="margin-top: 5px; border-top: 1px dashed #ddd; padding-top: 5px;">
+                                                                      <span style="color:#3b82f6; font-size:11px; font-weight:600; display:block; margin-bottom:4px;"><i class="fa fa-check-circle"></i> Allocated: <?php echo floatval($item['allocated_qty']); ?></span>
+                                                                      <button class="btn-row-deallocate" onclick="deallocateSoItem(
+                                                                          '<?php echo htmlspecialchars($item['item_code']); ?>',
+                                                                          '<?php echo intval($item['inventory_id']); ?>',
+                                                                          '<?php echo floatval($item['allocated_qty']); ?>'
+                                                                      )">
+                                                                          <i class="fa fa-undo"></i> Return
+                                                                      </button>
+                                                                  </div>
+                                                              <?php endif; ?>
+                                                          <?php elseif ($row_status === 'allocated'): ?>
                                                              <span style="color:#3b82f6; font-size:11px; font-weight:600; display:block; margin-bottom:4px;"><i class="fa fa-check-circle"></i> Allocated: <?php echo floatval($item['allocated_qty']); ?></span>
                                                              <button class="btn-row-deallocate" onclick="deallocateSoItem(
                                                                  '<?php echo htmlspecialchars($item['item_code']); ?>',
