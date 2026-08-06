@@ -406,6 +406,42 @@ $password = $session_data_head['password_str'] ?? '';
         @media (max-width: 600px) {
             .calculator-call-window { width: calc(100vw - 20px); right: 10px; bottom: 10px; }
         }
+        /* Fixed Header & Sidebar Layout (Desktop/Tablet) */
+        @media (min-width: 768px) {
+            .main-header {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 1030 !important;
+            }
+            .main-sidebar {
+                position: fixed !important;
+                top: 50px !important;
+                left: 0 !important;
+                bottom: 0 !important;
+                height: calc(100vh - 50px) !important;
+                z-index: 1020 !important;
+                overflow-y: auto !important;
+            }
+            /* Style sidebar scrollbar */
+            .main-sidebar::-webkit-scrollbar {
+                width: 5px;
+            }
+            .main-sidebar::-webkit-scrollbar-track {
+                background: rgba(0,0,0,0.05);
+            }
+            .main-sidebar::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.12);
+                border-radius: 3px;
+            }
+            .main-sidebar::-webkit-scrollbar-thumb:hover {
+                background: rgba(255,255,255,0.25);
+            }
+            .content-wrapper {
+                margin-top: 50px !important;
+            }
+        }
         /* Custom table responsive wrapper that isolates scrolling only to the table */
         .table-responsive-container {
             overflow-x: auto !important;
