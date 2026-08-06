@@ -192,11 +192,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                     </td>
                                                 </tr>
                                             <?php } 
-                                        } else { ?>
-                                            <tr>
-                                                <td colspan="9" class="text-center text-muted">No budget sheets uploaded yet.</td>
-                                            </tr>
-                                        <?php } ?>
+                                        } ?>
                                     </tbody>
                                 </table>
                             </div>

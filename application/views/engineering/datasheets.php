@@ -202,13 +202,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                         </a>
                                                     </td>
                                                 </tr>
-                                            <?php } 
-                                        } else { ?>
-                                            <tr>
-                                                <td colspan="10" class="text-center text-muted">No datasheets uploaded yet.</td>
-                                            </tr>
-                                        <?php } ?>
-                                    </tbody>
+                                             <?php } 
+                                         } ?>
+                                     </tbody>
                                 </table>
                             </div>
                         </div>
