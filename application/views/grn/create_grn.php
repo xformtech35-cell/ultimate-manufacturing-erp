@@ -193,10 +193,31 @@ if (date('m') <= 3) {
         <!-- /.content-wrapper -->
 
 
-                <script src="<?php echo base_url(); ?>application/views/grn/create_grn.js?v=<?php echo time(); ?>"></script>
                 <script>
                     $(document).ready(function() {
-                        updateAmountInWords(); // Initial call
+                        // Form submit validation for GRN
+                        $('#add_name').submit(function(e) {
+                            var trs = $('#dynamic_field tbody tr');
+                            if (trs.length === 0) {
+                                alert('Please select a PO Number to load items first');
+                                e.preventDefault();
+                                return false;
+                            }
+                            var hasValidRow = false;
+                            trs.each(function() {
+                                var received = parseFloat($(this).find('.received_quantity_auto').val()) || 0;
+                                var price = parseFloat($(this).find('.price_auto').val()) || 0;
+                                if (received > 0 && price > 0) {
+                                    hasValidRow = true;
+                                    return false; // break
+                                }
+                            });
+                            if (!hasValidRow) {
+                                alert('Please fill received quantity and price for at least one valid row');
+                                e.preventDefault();
+                                return false;
+                            }
+                        });
                     });
                 </script>
             <?php $this->load->view('admin/footer'); ?>
