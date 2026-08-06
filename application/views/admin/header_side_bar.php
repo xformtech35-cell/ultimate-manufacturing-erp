@@ -441,6 +441,38 @@ $password = $session_data_head['password_str'] ?? '';
             .content-wrapper {
                 margin-top: 50px !important;
             }
+            .sidebar-sticky-header {
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 1000 !important;
+                background: #222d32 !important;
+                border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+            }
+            .sidebar-sticky-header .user-panel {
+                background: #fff !important;
+                border-bottom: 1px solid #eee !important;
+                padding: 0 !important;
+            }
+            .sidebar-sticky-header .sidebar-search-container {
+                padding: 10px !important;
+            }
+            .sidebar-sticky-header #myInput {
+                margin: 0 !important;
+                width: 100% !important;
+                background: #374850 !important;
+                color: #fff !important;
+                border: 1px solid #2c3b41 !important;
+                border-radius: 4px !important;
+            }
+            .sidebar-sticky-header #myInput::placeholder {
+                color: #8aa4af !important;
+            }
+            .sidebar-collapse .sidebar-sticky-header .sidebar-search-container {
+                display: none !important;
+            }
+            .sidebar-collapse .sidebar-sticky-header .user-panel {
+                display: none !important;
+            }
         }
         /* Custom table responsive wrapper that isolates scrolling only to the table */
         .table-responsive-container {
@@ -724,14 +756,18 @@ if ($currentPage == 'InventoryController') {
 <aside class="main-sidebar">
     <!-- sidebar: style can be found in sidebar.less -->
     <section class="sidebar">
-        <!-- Sidebar user panel -->
-        <div class="user-panel">
-            <div class="pull-left image" style="width:100%;display:flex;align-items:center;justify-content:flex-start;height:auto;padding:0;margin:0;overflow:hidden;line-height:0;background:#fff;">
-                <img src="<?php echo base_url() . $brand_logo_banner; ?>" alt="<?php echo $brand_full_name; ?>" style="width:100%;max-width:100%;height:auto;display:block;margin:0;padding:0;object-fit:contain;object-position:left center;line-height:0;">
+        <!-- Sticky Sidebar Header (Logo + Search Panel) -->
+        <div class="sidebar-sticky-header">
+            <!-- Sidebar user panel -->
+            <div class="user-panel">
+                <div class="pull-left image" style="width:100%;display:flex;align-items:center;justify-content:flex-start;height:auto;padding:0;margin:0;overflow:hidden;line-height:0;background:#fff;">
+                    <img src="<?php echo base_url() . $brand_logo_banner; ?>" alt="<?php echo $brand_full_name; ?>" style="width:100%;max-width:100%;height:auto;display:block;margin:0;padding:0;object-fit:contain;object-position:left center;line-height:0;">
+                </div>
+            </div> 
+            <div class="sidebar-search-container">
+                <input class="form-control" id="myInput" type="text" placeholder="Search..">
             </div>
-        </div> 
-        <!-- sidebar menu: : style can be found in sidebar.less -->
-        <input class="form-control" id="myInput" type="text" placeholder="Search..">
+        </div>
         <ul class="sidebar-menu" data-widget="tree" id="myList">
 
             <?php
