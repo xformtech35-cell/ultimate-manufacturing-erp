@@ -97,6 +97,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                             <th>Amount</th>
                                             <th>Created By</th>
                                             <th>Approved By</th>
+                                            <th>Remarks</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -171,9 +172,10 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                          <?php echo ($key->status == 4 ? '<span class="label label-success" style="font-size: 11px; font-weight: normal;">Admin</span>' : '-'); ?>
                                                      <?php } ?>
                                                  </td>
-
-                                                <td>
-                                                    <div class="dropdown">
+                                                 <td style="max-width: 150px; font-size: 11px; word-break: break-word;"><?php echo !empty($key->remarks) ? htmlspecialchars($key->remarks) : '-'; ?></td>
+ 
+                                                 <td>
+                                                     <div class="dropdown">
                                                         <button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">
                                                             <span class="caret"></span></button>
                                                         <ul class="dropdown-menu pull-right" role="menu" aria-labelledby="menu1">
