@@ -259,7 +259,7 @@ if (!empty($mrp_items)) {
                                                     
                                                      <!-- Checkbox (for all items) -->
                                                      <td class="text-center" onclick="event.stopPropagation()">
-                                                          <?php if ($row_status === 'shortage' && empty($item['has_pr'])): ?>
+                                                          <?php if ($row_status === 'shortage'): ?>
                                                               <input type="checkbox" class="mrp-check shortage-check"
                                                                      value="<?php echo htmlspecialchars($item['item_code']); ?>"
                                                                      onchange="updateSelection()">
@@ -299,23 +299,34 @@ if (!empty($mrp_items)) {
                                                     <td><small class="text-muted"><?php echo htmlspecialchars($item['bom_source']); ?></small></td>
                                                     <td><small class="text-muted"><?php echo htmlspecialchars($item['finished_good']); ?></small></td>
                                                     <td class="text-center" onclick="event.stopPropagation()">
-                                                         <?php if ($row_status === 'shortage'): ?>
-                                                             <?php if (!empty($item['has_pr'])): ?>
-                                                                 <button class="btn-row-pr" disabled style="opacity: 0.65; cursor: not-allowed; background: #6c757d; border-color: #6c757d; color: #fff;" title="PR already generated (<?php echo htmlspecialchars($item['pr_info']['pr_no'] ?? ''); ?>)">
-                                                                     <i class="fa fa-check-circle"></i> PR Generated
-                                                                 </button>
-                                                             <?php else: ?>
-                                                                 <button class="btn-row-pr" onclick="generateSinglePR(
-                                                                     '<?php echo htmlspecialchars($item['item_code']); ?>',
-                                                                     '<?php echo htmlspecialchars(addslashes($item['item_name'])); ?>',
-                                                                     '<?php echo $item['shortage']; ?>',
-                                                                     '<?php echo htmlspecialchars($item['unit']); ?>',
-                                                                     '<?php echo $item['total_required_qty']; ?>',
-                                                                     '<?php echo $item['available_stock']; ?>'
-                                                                 )">
-                                                                      <i class="fa fa-file-text"></i> PR
-                                                                 </button>
-                                                             <?php endif; ?>
+                                                         <div class="pr-action-container" style="margin-bottom: 5px;">
+                                                              <?php if ($row_status === 'shortage'): ?>
+                                                                  <?php if (!empty($item['has_pr'])): ?>
+                                                                      <button class="btn-row-pr" style="background: #e2e8f0; border-color: #cbd5e1; color: #475569;" onclick="generateSinglePR(
+                                                                          '<?php echo htmlspecialchars($item['item_code']); ?>',
+                                                                          '<?php echo htmlspecialchars(addslashes($item['item_name'])); ?>',
+                                                                          '<?php echo $item['shortage']; ?>',
+                                                                          '<?php echo htmlspecialchars($item['unit']); ?>',
+                                                                          '<?php echo $item['total_required_qty']; ?>',
+                                                                          '<?php echo $item['available_stock']; ?>'
+                                                                      )">
+                                                                          <i class="fa fa-refresh"></i> Re-generate PR
+                                                                      </button>
+                                                                      <br><small class="text-success" style="display:inline-block; margin-top:2px;"><i class="fa fa-check-circle"></i> PR Generated (<?php echo htmlspecialchars($item['pr_info']['pr_no'] ?? ''); ?>)</small>
+                                                                  <?php else: ?>
+                                                                      <button class="btn-row-pr" onclick="generateSinglePR(
+                                                                          '<?php echo htmlspecialchars($item['item_code']); ?>',
+                                                                          '<?php echo htmlspecialchars(addslashes($item['item_name'])); ?>',
+                                                                          '<?php echo $item['shortage']; ?>',
+                                                                          '<?php echo htmlspecialchars($item['unit']); ?>',
+                                                                          '<?php echo $item['total_required_qty']; ?>',
+                                                                          '<?php echo $item['available_stock']; ?>'
+                                                                      )">
+                                                                           <i class="fa fa-file-text"></i> PR
+                                                                      </button>
+                                                                  <?php endif; ?>
+                                                              <?php endif; ?>
+                                                          </div>
                                                              <?php if ($item['available_stock'] > 0): ?>
                                                                  <button class="btn-row-allocate" style="margin-top: 5px; display: inline-block;" onclick="allocateSoItem(
                                                                      '<?php echo htmlspecialchars($item['item_code']); ?>',
@@ -648,12 +659,12 @@ function sendPRRequest(items) {
                 items.forEach(function(it) {
                     var $row = $('tr.mrp-row[data-code="' + it.code + '"]');
                     if ($row.length) {
-                        $row.find('.shortage-check').prop('checked', false).prop('disabled', true).css({ opacity: 0.3, cursor: 'not-allowed' });
-                        $row.find('.btn-row-pr').prop('disabled', true)
-                            .css({ opacity: 0.65, cursor: 'not-allowed', background: '#6c757d', borderColor: '#6c757d', color: '#fff' })
-                            .attr('title', 'PR Generated')
-                            .html('<i class="fa fa-check-circle"></i> PR Generated')
-                            .removeAttr('onclick');
+                        $row.find('.shortage-check').prop('checked', false);
+                        var btnHtml = '<button class="btn-row-pr" style="background: #e2e8f0; border-color: #cbd5e1; color: #475569;" onclick="generateSinglePR(\'' + it.code + '\', \'' + it.name.replace(/'/g, "\\'") + '\', \'' + it.shortage + '\', \'' + it.unit + '\', \'' + it.gross + '\', \'' + it.stock + '\')">' +
+                                      '<i class="fa fa-refresh"></i> Re-generate PR' +
+                                      '</button>' +
+                                      '<br><small class="text-success" style="display:inline-block; margin-top:2px;"><i class="fa fa-check-circle"></i> PR Generated</small>';
+                        $row.find('.pr-action-container').html(btnHtml);
                     }
                 });
                 setTimeout(function () {
