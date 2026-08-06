@@ -23,7 +23,7 @@ class DeleteApprovalController extends MY_Controller
     {
         if (!$this->db->table_exists('item_delete_requests')) {
             $this->db->query("
-                CREATE TABLE `item_delete_requests` (
+                CREATE TABLE IF NOT EXISTS `item_delete_requests` (
                     `id`                int(11)      NOT NULL AUTO_INCREMENT,
                     `item_id`           varchar(50)  NOT NULL,
                     `item_code`         varchar(100) DEFAULT NULL,
