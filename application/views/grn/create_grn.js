@@ -193,20 +193,34 @@ function addRow(item) {
     
     // Form submit validation
     $('#add_name').submit(function(e) {
-        if ($('#dynamic_field tbody tr').length === 0) {
+        var trs = $('#dynamic_field tbody tr');
+        console.log('GRN Submit: Total rows found =', trs.length);
+        if (trs.length === 0) {
             alert('Please add at least one item');
             e.preventDefault();
             return false;
         }
         var hasValidRow = false;
-        $('#dynamic_field tbody tr').each(function() {
-            var received = parseFloat($(this).find('.received_quantity').val()) || 0;
-            var price = parseFloat($(this).find('.price').val()) || 0;
+        trs.each(function(idx) {
+            var $row = $(this);
+            var $recInput = $row.find('.received_quantity');
+            var $priceInput = $row.find('.price');
+            var received = parseFloat($recInput.val()) || 0;
+            var price = parseFloat($priceInput.val()) || 0;
+            console.log('Row ' + idx + ':', {
+                html: $row.html(),
+                recInputFound: $recInput.length > 0,
+                recValue: $recInput.val(),
+                priceInputFound: $priceInput.length > 0,
+                priceValue: $priceInput.val(),
+                received: received,
+                price: price
+            });
             if (received > 0 && price > 0) {
                 hasValidRow = true;
-                return false;
             }
         });
+        console.log('GRN Submit: hasValidRow =', hasValidRow);
         if (!hasValidRow) {
             alert('Please fill received quantity and price for at least one valid row');
             e.preventDefault();

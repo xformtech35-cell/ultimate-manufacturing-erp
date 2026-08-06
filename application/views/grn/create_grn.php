@@ -193,7 +193,7 @@ if (date('m') <= 3) {
         <!-- /.content-wrapper -->
 
 
-                <script src="<?php echo base_url(); ?>application/views/grn/create_grn.js"></script>
+                <script src="<?php echo base_url(); ?>application/views/grn/create_grn.js?v=<?php echo time(); ?>"></script>
                 <script>
                     $(document).ready(function() {
                         updateAmountInWords(); // Initial call
