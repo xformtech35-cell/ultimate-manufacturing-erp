@@ -980,9 +980,94 @@ if ($currentPage == 'InventoryController') {
                     ]);
                 }
 
+                // Auto-ensure Engineering parent & submenus (BOM, Datasheet Upload, Budget Sheet Upload) exist in sidebar_menu
+                $eng_parent = $ci->db->group_start()
+                    ->where('title', 'Engineering')
+                    ->or_where('permission', 'Engineering')
+                    ->group_end()
+                    ->where('parent_id', 0)
+                    ->get('sidebar_menu')->row();
+
+                if (!$eng_parent) {
+                    $ci->db->insert('sidebar_menu', [
+                        'parent_id'   => 0,
+                        'title'       => 'Engineering',
+                        'icon'        => 'fa fa-sitemap',
+                        'url'         => NULL,
+                        'permission'  => 'Engineering',
+                        'sort_order'  => 4,
+                        'active_cond' => json_encode([
+                            'controllers' => ['BomController', 'EngineeringController']
+                        ])
+                    ]);
+                    $eng_parent_id = $ci->db->insert_id();
+                } else {
+                    $eng_parent_id = $eng_parent->id;
+                    $ci->db->where('id', $eng_parent_id)->update('sidebar_menu', [
+                        'active_cond' => json_encode([
+                            'controllers' => ['BomController', 'EngineeringController']
+                        ])
+                    ]);
+                }
+
+                // Ensure "BOM" child menu item exists under Engineering
+                $has_bom = $ci->db->where('permission', 'Bom')->get('sidebar_menu')->row();
+                if (!$has_bom) {
+                    $ci->db->insert('sidebar_menu', [
+                        'parent_id'   => $eng_parent_id,
+                        'title'       => 'BOM',
+                        'icon'        => 'fa fa-list-alt',
+                        'url'         => 'BomController/index',
+                        'permission'  => 'Bom',
+                        'sort_order'  => 0,
+                        'active_cond' => json_encode([
+                            'controllers' => ['BomController']
+                        ])
+                    ]);
+                } else if ($has_bom->parent_id != $eng_parent_id) {
+                    $ci->db->where('id', $has_bom->id)->update('sidebar_menu', [
+                        'parent_id' => $eng_parent_id,
+                        'sort_order' => 0
+                    ]);
+                }
+
+                // Ensure "Datasheet Upload" child menu item exists under Engineering
+                $has_datasheet = $ci->db->where('permission', 'Datasheet_Upload')->get('sidebar_menu')->row();
+                if (!$has_datasheet) {
+                    $ci->db->insert('sidebar_menu', [
+                        'parent_id'   => $eng_parent_id,
+                        'title'       => 'Datasheet Upload',
+                        'icon'        => 'fa fa-file-text-o',
+                        'url'         => 'EngineeringController/datasheets',
+                        'permission'  => 'Datasheet_Upload',
+                        'sort_order'  => 1,
+                        'active_cond' => json_encode([
+                            'controllers' => ['EngineeringController'],
+                            'pages'       => ['datasheets']
+                        ])
+                    ]);
+                }
+
+                // Ensure "Budget Sheet Upload" child menu item exists under Engineering
+                $has_budget = $ci->db->where('permission', 'Budget_Sheet_Upload')->get('sidebar_menu')->row();
+                if (!$has_budget) {
+                    $ci->db->insert('sidebar_menu', [
+                        'parent_id'   => $eng_parent_id,
+                        'title'       => 'Budget Sheet Upload',
+                        'icon'        => 'fa fa-line-chart',
+                        'url'         => 'EngineeringController/budget_sheets',
+                        'permission'  => 'Budget_Sheet_Upload',
+                        'sort_order'  => 2,
+                        'active_cond' => json_encode([
+                            'controllers' => ['EngineeringController'],
+                            'pages'       => ['budget_sheets']
+                        ])
+                    ]);
+                }
+
                 // Auto-assign permissions to Admin role (role_id 1)
                 if ($ci->db->table_exists('permission')) {
-                    foreach (['SO_Approval', 'OrderConfirmation'] as $perm_key) {
+                    foreach (['SO_Approval', 'OrderConfirmation', 'Engineering', 'Bom', 'Datasheet_Upload', 'Budget_Sheet_Upload'] as $perm_key) {
                         $admin_perm = $ci->db->where('role_id_fk', 1)->where('grp_perm', $perm_key)->get('permission')->row();
                         if (!$admin_perm) {
                             $ci->db->insert('permission', [

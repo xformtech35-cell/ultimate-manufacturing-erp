@@ -250,27 +250,40 @@
         <!-- Signature Section -->
         <div class="signature-section">
             <div>For <strong><?php echo !empty($settings['company_name']) ? $settings['company_name'] : 'UWS Enviro-Tech Pvt Ltd'; ?></strong></div>
-            <div class="stamp-box">
+            <div class="stamp-box" style="margin: 10px 0; min-height: 80px;">
                 <?php if (!empty($settings['stamp_signature'])): ?>
                     <img src="<?php echo base_url() . $settings['stamp_signature']; ?>" alt="Stamp & Signature">
+                <?php else: ?>
+                    <svg width="100" height="80" viewBox="0 0 100 80">
+                        <circle cx="45" cy="40" r="32" stroke="#1d4ed8" stroke-width="1.5" fill="none" stroke-dasharray="3,1" />
+                        <circle cx="45" cy="40" r="26" stroke="#1d4ed8" stroke-width="1" fill="none" />
+                        <path id="stampArc" d="M 21,40 A 24,24 0 1,1 69,40" fill="none" />
+                        <text font-size="5" font-family="sans-serif" font-weight="bold" fill="#1d4ed8">
+                            <textPath href="#stampArc" startOffset="50%" text-anchor="middle">UWS ENVIRO-TECH PVT LTD</textPath>
+                        </text>
+                        <text x="45" y="44" font-size="8" font-family="cursive" font-weight="bold" fill="#1d4ed8" text-anchor="middle">Signed</text>
+                        <text x="45" y="55" font-size="5" font-family="sans-serif" fill="#1d4ed8" text-anchor="middle">PUNE</text>
+                    </svg>
                 <?php endif; ?>
             </div>
             <div><strong>Authorized Signatory</strong></div>
         </div>
 
         <!-- Footer -->
-        <div class="footer-section">
-            <div class="footer-company"><?php echo !empty($settings['company_name']) ? $settings['company_name'] : 'UWS Enviro-Tech Pvt. Ltd'; ?></div>
-            <div>
-                <?php echo !empty($settings['company_address']) ? $settings['company_address'] : 'Plot No. 19/C, D-1 Block, Shop No. 342, 3rd Floor, HEUU Industrial Spaces, MIDC Chinchwad, Pune-411019.'; ?>
+        <div class="footer-section" style="position: absolute; bottom: 20px; left: 30px; right: 30px; margin-top: 0;">
+            <div class="footer-company" style="color: #3b1660; font-size: 15px; font-weight: bold; margin-bottom: 3px;">
+                <?php echo !empty($settings['company_name']) ? $settings['company_name'] : 'UWS Enviro-Tech Pvt. Ltd'; ?>
             </div>
-            <div>
-                E-mail: <?php echo !empty($settings['company_email']) ? $settings['company_email'] : 'projects@ultimatewater.in'; ?> 
-                &nbsp;|&nbsp; 
-                Website: <?php echo !empty($settings['website']) ? $settings['website'] : 'www.ultimatewater.in'; ?>
-                <?php if (!empty($settings['company_mobile'])): ?>
-                    &nbsp;|&nbsp; Phone: <?php echo $settings['company_mobile']; ?>
-                <?php endif; ?>
+            <div style="font-weight: bold; font-size: 11.5px; color: #111;">
+                <?php echo !empty($settings['company_address']) ? $settings['company_address'] : 'Plot No. 19/C, D-1 Block, Shop No. 342, 3<sup>rd</sup> Floor, HEUU Industrial Spaces, MIDC Chinchwad, Pune-411019.'; ?>
+            </div>
+            <div style="font-size: 11.5px; margin-top: 2px;">
+                E-mail: <span style="color: #4338ca; text-decoration: underline;"><?php echo !empty($settings['company_email']) ? $settings['company_email'] : 'projects@ultimatewater.in'; ?></span>
+                &nbsp;
+                Website: <span style="color: #4338ca; text-decoration: underline;"><?php echo !empty($settings['website']) ? $settings['website'] : 'www.ultimatewater.in'; ?></span>
+            </div>
+            <div style="font-weight: bold; font-size: 11.5px; margin-top: 2px;">
+                Phone: <?php echo !empty($settings['company_mobile']) ? $settings['company_mobile'] : '020 29528571'; ?>
             </div>
         </div>
     </div>
