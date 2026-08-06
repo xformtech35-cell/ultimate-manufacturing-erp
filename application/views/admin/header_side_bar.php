@@ -985,7 +985,11 @@ if ($currentPage == 'InventoryController') {
                     ->where('title', 'Engineering')
                     ->or_where('permission', 'Engineering')
                     ->group_end()
+                    ->group_start()
                     ->where('parent_id', 0)
+                    ->or_where('parent_id', NULL)
+                    ->or_where('parent_id', '')
+                    ->group_end()
                     ->get('sidebar_menu')->row();
 
                 if (!$eng_parent) {
