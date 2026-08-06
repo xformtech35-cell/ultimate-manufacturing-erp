@@ -216,8 +216,7 @@
             foreach ($result as $item):
                 $type_class = $item->item_type == 'B' ? 'badge-boughtout' : 'badge-manufacturing';
                 $type_text = $item->item_type == 'B' ? 'BOUGHT' : 'MANUF';
-                $reorder_lvl = isset($item->reorder_level) && $item->reorder_level !== '' ? intval($item->reorder_level) : 10;
-                $stock_class = $item->stock <= $reorder_lvl ? 'low-stock' : '';
+                $stock_class = $item->stock <= 5 ? 'low-stock' : '';
 
                 $total_cost += $item->cost_price;
                 $total_sell += $item->sell_price;

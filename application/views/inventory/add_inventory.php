@@ -325,12 +325,9 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
                                                     <td>
                                                         <strong><?= $key->code; ?></strong>
-                                                         <?php 
-                                                         $reorder_lvl = isset($key->reorder_level) && $key->reorder_level !== '' ? intval($key->reorder_level) : 10;
-                                                         if ($key->stock <= $reorder_lvl): 
-                                                         ?>
-                                                             <br><small class="stock-warning"><i class="fa fa-exclamation-triangle"></i> Low Stock</small>
-                                                         <?php endif; ?>
+                                                        <?php if ($key->stock <= 5): ?>
+                                                            <br><small class="stock-warning"><i class="fa fa-exclamation-triangle"></i> Low Stock</small>
+                                                        <?php endif; ?>
                                                     </td>
 
                                                     <td>

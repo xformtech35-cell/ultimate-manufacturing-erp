@@ -204,7 +204,7 @@ class Home extends MY_Controller {
         // Store
         $data['pending_grns']          = $this->db->where('approval_status', 'pending')->where('DATE(created_at) >=', $fy_from)->where('DATE(created_at) <=', $fy_to)->count_all_results('grn_total');
         $data['total_material_issues'] = $this->db->where('DATE(created_at) >=', $fy_from)->where('DATE(created_at) <=', $fy_to)->count_all_results('material_issue_slips');
-        $data['low_stock_count']       = $this->db->where('stock <= COALESCE(reorder_level, 10)', NULL, FALSE)->count_all_results('inventory');
+        $data['low_stock_count']       = $this->db->where('stock <=', 5)->count_all_results('inventory');
 
         // Procurement overview
         $data = array_merge($data, $this->getProcurementData());
@@ -257,8 +257,7 @@ class Home extends MY_Controller {
         $data['pending_pr_approvals'] = $this->dashboard->get_pending_pr_approvals($uid);
         $data['pending_po_approvals'] = $this->dashboard->get_pending_po_approvals($uid);
 
-        // Add 4 new purchase/inventory visibility metrics for the Purchase Dashboard second row
-        $data['low_stock_count'] = $this->db->where('stock <= COALESCE(reorder_level, 10)', NULL, FALSE)->count_all_results('inventory');
+        $data['low_stock_count'] = $this->db->where('stock <=', 5)->count_all_results('inventory');
         
         $p = $this->db->dbprefix;
         $sql_group = "
@@ -322,7 +321,7 @@ class Home extends MY_Controller {
         $data['inventory_count']        = $this->dashboard->get_inventory_count();
         $data['total_inventory_amount'] = $this->dashboard->get_total_inventory_amount();
         $data['total_sale_value']       = $this->dashboard->get_total_sale_value();
-        $data['low_stock_count']        = $this->db->where('stock <= COALESCE(reorder_level, 10)', NULL, FALSE)->count_all_results('inventory');
+        $data['low_stock_count']        = $this->db->where('stock <=', 5)->count_all_results('inventory');
         $data['total_material_issues']  = $this->db->where('DATE(created_at) >=', $fy_from)->where('DATE(created_at) <=', $fy_to)->count_all_results('material_issue_slips');
         $data['pending_grns']           = $this->db->where('approval_status', 'pending')->where('DATE(created_at) >=', $fy_from)->where('DATE(created_at) <=', $fy_to)->count_all_results('grn_total');
         $data['grn_count']              = $this->db->where('DATE(created_at) >=', $fy_from)->where('DATE(created_at) <=', $fy_to)->count_all_results('grn_total');

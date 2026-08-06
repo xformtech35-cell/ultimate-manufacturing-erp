@@ -672,9 +672,9 @@ class Inventory extends CI_Model
         // Apply stock status filter
         if (!empty($stock_status)) {
             if ($stock_status == 'low') {
-                $this->db->where('inventory.stock <= COALESCE(inventory.reorder_level, 10)', NULL, FALSE);
+                $this->db->where('inventory.stock <=', 5);
             } elseif ($stock_status == 'ok') {
-                $this->db->where('inventory.stock > COALESCE(inventory.reorder_level, 10)', NULL, FALSE);
+                $this->db->where('inventory.stock >', 5);
             }
         }
 
@@ -725,9 +725,9 @@ class Inventory extends CI_Model
 
         if (!empty($stock_status)) {
             if ($stock_status == 'low') {
-                $this->db->where('inventory.stock <= COALESCE(inventory.reorder_level, 10)', NULL, FALSE);
+                $this->db->where('inventory.stock <=', 5);
             } elseif ($stock_status == 'ok') {
-                $this->db->where('inventory.stock > COALESCE(inventory.reorder_level, 10)', NULL, FALSE);
+                $this->db->where('inventory.stock >', 5);
             }
         }
 

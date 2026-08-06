@@ -477,8 +477,7 @@ $sort_by = isset($_POST['sort_by']) ? $_POST['sort_by'] : (isset($_GET['sort_by'
 
                 if (!empty($result)) {
                     foreach ($result as $item) {
-                        $reorder_lvl = isset($item->reorder_level) && $item->reorder_level !== '' ? intval($item->reorder_level) : 10;
-                        if ($item->stock <= $reorder_lvl) {
+                        if ($item->stock <= 5) {
                             $low_stock_items++;
                         }
                         $total_stock_value += ($item->stock * $item->cost_price);
@@ -561,8 +560,8 @@ $sort_by = isset($_POST['sort_by']) ? $_POST['sort_by'] : (isset($_GET['sort_by'
                                                 <label>Stock Status</label>
                                                 <select name="stock_status" class="form-control">
                                                     <option value="">All</option>
-                                                    <option value="low" <?php echo $stock_status == 'low' ? 'selected' : ''; ?>>Low Stock</option>
-                                                    <option value="ok" <?php echo $stock_status == 'ok' ? 'selected' : ''; ?>>In Stock</option>
+                                                    <option value="low" <?php echo $stock_status == 'low' ? 'selected' : ''; ?>>Low Stock (≤5)</option>
+                                                    <option value="ok" <?php echo $stock_status == 'ok' ? 'selected' : ''; ?>>In Stock (>5)</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -648,9 +647,8 @@ $sort_by = isset($_POST['sort_by']) ? $_POST['sort_by'] : (isset($_GET['sort_by'
                                                 <?php
                                                 $i = 1;
                                                 foreach ($result as $key):
-                                                     $reorder_lvl = isset($key->reorder_level) && $key->reorder_level !== '' ? intval($key->reorder_level) : 10;
-                                                     $stock_class = $key->stock <= $reorder_lvl ? 'stock-low' : 'stock-ok';
-                                                     $status_class = $key->stock <= $reorder_lvl ? 'status-low' : 'status-ok';
+                                                     $stock_class = $key->stock <= 5 ? 'stock-low' : 'stock-ok';
+                                                     $status_class = $key->stock <= 5 ? 'status-low' : 'status-ok';
                                                     $type_class = $key->item_type == 'B' ? 'badge-boughtout' : 'badge-manufacturing';
                                                     $type_text = $key->item_type == 'B' ? 'Boughtout' : 'Manufacturing';
                                                 ?>
