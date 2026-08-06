@@ -87,18 +87,18 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                 <table id="example3" class="table table-bordered table-striped" style="margin-bottom: 0;">
                                     <thead>
                                         <tr>
-                                            <th>Sr.No.</th>
-                                            <th>Status</th>
-                                            <th>Date</th>
-                                            <th>Number</th>
-                                            <th>Customer Name</th>
-                                            <th>Company Name</th>
-                                            <th>Type</th>
-                                            <th>Amount</th>
-                                            <th>Created By</th>
-                                            <th>Approved By</th>
-                                            <th>Remarks</th>
-                                            <th>Action</th>
+                                            <th style="width: 4%;">Sr.No.</th>
+                                            <th style="width: 6%;">Status</th>
+                                            <th style="width: 8%;">Date</th>
+                                            <th style="width: 12%;">Number</th>
+                                            <th style="width: 12%;">Customer Name</th>
+                                            <th style="width: 12%;">Company Name</th>
+                                            <th style="width: 6%;">Type</th>
+                                            <th style="width: 8%;">Amount</th>
+                                            <th style="width: 10%;">Created By</th>
+                                            <th style="width: 10%;">Approved By</th>
+                                            <th style="width: 10%;">Remarks</th>
+                                            <th style="width: 4%;">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
