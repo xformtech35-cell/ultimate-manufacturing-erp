@@ -578,6 +578,17 @@ class GrnController extends MY_Controller
                 $this->_notify_accounts_department($grn_number, $total_accepted, $total_rejected, $overall_status);
             }
 
+            // Notify Purchase Manager if any items were rejected
+            if ($total_rejected > 0) {
+                $this->_notify_purchase_manager_rejection(
+                    $grn_number,
+                    $total_accepted,
+                    $total_rejected,
+                    $overall_notes,
+                    'inspection'
+                );
+            }
+
             $this->session->set_flashdata('SUCCESSMSG', 'Inspection completed successfully! ' . $success_count . ' items processed.');
         }
 
@@ -610,6 +621,100 @@ class GrnController extends MY_Controller
             }
         }
         log_message('info', 'Accounts notified for GRN: ' . $grn_number . ' - Status: ' . $status);
+    }
+
+    /**
+     * Notify all Purchase Manager role users when a GRN has items rejected.
+     * Sends per-item accepted/rejected quantity details.
+     */
+    private function _notify_purchase_manager_rejection($grn_number, $total_accepted, $total_rejected, $remarks = '', $rejection_type = 'inspection')
+    {
+        $this->load->model('Email_model');
+
+        // Get GRN summary data
+        $grn_data = $this->grn->get_grn_data_group_by($grn_number, $this->user_id);
+        if (empty($grn_data)) {
+            // Try fetching without uid filter
+            $grn_total = $this->db->where('number_fk', $grn_number)->get('grn_total')->row_array();
+            $grn_data  = $grn_total ?? [];
+        }
+
+        // For approval-type rejections, fetch item quantities from inspection log or grn table
+        if ($rejection_type === 'approval') {
+            $inspection_items = $this->db
+                ->select('item_code, SUM(accepted_quantity) as accepted_quantity, SUM(rejected_quantity) as rejected_quantity, SUM(inspected_quantity) as inspected_quantity, inspection_notes')
+                ->from('grn_inspection_log')
+                ->where('grn_number', $grn_number)
+                ->group_by('item_code')
+                ->get()->result_array();
+
+            if (empty($inspection_items)) {
+                // Fall back to grn table with quantities
+                $inspection_items = $this->db
+                    ->select('product_name as item_code, received_quantity as inspected_quantity, received_quantity as accepted_quantity, 0 as rejected_quantity')
+                    ->from('grn')
+                    ->where('grn_number', $grn_number)
+                    ->get()->result_array();
+            }
+
+            // Recalculate totals from items
+            $total_accepted = 0;
+            $total_rejected = 0;
+            foreach ($inspection_items as $it) {
+                $total_accepted += floatval($it['accepted_quantity'] ?? 0);
+                $total_rejected += floatval($it['rejected_quantity'] ?? 0);
+            }
+        } else {
+            // Inspection type: read latest inspection log
+            $inspection_items = $this->db
+                ->select('item_code, accepted_quantity, rejected_quantity, inspected_quantity, inspection_notes, rejection_reason')
+                ->from('grn_inspection_log')
+                ->where('grn_number', $grn_number)
+                ->order_by('id', 'desc')
+                ->get()->result_array();
+        }
+
+        // Fetch all Purchase Manager emails (role name "Purchase Manager" or "Purchase")
+        $pm_users = $this->db->select('u.user_email, u.username')
+            ->from('user u')
+            ->join('role r', 'u.role = r.role_id', 'left')
+            ->group_start()
+                ->like('r.role_name', 'Purchase', 'after')
+                ->or_like('r.role_name', 'purchase', 'after')
+            ->group_end()
+            ->where('u.user_email IS NOT NULL')
+            ->where('u.user_email !=', '')
+            ->get()->result_array();
+
+        if (empty($pm_users)) {
+            // Fallback: try Admin role
+            $pm_users = $this->db->select('u.user_email, u.username')
+                ->from('user u')
+                ->join('role r', 'u.role = r.role_id', 'left')
+                ->where('r.role_name', 'Admin')
+                ->where('u.user_email IS NOT NULL')
+                ->where('u.user_email !=', '')
+                ->limit(1)
+                ->get()->result_array();
+        }
+
+        if (!empty($pm_users)) {
+            foreach ($pm_users as $pm) {
+                $this->Email_model->send_grn_rejection_to_purchase_manager(
+                    $grn_number,
+                    $pm['user_email'],
+                    $grn_data,
+                    $inspection_items,
+                    $total_accepted,
+                    $total_rejected,
+                    $remarks,
+                    $rejection_type
+                );
+            }
+            log_message('info', 'Purchase Manager notified for GRN rejection: ' . $grn_number . ' (' . count($pm_users) . ' recipients)');
+        } else {
+            log_message('error', 'No Purchase Manager user found to notify for GRN: ' . $grn_number);
+        }
     }
 
     public function conduct_inspection()
@@ -745,6 +850,14 @@ class GrnController extends MY_Controller
                     $this->session->set_flashdata('SUCCESSMSG', 'GRN approved! Waiting for next approver.');
                 }
             } else {
+                // Notify Purchase Manager when a GRN is rejected in the approval workflow
+                $this->_notify_purchase_manager_rejection(
+                    $approval['grn_number'],
+                    0,
+                    0,
+                    $remarks,
+                    'approval'
+                );
                 $this->session->set_flashdata('SUCCESSMSG', 'GRN rejected successfully!');
             }
         } else {

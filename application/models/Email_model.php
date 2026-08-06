@@ -505,6 +505,164 @@ class Email_model extends CI_Model
         }
     }
 
+    /**
+     * Notify Purchase Manager when GRN inspection has rejections (item-level detail).
+     *
+     * @param string $grn_number   GRN number
+     * @param string $pm_email     Purchase Manager's email
+     * @param array  $grn_data     GRN summary row (company_name, date, po_number, etc.)
+     * @param array  $items        Array of items: each has keys item_code/product_name,
+     *                             inspected_quantity, accepted_quantity, rejected_quantity,
+     *                             rejection_reason (optional)
+     * @param int    $total_accepted
+     * @param int    $total_rejected
+     * @param string $overall_notes  Inspector overall remarks
+     * @param string $rejection_type  'inspection' or 'approval'
+     */
+    public function send_grn_rejection_to_purchase_manager(
+        $grn_number,
+        $pm_email,
+        $grn_data,
+        $items,
+        $total_accepted,
+        $total_rejected,
+        $overall_notes = '',
+        $rejection_type = 'inspection'
+    ) {
+        $session_data_head2 = $this->session->userdata('session_data_head2');
+        $set_company_name   = $session_data_head2['company_name'] ?? 'XForm Technologies';
+        $set_company_logo   = base_url() . '/' . ($session_data_head2['company_logo'] ?? 'assets/images/logo.png');
+        $set_from_email     = $session_data_head2['from_email'] ?? 'procurement@xform.in';
+
+        $supplier_name = $grn_data['company_name'] ?? 'Unknown Vendor';
+        $grn_date      = isset($grn_data['date']) ? date('d-m-Y', strtotime($grn_data['date'])) : date('d-m-Y');
+        $po_number     = $grn_data['po_number_fk'] ?? $grn_data['po_number'] ?? '-';
+        $grn_link      = base_url('GrnController/grn_index');
+
+        $subject = ($rejection_type === 'approval')
+            ? "GRN Approval Rejected: " . $grn_number
+            : "GRN Inspection Rejection Alert: " . $grn_number;
+
+        $heading_color = '#d9534f';
+        $heading_text  = ($rejection_type === 'approval')
+            ? 'GRN Rejected by Approver'
+            : 'GRN Inspection: Items Rejected';
+
+        // Build item rows
+        $item_rows_html = '';
+        if (!empty($items)) {
+            foreach ($items as $idx => $it) {
+                $item_code    = htmlspecialchars($it['item_code']    ?? $it['product_name'] ?? '-');
+                $inspected    = floatval($it['inspected_quantity']   ?? ($it['accepted_quantity'] ?? 0) + ($it['rejected_quantity'] ?? 0));
+                $accepted     = floatval($it['accepted_quantity']    ?? 0);
+                $rejected_q   = floatval($it['rejected_quantity']    ?? 0);
+                $reason       = htmlspecialchars($it['rejection_reason'] ?? $it['inspection_notes'] ?? '-');
+                $row_bg       = ($rejected_q > 0) ? '#fff3f3' : '#f9fff9';
+                $rejected_color = ($rejected_q > 0) ? '#d9534f' : '#333';
+                $accepted_color = ($accepted > 0)   ? '#5cb85c' : '#333';
+
+                $item_rows_html .= "
+                <tr style=\"background:{$row_bg};\">
+                    <td style=\"border:1px solid #ddd;padding:8px;\">" . ($idx + 1) . "</td>
+                    <td style=\"border:1px solid #ddd;padding:8px;font-weight:bold;\">{$item_code}</td>
+                    <td style=\"border:1px solid #ddd;padding:8px;text-align:center;\">{$inspected}</td>
+                    <td style=\"border:1px solid #ddd;padding:8px;text-align:center;color:{$accepted_color};font-weight:bold;\">{$accepted}</td>
+                    <td style=\"border:1px solid #ddd;padding:8px;text-align:center;color:{$rejected_color};font-weight:bold;\">{$rejected_q}</td>
+                    <td style=\"border:1px solid #ddd;padding:8px;font-size:12px;color:#888;\">{$reason}</td>
+                </tr>";
+            }
+        } else {
+            $item_rows_html = '<tr><td colspan="6" style="border:1px solid #ddd;padding:8px;text-align:center;color:#888;">No item details available</td></tr>';
+        }
+
+        $overall_notes_html = !empty($overall_notes)
+            ? '<p style="background:#fff8e1;border-left:4px solid #ffc107;padding:10px 14px;margin:16px 0;"><strong>Inspector / Approver Remarks:</strong> ' . htmlspecialchars($overall_notes) . '</p>'
+            : '';
+
+        $htmlContent = '<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>' . $heading_text . '</title></head>
+<body style="font-family: Arial, sans-serif; background:#f8f8f8; margin:0; padding:0;">
+    <div style="max-width:800px;margin:20px auto;padding:24px;background:#fff;border:1px solid #ddd;border-radius:6px;">
+        <center><img src="' . $set_company_logo . '" width="150" alt="' . $set_company_name . '" style="margin-bottom:12px;" /></center>
+        <h2 style="text-align:center;color:' . $heading_color . ';margin-bottom:4px;">' . $heading_text . '</h2>
+        <p style="text-align:center;color:#888;margin-top:0;">Action required: Please review the rejected items</p>
+        <hr style="border:none;border-top:1px solid #eee;margin:16px 0;">
+
+        <p>Dear <strong>Purchase Manager</strong>,</p>
+        <p>The following Goods Receipt Note (GRN) has items that were <strong style="color:' . $heading_color . ';">rejected</strong> during ' . ($rejection_type === 'approval' ? 'the approval process' : 'quality inspection') . '. Please take necessary action.</p>
+
+        <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+            <tr><th style="text-align:left;border:1px solid #ddd;padding:8px;background:#f5f5f5;">GRN Number</th><td style="border:1px solid #ddd;padding:8px;font-weight:bold;">' . htmlspecialchars($grn_number) . '</td></tr>
+            <tr><th style="text-align:left;border:1px solid #ddd;padding:8px;background:#f5f5f5;">PO Number</th><td style="border:1px solid #ddd;padding:8px;">' . htmlspecialchars($po_number) . '</td></tr>
+            <tr><th style="text-align:left;border:1px solid #ddd;padding:8px;background:#f5f5f5;">Vendor</th><td style="border:1px solid #ddd;padding:8px;">' . htmlspecialchars($supplier_name) . '</td></tr>
+            <tr><th style="text-align:left;border:1px solid #ddd;padding:8px;background:#f5f5f5;">GRN Date</th><td style="border:1px solid #ddd;padding:8px;">' . $grn_date . '</td></tr>
+            <tr>
+                <th style="text-align:left;border:1px solid #ddd;padding:8px;background:#f5f5f5;">Total Accepted</th>
+                <td style="border:1px solid #ddd;padding:8px;color:#5cb85c;font-weight:bold;">' . number_format($total_accepted, 2) . ' Qty</td>
+            </tr>
+            <tr>
+                <th style="text-align:left;border:1px solid #ddd;padding:8px;background:#f5f5f5;">Total Rejected</th>
+                <td style="border:1px solid #ddd;padding:8px;color:#d9534f;font-weight:bold;">' . number_format($total_rejected, 2) . ' Qty</td>
+            </tr>
+        </table>
+
+        ' . $overall_notes_html . '
+
+        <h3 style="color:#333;border-bottom:2px solid #d9534f;padding-bottom:6px;">Item-wise Inspection Details</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+                <tr style="background:#d9534f;color:#fff;">
+                    <th style="border:1px solid #c0392b;padding:8px;">#</th>
+                    <th style="border:1px solid #c0392b;padding:8px;">Item Code</th>
+                    <th style="border:1px solid #c0392b;padding:8px;">Inspected Qty</th>
+                    <th style="border:1px solid #c0392b;padding:8px;">Accepted Qty</th>
+                    <th style="border:1px solid #c0392b;padding:8px;">Rejected Qty</th>
+                    <th style="border:1px solid #c0392b;padding:8px;">Rejection Reason</th>
+                </tr>
+            </thead>
+            <tbody>
+                ' . $item_rows_html . '
+            </tbody>
+            <tfoot>
+                <tr style="background:#f5f5f5;font-weight:bold;">
+                    <td colspan="3" style="border:1px solid #ddd;padding:8px;text-align:right;">Totals:</td>
+                    <td style="border:1px solid #ddd;padding:8px;text-align:center;color:#5cb85c;">' . number_format($total_accepted, 2) . '</td>
+                    <td style="border:1px solid #ddd;padding:8px;text-align:center;color:#d9534f;">' . number_format($total_rejected, 2) . '</td>
+                    <td style="border:1px solid #ddd;padding:8px;"></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <p style="text-align:center;margin:24px 0;">
+            <a href="' . $grn_link . '" style="background:#d9534f;color:#fff;padding:10px 24px;text-decoration:none;border-radius:4px;display:inline-block;">View GRN List</a>
+        </p>
+        <p>Regards,<br><strong>Quality / Store Department</strong><br>' . $set_company_name . '</p>
+    </div>
+</body>
+</html>';
+
+        $this->load->library('email');
+        $this->email->set_mailtype("html");
+        if (strpos(base_url(), 'localhost') !== false) {
+            $this->email->from($set_from_email, $set_company_name);
+        } else {
+            $this->email->from("noreply@uwsenvirotech.com", $set_company_name);
+        }
+        $this->email->to($pm_email);
+        $this->email->subject($subject);
+        $this->email->message($htmlContent);
+
+        if ($this->email->send()) {
+            log_message('info', 'GRN rejection notification sent to Purchase Manager ' . $pm_email . ' for GRN ' . $grn_number);
+            return true;
+        } else {
+            log_message('error', 'Failed to send GRN rejection notification to ' . $pm_email . ' for GRN ' . $grn_number);
+            log_message('error', $this->email->print_debugger());
+            return false;
+        }
+    }
+
     // Send PO to vendor
     public function send_po_to_vendor($po_number, $vendor_email, $vendor_data, $po_data, $po_items)
     {

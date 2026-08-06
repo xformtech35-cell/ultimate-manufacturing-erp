@@ -416,7 +416,8 @@ $password = $session_data_head['password_str'] ?? '';
         }
         .main-sidebar {
             position: fixed !important;
-            top: 50px !important;
+            top: 5px !important;
+            /* top: 50px !important; */
             bottom: 0 !important;
             height: calc(100vh - 50px) !important;
             z-index: 1020 !important;
@@ -616,6 +617,65 @@ $password = $session_data_head['password_str'] ?? '';
                     </form>
                 </li>
 
+
+                <!-- Delete Approval Notifications (Admin only) -->
+                <?php 
+                $check_role = strtolower($user_role ?? '');
+                $check_role_id = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
+                if ($check_role === 'admin' || $check_role_id === 1 || $user_id === 1): 
+                ?>
+                <li class="dropdown notifications-menu" id="del-approval-notif-menu">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="Item Deletion Requests" onclick="loadPendingDelRequests();">
+                        <i class="fa fa-bell-o" style="font-size:18px;"></i>
+                        <span class="label label-danger" id="del-approval-badge" style="display:none;position:absolute;top:9px;right:7px;font-size:10px;padding:2px 5px;border-radius:50%;">0</span>
+                    </a>
+                    <ul class="dropdown-menu" style="width:330px;padding:0;">
+                        <li class="header" style="background:#f9f9f9;padding:10px 15px;font-weight:700;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
+                            <span><i class="fa fa-trash text-red"></i> Deletion Requests</span>
+                            <span class="label label-danger" id="del-approval-header-count">0 Pending</span>
+                        </li>
+                        <li>
+                            <ul class="menu" id="del-approval-list" style="max-height:300px;overflow-y:auto;list-style:none;padding:0;margin:0;">
+                                <li style="text-align:center;padding:15px;color:#999;"><i class="fa fa-spinner fa-spin"></i> Loading...</li>
+                            </ul>
+                        </li>
+                        <li class="footer" style="background:#f9f9f9;text-align:center;padding:8px;border-top:1px solid #eee;">
+                            <a href="<?php echo base_url('DeleteApprovalController/panel'); ?>" style="color:#3c8dbc;font-weight:600;">View All Requests</a>
+                        </li>
+                    </ul>
+                </li>
+                <script>
+                function updateDelBadgeCount() {
+                    $.ajax({
+                        url: '<?php echo base_url("DeleteApprovalController/get_pending_count"); ?>',
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(res) {
+                            if (res && res.count > 0) {
+                                $('#del-approval-badge').text(res.count).show();
+                                $('#del-approval-header-count').text(res.count + ' Pending');
+                            } else {
+                                $('#del-approval-badge').hide();
+                                $('#del-approval-header-count').text('0 Pending');
+                            }
+                        }
+                    });
+                }
+                function loadPendingDelRequests() {
+                    $.ajax({
+                        url: '<?php echo base_url("DeleteApprovalController/get_pending_requests_html"); ?>',
+                        type: 'GET',
+                        success: function(html) {
+                            $('#del-approval-list').html(html);
+                        }
+                    });
+                }
+                $(document).ready(function() {
+                    updateDelBadgeCount();
+                    setInterval(updateDelBadgeCount, 30000); // refresh every 30 sec
+                });
+                </script>
+                <?php endif; ?>
 
                 <li>
                     <button type="button" class="btn btn-primary pull-right calculator-trigger" onclick="openCalculatorWindow();">

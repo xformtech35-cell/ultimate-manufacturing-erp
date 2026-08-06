@@ -946,6 +946,34 @@ class Material_issue_model extends CI_Model
     }
 
     /**
+     * Get stock verification history (list of all verifications)
+     */
+    public function get_verification_history($uid = null)
+    {
+        $this->db->select('sv.*, u.username as verified_by_name');
+        $this->db->from($this->verification_table . ' sv');
+        $this->db->join('user u', 'u.user_id = sv.uid', 'left');
+        if ($uid) {
+            $this->db->where('sv.uid', $uid);
+        }
+        $this->db->order_by('sv.verification_date', 'DESC');
+        $this->db->order_by('sv.verification_id', 'DESC');
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Get items for a specific verification
+     */
+    public function get_verification_items($verification_id)
+    {
+        $this->db->select('svi.*, i.item_name, i.code');
+        $this->db->from($this->verification_items_table . ' svi');
+        $this->db->join($this->inventory_table . ' i', 'i.inventory_id = svi.inventory_id_fk', 'left');
+        $this->db->where('svi.verification_id', $verification_id);
+        return $this->db->get()->result_array();
+    }
+
+    /**
      * Create stock verification
      */
     public function create_stock_verification($verification_data, $items_data)

@@ -148,6 +148,17 @@ class MasterController extends MY_Controller {
     
     public function delete_product_by_id() {
         $id = $this->uri->segment(3);
+        $session_data_head = $this->session->userdata('session_data_head');
+        $res = $session_data_head['result'] ?? [];
+        $role_name = strtolower($res['role_name'] ?? '');
+        $role_id   = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
+        $user_id   = (int)($res['user_id'] ?? 0);
+
+        if ($role_name !== 'admin' && $role_id !== 1 && $user_id !== 1) {
+            redirect('DeleteApprovalController/request_delete?item_id=' . urlencode($id) . '&module=item_code_master&redirect_url=' . urlencode('MasterController/view_product'));
+            return;
+        }
+
         $result = $this->master->delete_product_by_id($id);
         if ($result == TRUE) {
             $this->session->set_flashdata('SUCCESSMSG', "Product Deleted Successfully!!");

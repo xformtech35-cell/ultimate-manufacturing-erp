@@ -609,9 +609,112 @@ class MaterialIssueController extends MY_Controller
         // Get all inventory items with stock for verification
         $data['inventory_items'] = $this->model->get_inventory_items_with_stock();
 
+        // Get verification history for history tab
+        $data['verification_history'] = $this->model->get_verification_history();
+
         $this->load->view('admin/header_side_bar');
         $this->load->view('material_issue/stock_verification', $data);
        
+    }
+
+    /**
+     * Export stock verification to CSV
+     */
+    public function export_stock_verification($verification_id = null)
+    {
+        $filename = 'stock_verification_' . date('Ymd_His') . '.csv';
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        $output = fopen('php://output', 'w');
+
+        if ($verification_id) {
+            // Export a specific verification with its items
+            $verification = $this->db->where('verification_id', $verification_id)->get('stock_verifications')->row_array();
+            $items        = $this->model->get_verification_items($verification_id);
+
+            fputcsv($output, ['Stock Verification Report']);
+            fputcsv($output, ['Verification No', $verification['verification_no'] ?? '']);
+            fputcsv($output, ['Date',            $verification['verification_date'] ?? '']);
+            fputcsv($output, ['Status',          strtoupper($verification['status'] ?? '')]);
+            fputcsv($output, ['Remarks',         $verification['remarks'] ?? '']);
+            fputcsv($output, ['Total Items',     $verification['total_items'] ?? 0]);
+            fputcsv($output, ['Total Variance Value', number_format($verification['total_variance'] ?? 0, 2)]);
+            fputcsv($output, []);
+            fputcsv($output, ['#', 'Item Code', 'Item Name', 'System Stock', 'Physical Stock', 'Variance', 'Unit Price', 'Variance Value']);
+            $i = 1;
+            foreach ($items as $item) {
+                fputcsv($output, [
+                    $i++,
+                    $item['code']          ?? '',
+                    $item['item_name']     ?? '',
+                    $item['system_stock']  ?? 0,
+                    $item['physical_stock'] ?? 0,
+                    $item['variance']      ?? 0,
+                    $item['unit_price']    ?? 0,
+                    $item['variance_value'] ?? 0,
+                ]);
+            }
+        } else {
+            // Export all verification history
+            $history = $this->model->get_verification_history();
+            fputcsv($output, ['#', 'Verification No', 'Date', 'Total Items', 'Total Variance Value', 'Status', 'Remarks']);
+            $i = 1;
+            foreach ($history as $row) {
+                fputcsv($output, [
+                    $i++,
+                    $row['verification_no']   ?? '',
+                    $row['verification_date'] ?? '',
+                    $row['total_items']       ?? 0,
+                    number_format($row['total_variance'] ?? 0, 2),
+                    strtoupper($row['status'] ?? ''),
+                    $row['remarks']           ?? '',
+                ]);
+            }
+        }
+
+        fclose($output);
+        exit;
+    }
+
+
+    /**
+     * AJAX: Return item detail table for a verification (used in history modal)
+     */
+    public function get_verification_items_ajax($verification_id = null)
+    {
+        if (!$verification_id) {
+            echo '<p class="text-danger">No verification ID provided.</p>';
+            return;
+        }
+        $items = $this->model->get_verification_items($verification_id);
+        if (empty($items)) {
+            echo '<p class="text-muted text-center">No items found for this verification.</p>';
+            return;
+        }
+        echo '<table class="table table-bordered table-condensed" style="margin:0;">';
+        echo '<thead style="background:#f5f5f5;"><tr>
+            <th>#</th><th>Item Code</th><th>Item Name</th>
+            <th>System Stock</th><th>Physical Stock</th>
+            <th>Variance</th><th>Unit Price</th><th>Variance Value</th>
+        </tr></thead><tbody>';
+        $n = 1;
+        foreach ($items as $it) {
+            $v    = floatval($it['variance'] ?? 0);
+            $vval = floatval($it['variance_value'] ?? 0);
+            $rc   = $v > 0 ? 'success' : ($v < 0 ? 'danger' : '');
+            echo "<tr class=\"{$rc}\">
+                <td>{$n}</td>
+                <td><strong>" . htmlspecialchars($it['code'] ?? '') . "</strong></td>
+                <td>" . htmlspecialchars($it['item_name'] ?? '') . "</td>
+                <td class='text-right'>" . number_format($it['system_stock'] ?? 0, 2) . "</td>
+                <td class='text-right'>" . number_format($it['physical_stock'] ?? 0, 2) . "</td>
+                <td class='text-right' style='color:" . ($v > 0 ? '#5cb85c' : ($v < 0 ? '#d9534f' : '#888')) . ";font-weight:bold;'>" . number_format($v, 2) . "</td>
+                <td class='text-right'>" . number_format($it['unit_price'] ?? 0, 2) . "</td>
+                <td class='text-right' style='font-weight:bold;'>" . number_format($vval, 2) . "</td>
+            </tr>";
+            $n++;
+        }
+        echo '</tbody></table>';
     }
 
     /**

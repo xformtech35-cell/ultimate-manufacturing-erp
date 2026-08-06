@@ -575,6 +575,17 @@ public function add_expense_data_indirect()
     public function delete_inventory_by_id()
     {
         $id = $this->uri->segment(3);
+        $session_data_head = $this->session->userdata('session_data_head');
+        $res = $session_data_head['result'] ?? [];
+        $role_name = strtolower($res['role_name'] ?? '');
+        $role_id   = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
+        $user_id   = (int)($res['user_id'] ?? 0);
+
+        if ($role_name !== 'admin' && $role_id !== 1 && $user_id !== 1) {
+            redirect('DeleteApprovalController/request_delete?item_id=' . urlencode($id) . '&module=inventory&redirect_url=' . urlencode('InventoryController/index'));
+            return;
+        }
+
         try {
             $result = $this->inventory->delete_inventory_by_id($id);
             if ($result === 'CONSTRAIN_ERROR') {
