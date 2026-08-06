@@ -8,21 +8,79 @@ class OrderConfirmation extends CI_Model {
     }
 
     private function _auto_migrate_oa_columns() {
-        if (!$this->db->table_exists('orderconfirmation_total')) return;
-        $fields = $this->db->list_fields('orderconfirmation_total');
-        $columns_to_add = [
-            'customer_id'            => 'INT NULL',
-            'po_date'                => 'VARCHAR(100) NULL',
-            'subject'                => 'TEXT NULL',
-            'price_basis'            => 'TEXT NULL',
-            'transportation_charges' => 'TEXT NULL',
-            'service_charges'        => 'TEXT NULL',
-            'warranty'               => 'TEXT NULL',
-            'salesorder_id'          => 'VARCHAR(100) NULL'
-        ];
-        foreach ($columns_to_add as $col => $type) {
-            if (!in_array($col, $fields)) {
-                $this->db->query("ALTER TABLE `{$this->db->dbprefix}orderconfirmation_total` ADD COLUMN `{$col}` {$type}");
+        $prefix = $this->db->dbprefix;
+
+        // 1. Create orderconfirmation_total table if missing
+        $sql_total = "CREATE TABLE IF NOT EXISTS `{$prefix}orderconfirmation_total` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `number_fk` varchar(100) DEFAULT NULL,
+          `supplier_id` int(11) DEFAULT NULL,
+          `customer_id` int(11) DEFAULT NULL,
+          `po_reference` varchar(100) DEFAULT NULL,
+          `po_date` varchar(100) DEFAULT NULL,
+          `subject` text DEFAULT NULL,
+          `date` date DEFAULT NULL,
+          `delivery_date` date DEFAULT NULL,
+          `payment_terms` text DEFAULT NULL,
+          `price_basis` text DEFAULT NULL,
+          `transportation_charges` text DEFAULT NULL,
+          `service_charges` text DEFAULT NULL,
+          `warranty` text DEFAULT NULL,
+          `salesorder_id` varchar(100) DEFAULT NULL,
+          `project_code` varchar(100) DEFAULT NULL,
+          `remarks` longtext,
+          `sub_total` decimal(15,2) DEFAULT 0.00,
+          `tax_amount` decimal(15,2) DEFAULT 0.00,
+          `total` decimal(15,2) DEFAULT 0.00,
+          `status` int(11) DEFAULT 1,
+          `uid` int(11) NOT NULL,
+          `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+          `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `number_fk` (`number_fk`),
+          KEY `supplier_id` (`supplier_id`),
+          KEY `po_reference` (`po_reference`),
+          KEY `uid` (`uid`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+        $this->db->query($sql_total);
+
+        // 2. Create orderconfirmation table if missing
+        $sql_detail = "CREATE TABLE IF NOT EXISTS `{$prefix}orderconfirmation` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `number` varchar(100) DEFAULT NULL,
+          `description` longtext,
+          `hsn_code` varchar(50) DEFAULT NULL,
+          `quantity` decimal(10,2) DEFAULT 0.00,
+          `unit` varchar(20) DEFAULT NULL,
+          `unit_price` decimal(15,2) DEFAULT 0.00,
+          `tax_rate` decimal(5,2) DEFAULT 0.00,
+          `tax_amount` decimal(15,2) DEFAULT 0.00,
+          `amount` decimal(15,2) DEFAULT 0.00,
+          `uid` int(11) NOT NULL,
+          `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `number` (`number`),
+          KEY `uid` (`uid`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+        $this->db->query($sql_detail);
+
+        // 3. Ensure any missing columns are added if table existed previously with fewer columns
+        if ($this->db->table_exists('orderconfirmation_total')) {
+            $fields = $this->db->list_fields('orderconfirmation_total');
+            $columns_to_add = [
+                'customer_id'            => 'INT NULL',
+                'po_date'                => 'VARCHAR(100) NULL',
+                'subject'                => 'TEXT NULL',
+                'price_basis'            => 'TEXT NULL',
+                'transportation_charges' => 'TEXT NULL',
+                'service_charges'        => 'TEXT NULL',
+                'warranty'               => 'TEXT NULL',
+                'salesorder_id'          => 'VARCHAR(100) NULL'
+            ];
+            foreach ($columns_to_add as $col => $type) {
+                if (!in_array($col, $fields)) {
+                    $this->db->query("ALTER TABLE `{$prefix}orderconfirmation_total` ADD COLUMN `{$col}` {$type}");
+                }
             }
         }
     }
