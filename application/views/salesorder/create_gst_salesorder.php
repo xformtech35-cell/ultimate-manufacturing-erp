@@ -402,7 +402,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                         <option value="2">Sent</option>
                                                         <option value="3">Viewed</option>
                                                         <option value="4">Approved</option>
-                                                        <option value="5">Rejected</option>
+                                                        <option value="5">Hold</option>
                                                         <option value="6">Canceled</option>
                                                     </select>
                                                 </div>
