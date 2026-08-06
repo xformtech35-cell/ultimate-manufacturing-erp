@@ -4,6 +4,27 @@ class OrderConfirmation extends CI_Model {
 
     function __construct() {
         parent::__construct();
+        $this->_auto_migrate_oa_columns();
+    }
+
+    private function _auto_migrate_oa_columns() {
+        if (!$this->db->table_exists('orderconfirmation_total')) return;
+        $fields = $this->db->list_fields('orderconfirmation_total');
+        $columns_to_add = [
+            'customer_id'            => 'INT NULL',
+            'po_date'                => 'VARCHAR(100) NULL',
+            'subject'                => 'TEXT NULL',
+            'price_basis'            => 'TEXT NULL',
+            'transportation_charges' => 'TEXT NULL',
+            'service_charges'        => 'TEXT NULL',
+            'warranty'               => 'TEXT NULL',
+            'salesorder_id'          => 'VARCHAR(100) NULL'
+        ];
+        foreach ($columns_to_add as $col => $type) {
+            if (!in_array($col, $fields)) {
+                $this->db->query("ALTER TABLE `{$this->db->dbprefix}orderconfirmation_total` ADD COLUMN `{$col}` {$type}");
+            }
+        }
     }
 
     public function get_last_oc_number($uid) {
@@ -21,7 +42,7 @@ class OrderConfirmation extends CI_Model {
         $query = $this->db->get();
         $result = $query->row();
 
-        return $result->id;
+        return $result ? $result->id : 0;
     }
 
     public function get_supplier($uid) {
@@ -40,11 +61,7 @@ class OrderConfirmation extends CI_Model {
         $this->db->where('uid', $uid);
         $this->db->limit(1);
         $query = $this->db->get();
-        if ($query->num_rows() == 1) {
-            return true;
-        } else {
-            return false;
-        }
+        return ($query->num_rows() == 1);
     }
 
     public function get_supplier_by_id($supplier_id, $uid) {
@@ -56,10 +73,19 @@ class OrderConfirmation extends CI_Model {
         return $query->row_array();
     }
 
+    public function get_customers($uid) {
+        $this->db->select('*');
+        $this->db->from('customer');
+        $this->db->where('uid', $uid);
+        $this->db->order_by('company_name', 'asc');
+        return $this->db->get()->result();
+    }
+
     public function get_orderconfirmation_by_number($number, $uid) {
-        $this->db->select('oct.*, s.*');
+        $this->db->select('oct.*, s.company_name as supplier_company_name, c.company_name as customer_company_name, c.client_name, c.address as customer_address, c.gstin as customer_gstin, c.mobile_number as customer_mobile');
         $this->db->from('orderconfirmation_total as oct');
         $this->db->join('supplier as s', 'oct.supplier_id = s.supplier_id', 'left');
+        $this->db->join('customer as c', 'oct.customer_id = c.customer_id', 'left');
         $this->db->where('oct.number_fk', $number);
         $this->db->where('oct.uid', $uid);
         $query = $this->db->get();

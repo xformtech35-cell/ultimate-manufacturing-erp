@@ -32,8 +32,11 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                             <div class="box-header with-border">
                                 <h3 class="box-title">OC #<?php echo $oc['number_fk']; ?></h3>
                                 <div class="box-tools pull-right">
+                                    <a href="<?php echo base_url(); ?>OrderConfirmationController/print_oa_letter/<?php echo $oc['number_fk']; ?>" class="btn btn-primary btn-sm" target="_blank">
+                                        <i class="fa fa-file-pdf-o"></i> Print OA Letter
+                                    </a>
                                     <a href="<?php echo base_url(); ?>OrderConfirmationController/print_order_confirmation/<?php echo $oc['number_fk']; ?>" class="btn btn-info btn-sm" target="_blank">
-                                        <i class="fa fa-print"></i> Print
+                                        <i class="fa fa-print"></i> Print Register Format
                                     </a>
                                     <a href="<?php echo base_url(); ?>OrderConfirmationController/edit_order_confirmation_details/<?php echo $oc['number_fk']; ?>" class="btn btn-warning btn-sm">
                                         <i class="fa fa-edit"></i> Edit
@@ -74,15 +77,15 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                                     $status_class = 'label-warning';
                                                     break;
                                                 case 2:
-                                                    $status_badge = 'Sent/Confirmed';
+                                                    $status_badge = 'Sent to Customer';
                                                     $status_class = 'label-info';
                                                     break;
                                                 case 3:
-                                                    $status_badge = 'Accepted';
+                                                    $status_badge = 'Customer Accepted (Confirmed)';
                                                     $status_class = 'label-success';
                                                     break;
                                                 case 4:
-                                                    $status_badge = 'Rejected';
+                                                    $status_badge = 'Follow up with Customer (Rejected)';
                                                     $status_class = 'label-danger';
                                                     break;
                                                 case 5:
@@ -94,14 +97,14 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                             <span class="label <?php echo $status_class; ?>" style="font-size: 14px; padding: 8px 15px;">Current Status: <?php echo $status_badge; ?></span>
                                             
                                             <?php if($status == 1) { ?>
-                                                <a href="<?php echo base_url(); ?>OrderConfirmationController/update_status/<?php echo $oc['number_fk']; ?>/2" class="btn btn-xs btn-info">Mark as Sent/Confirmed</a>
+                                                <a href="<?php echo base_url(); ?>OrderConfirmationController/update_status/<?php echo $oc['number_fk']; ?>/2" class="btn btn-sm btn-info" style="margin-left: 10px;"><i class="fa fa-send"></i> Issue OA to Customer</a>
                                             <?php } ?>
-                                            <?php if($status == 2) { ?>
-                                                <a href="<?php echo base_url(); ?>OrderConfirmationController/update_status/<?php echo $oc['number_fk']; ?>/3" class="btn btn-xs btn-success">Mark as Accepted</a>
-                                                <a href="<?php echo base_url(); ?>OrderConfirmationController/update_status/<?php echo $oc['number_fk']; ?>/4" class="btn btn-xs btn-danger">Mark as Rejected</a>
+                                            <?php if($status == 2 || $status == 4) { ?>
+                                                <a href="<?php echo base_url(); ?>OrderConfirmationController/update_status/<?php echo $oc['number_fk']; ?>/3" class="btn btn-sm btn-success" style="margin-left: 10px;"><i class="fa fa-check-circle"></i> Customer Accepts (Yes)</a>
+                                                <a href="<?php echo base_url(); ?>OrderConfirmationController/update_status/<?php echo $oc['number_fk']; ?>/4" class="btn btn-sm btn-danger" style="margin-left: 5px;"><i class="fa fa-phone"></i> Follow up with Customer (No)</a>
                                             <?php } ?>
-                                            <?php if($status == 3 || $status == 4) { ?>
-                                                <a href="<?php echo base_url(); ?>OrderConfirmationController/update_status/<?php echo $oc['number_fk']; ?>/5" class="btn btn-xs btn-default">Cancel</a>
+                                            <?php if($status == 3) { ?>
+                                                <a href="<?php echo base_url(); ?>OrderConfirmationController/update_status/<?php echo $oc['number_fk']; ?>/5" class="btn btn-sm btn-default" style="margin-left: 10px;"><i class="fa fa-ban"></i> Cancel Order</a>
                                             <?php } ?>
                                         </div>
                                     </div>

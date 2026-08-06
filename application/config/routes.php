@@ -91,6 +91,8 @@ $route['OrderConfirmation/update'] = 'OrderConfirmationController/update_order_c
 $route['OrderConfirmation/delete/(:any)'] = 'OrderConfirmationController/delete_order_confirmation/$1';
 $route['OrderConfirmation/update-status/(:any)/(:num)'] = 'OrderConfirmationController/update_status/$1/$2';
 $route['OrderConfirmation/print/(:any)'] = 'OrderConfirmationController/print_order_confirmation/$1';
+$route['OrderConfirmation/create-from-so/(:any)'] = 'OrderConfirmationController/create_from_so/$1';
+$route['OrderConfirmation/print-oa-letter/(:any)'] = 'OrderConfirmationController/print_oa_letter/$1';
 
 // JobOrder Routes
 $route['JobOrder'] = 'JobOrderController/index';

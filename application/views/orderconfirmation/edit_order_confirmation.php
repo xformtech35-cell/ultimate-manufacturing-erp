@@ -67,62 +67,125 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                     </div>
 
                                     <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="supplier_id">Supplier <span style="color: red;">*</span></label>
-                                                <select class="form-control" id="supplier_id" name="supplier_id" required>
-                                                    <option value="">-- Select Supplier --</option>
-                                                    <?php if(isset($supplier_result) && !empty($supplier_result)) {
-                                                        foreach($supplier_result as $supplier) {
-                                                            $selected = ($supplier->supplier_id == $oc['supplier_id']) ? 'selected' : '';
-                                                            echo '<option value="'.$supplier->supplier_id.'" '.$selected.'>'.$supplier->company_name . " - " . $supplier->s_code.'</option>';
-                                                        }
-                                                    } ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="po_reference">PO Reference</label>
-                                                <input type="text" class="form-control" id="po_reference" name="po_reference" value="<?php echo $oc['po_reference']; ?>" placeholder="Enter PO Reference">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="delivery_date">Expected Delivery Date</label>
-                                                <input type="date" class="form-control" id="delivery_date" name="delivery_date" value="<?php echo $oc['delivery_date']; ?>">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="payment_terms">Payment Terms</label>
-                                                <input type="text" class="form-control" id="payment_terms" name="payment_terms" value="<?php echo $oc['payment_terms']; ?>" placeholder="e.g., Net 30">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <?php if ($_has_project_master): ?>
                                      <div class="row">
                                          <div class="col-md-6">
                                              <div class="form-group">
-                                                 <label for="project_code">Project Code</label>
-                                                 <input type="text" class="form-control" id="project_code" name="project_code" value="<?php echo $oc['project_code']; ?>" placeholder="Enter project code">
+                                                 <label for="customer_id">Customer</label>
+                                                 <select class="form-control" id="customer_id" name="customer_id">
+                                                     <option value="">-- Select Customer --</option>
+                                                     <?php if(isset($customer_result) && !empty($customer_result)) {
+                                                         foreach($customer_result as $cust) {
+                                                             $selected = (isset($oc['customer_id']) && $oc['customer_id'] == $cust->customer_id) ? 'selected' : '';
+                                                             echo '<option value="'.$cust->customer_id.'" '.$selected.'>'.$cust->company_name.'</option>';
+                                                         }
+                                                     } ?>
+                                                 </select>
+                                             </div>
+                                         </div>
+                                         <div class="col-md-6">
+                                             <div class="form-group">
+                                                 <label for="supplier_id">Supplier</label>
+                                                 <select class="form-control" id="supplier_id" name="supplier_id">
+                                                     <option value="">-- Select Supplier --</option>
+                                                     <?php if(isset($supplier_result) && !empty($supplier_result)) {
+                                                         foreach($supplier_result as $supplier) {
+                                                             $selected = ($supplier->supplier_id == $oc['supplier_id']) ? 'selected' : '';
+                                                             echo '<option value="'.$supplier->supplier_id.'" '.$selected.'>'.$supplier->company_name . " - " . $supplier->s_code.'</option>';
+                                                         }
+                                                     } ?>
+                                                 </select>
                                              </div>
                                          </div>
                                      </div>
-                                     <?php endif; ?>
 
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <label for="remarks">Remarks</label>
-                                                <textarea class="form-control" id="remarks" name="remarks" rows="3" placeholder="Enter any remarks..."><?php echo $oc['remarks']; ?></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
+                                     <div class="row">
+                                         <div class="col-md-6">
+                                             <div class="form-group">
+                                                 <label for="po_reference">Customer PO Reference No.</label>
+                                                 <input type="text" class="form-control" id="po_reference" name="po_reference" value="<?php echo isset($oc['po_reference']) ? $oc['po_reference'] : ''; ?>" placeholder="e.g., 4520232398">
+                                             </div>
+                                         </div>
+                                         <div class="col-md-6">
+                                             <div class="form-group">
+                                                 <label for="po_date">Customer PO Date</label>
+                                                 <input type="date" class="form-control" id="po_date" name="po_date" value="<?php echo isset($oc['po_date']) ? $oc['po_date'] : ''; ?>">
+                                             </div>
+                                         </div>
+                                     </div>
+
+                                     <div class="row">
+                                         <div class="col-md-12">
+                                             <div class="form-group">
+                                                 <label for="subject">Subject Line for OA Letter</label>
+                                                 <input type="text" class="form-control" id="subject" name="subject" value="<?php echo isset($oc['subject']) ? $oc['subject'] : ''; ?>" placeholder="e.g., Order Acceptance Letter against DOSING SYSTEM for WTP Plant (Hindalco) (W-26004)">
+                                             </div>
+                                         </div>
+                                     </div>
+
+                                     <div class="row">
+                                         <div class="col-md-6">
+                                             <div class="form-group">
+                                                 <label for="delivery_date">Expected Dispatch / Delivery Date</label>
+                                                 <input type="date" class="form-control" id="delivery_date" name="delivery_date" value="<?php echo isset($oc['delivery_date']) ? $oc['delivery_date'] : ''; ?>">
+                                             </div>
+                                         </div>
+                                         <div class="col-md-6">
+                                             <div class="form-group">
+                                                 <label for="payment_terms">Payment Terms</label>
+                                                 <input type="text" class="form-control" id="payment_terms" name="payment_terms" value="<?php echo isset($oc['payment_terms']) ? $oc['payment_terms'] : ''; ?>" placeholder="e.g., 90% with full tax in 45 Days...">
+                                             </div>
+                                         </div>
+                                     </div>
+
+                                     <div class="row">
+                                         <div class="col-md-6">
+                                             <div class="form-group">
+                                                 <label for="price_basis">Price Basis</label>
+                                                 <input type="text" class="form-control" id="price_basis" name="price_basis" value="<?php echo isset($oc['price_basis']) ? $oc['price_basis'] : ''; ?>" placeholder="e.g., Ex-works Talwade, Pune.">
+                                             </div>
+                                         </div>
+                                         <div class="col-md-6">
+                                             <div class="form-group">
+                                                 <label for="transportation_charges">Transportation Charges</label>
+                                                 <input type="text" class="form-control" id="transportation_charges" name="transportation_charges" value="<?php echo isset($oc['transportation_charges']) ? $oc['transportation_charges'] : ''; ?>" placeholder="e.g., Extra to PRAJ scope.">
+                                             </div>
+                                         </div>
+                                     </div>
+
+                                     <div class="row">
+                                         <div class="col-md-6">
+                                             <div class="form-group">
+                                                 <label for="service_charges">Service Charges</label>
+                                                 <input type="text" class="form-control" id="service_charges" name="service_charges" value="<?php echo isset($oc['service_charges']) ? $oc['service_charges'] : ''; ?>" placeholder="e.g., Rs.5000/- will be charged extra per day...">
+                                             </div>
+                                         </div>
+                                         <div class="col-md-6">
+                                             <div class="form-group">
+                                                 <label for="warranty">Warranty</label>
+                                                 <input type="text" class="form-control" id="warranty" name="warranty" value="<?php echo isset($oc['warranty']) ? $oc['warranty'] : ''; ?>" placeholder="e.g., 30 months from date of dispatch...">
+                                             </div>
+                                         </div>
+                                     </div>
+
+                                     <?php if ($_has_project_master): ?>
+                                      <div class="row">
+                                          <div class="col-md-6">
+                                              <div class="form-group">
+                                                  <label for="project_code">Project Code</label>
+                                                  <input type="text" class="form-control" id="project_code" name="project_code" value="<?php echo isset($oc['project_code']) ? $oc['project_code'] : ''; ?>" placeholder="Enter project code">
+                                              </div>
+                                          </div>
+                                      </div>
+                                      <?php endif; ?>
+
+                                     <div class="row">
+                                         <div class="col-md-12">
+                                             <div class="form-group">
+                                                 <label for="remarks">Remarks</label>
+                                                 <textarea class="form-control" id="remarks" name="remarks" rows="2" placeholder="Enter any remarks..."><?php echo isset($oc['remarks']) ? $oc['remarks'] : ''; ?></textarea>
+                                             </div>
+                                         </div>
+                                     </div>
 
                                     <hr>
                                     <h4>OC Items</h4>

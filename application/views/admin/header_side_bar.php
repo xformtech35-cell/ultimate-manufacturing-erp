@@ -904,31 +904,92 @@ if ($currentPage == 'InventoryController') {
                     }
                 }
 
-                // Auto-ensure SO Approval menu item exists in sidebar_menu DB table
-                $has_so_approval = $ci->db->where('permission', 'SO_Approval')->get('sidebar_menu')->row();
-                if (!$has_so_approval) {
+                // Auto-ensure SO Approval parent & submenus (SO Approval Dashboard + Order Acceptance) exist in sidebar_menu
+                $so_app_parent = $ci->db->group_start()
+                    ->where('title', 'SO Approval')
+                    ->or_where('permission', 'SO_Approval')
+                    ->group_end()
+                    ->where('parent_id', 2)
+                    ->get('sidebar_menu')->row();
+
+                if (!$so_app_parent) {
                     $ci->db->insert('sidebar_menu', [
-                        'parent_id' => 2, // Sales
-                        'title' => 'SO Approval',
-                        'icon' => 'fa fa-check-square-o',
-                        'url' => 'SalesOrderController/so_approval_dashboard',
-                        'permission' => 'SO_Approval',
-                        'sort_order' => 3,
+                        'parent_id'   => 2, // Sales
+                        'title'       => 'SO Approval',
+                        'icon'        => 'fa fa-check-square-o',
+                        'url'         => NULL,
+                        'permission'  => NULL,
+                        'sort_order'  => 3,
+                        'active_cond' => json_encode([
+                            'controllers' => ['SalesOrderController', 'OrderConfirmationController']
+                        ])
+                    ]);
+                    $so_app_parent_id = $ci->db->insert_id();
+                } else {
+                    $so_app_parent_id = $so_app_parent->id;
+                    if (!empty($so_app_parent->url) || !empty($so_app_parent->permission)) {
+                        $ci->db->where('id', $so_app_parent_id)->update('sidebar_menu', [
+                            'url'         => NULL,
+                            'permission'  => NULL,
+                            'active_cond' => json_encode([
+                                'controllers' => ['SalesOrderController', 'OrderConfirmationController']
+                            ])
+                        ]);
+                    }
+                }
+
+                // Ensure "SO Approval Dashboard" child menu item exists under SO Approval
+                $has_so_dash = $ci->db->where('parent_id', $so_app_parent_id)
+                    ->where('permission', 'SO_Approval')
+                    ->get('sidebar_menu')->row();
+
+                if (!$has_so_dash) {
+                    $ci->db->insert('sidebar_menu', [
+                        'parent_id'   => $so_app_parent_id,
+                        'title'       => 'SO Approval Dashboard',
+                        'icon'        => 'fa fa-check-square-o',
+                        'url'         => 'SalesOrderController/so_approval_dashboard',
+                        'permission'  => 'SO_Approval',
+                        'sort_order'  => 0,
                         'active_cond' => json_encode([
                             'controllers' => ['SalesOrderController'],
-                            'pages' => ['so_approval_dashboard']
+                            'pages'       => ['so_approval_dashboard']
                         ])
                     ]);
                 }
 
-                // Ensure permission entry exists for Admin role in 'permission' table for SO_Approval
+                // Ensure "Order Acceptance" child menu item exists under SO Approval
+                $has_oc = $ci->db->where('permission', 'OrderConfirmation')->get('sidebar_menu')->row();
+                if (!$has_oc) {
+                    $ci->db->insert('sidebar_menu', [
+                        'parent_id'   => $so_app_parent_id,
+                        'title'       => 'Order Acceptance',
+                        'icon'        => 'fa fa-file-text-o',
+                        'url'         => 'OrderConfirmationController/index',
+                        'permission'  => 'OrderConfirmation',
+                        'sort_order'  => 1,
+                        'active_cond' => json_encode([
+                            'controllers' => ['OrderConfirmationController']
+                        ])
+                    ]);
+                } else if ($has_oc->parent_id != $so_app_parent_id) {
+                    $ci->db->where('id', $has_oc->id)->update('sidebar_menu', [
+                        'parent_id'  => $so_app_parent_id,
+                        'title'      => 'Order Acceptance',
+                        'sort_order' => 1
+                    ]);
+                }
+
+                // Auto-assign permissions to Admin role (role_id 1)
                 if ($ci->db->table_exists('permission')) {
-                    $admin_so_perm = $ci->db->where('role_id_fk', 1)->where('grp_perm', 'SO_Approval')->get('permission')->row();
-                    if (!$admin_so_perm) {
-                        $ci->db->insert('permission', [
-                            'role_id_fk' => 1,
-                            'grp_perm' => 'SO_Approval'
-                        ]);
+                    foreach (['SO_Approval', 'OrderConfirmation'] as $perm_key) {
+                        $admin_perm = $ci->db->where('role_id_fk', 1)->where('grp_perm', $perm_key)->get('permission')->row();
+                        if (!$admin_perm) {
+                            $ci->db->insert('permission', [
+                                'role_id_fk' => 1,
+                                'grp_perm'   => $perm_key
+                            ]);
+                        }
                     }
                 }
             }

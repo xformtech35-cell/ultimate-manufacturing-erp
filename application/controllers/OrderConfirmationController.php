@@ -17,12 +17,21 @@ class OrderConfirmationController extends MY_Controller {
         $this->load->model('paymentterm', '', TRUE);
 
         $session_data_head = $this->session->userdata('session_data_head');
-        $this->user_id = $session_data_head['result']['user_id'];
+        $this->user_id = $session_data_head['result']['user_id'] ?? NULL;
 
         if ($this->user_id === NULL) {
             $this->session->sess_destroy();
             $this->session->set_flashdata('SUCCESSMSG', "You have been Logged Out !!");
             redirect('LoginController/logout');
+        }
+
+        $permissions = $session_data_head['permission'] ?? array();
+        $role_name = strtolower($session_data_head['result']['role_name'] ?? '');
+        $is_admin = ($role_name === 'admin' || ($session_data_head['result']['role'] ?? 0) == 1);
+
+        if (!$is_admin && !in_array('OrderConfirmation', $permissions)) {
+            $this->session->set_flashdata('ERRORMSG', 'You do not have permission to access Order Acceptance.');
+            redirect('Home/index');
         }
     }
 
@@ -101,10 +110,18 @@ class OrderConfirmationController extends MY_Controller {
     public function save_order_confirmation() {
         $number = $this->input->post('number');
         $supplier_id = $this->input->post('supplier_id');
+        $customer_id = $this->input->post('customer_id');
         $po_reference = $this->input->post('po_reference');
+        $po_date = $this->input->post('po_date');
+        $subject = $this->input->post('subject');
         $date = $this->input->post('date');
         $delivery_date = $this->input->post('delivery_date');
         $payment_terms = $this->input->post('payment_terms');
+        $price_basis = $this->input->post('price_basis');
+        $transportation_charges = $this->input->post('transportation_charges');
+        $service_charges = $this->input->post('service_charges');
+        $warranty = $this->input->post('warranty');
+        $salesorder_id = $this->input->post('salesorder_id');
         $project_code = $this->input->post('project_code') ?? '';
         $remarks = $this->input->post('remarks');
         $sub_total = $this->input->post('sub_total');
@@ -112,19 +129,27 @@ class OrderConfirmationController extends MY_Controller {
         $total_amount = $this->input->post('total_amount');
         
         $oc_data = array(
-            'number_fk' => $number,
-            'supplier_id' => $supplier_id,
-            'po_reference' => $po_reference,
-            'date' => $date,
-            'delivery_date' => $delivery_date,
-            'payment_terms' => $payment_terms,
-            'project_code' => $project_code,
-            'remarks' => $remarks,
-            'sub_total' => $sub_total,
-            'tax_amount' => $tax_amount,
-            'total' => $total_amount,
-            'uid' => $this->user_id,
-            'status' => 1
+            'number_fk'              => $number,
+            'supplier_id'            => $supplier_id,
+            'customer_id'            => $customer_id,
+            'po_reference'           => $po_reference,
+            'po_date'                => $po_date,
+            'subject'                => $subject,
+            'date'                   => $date,
+            'delivery_date'          => $delivery_date,
+            'payment_terms'          => $payment_terms,
+            'price_basis'            => $price_basis,
+            'transportation_charges' => $transportation_charges,
+            'service_charges'        => $service_charges,
+            'warranty'               => $warranty,
+            'salesorder_id'          => $salesorder_id,
+            'project_code'           => $project_code,
+            'remarks'                => $remarks,
+            'sub_total'              => $sub_total,
+            'tax_amount'             => $tax_amount,
+            'total'                  => $total_amount,
+            'uid'                    => $this->user_id,
+            'status'                 => 1
         );
 
         if($this->orderconfirmation->add_orderconfirmation($oc_data)) {
@@ -158,10 +183,10 @@ class OrderConfirmationController extends MY_Controller {
                 }
             }
             
-            $this->session->set_flashdata('SUCCESSMSG', 'Order Confirmation Saved Successfully');
+            $this->session->set_flashdata('SUCCESSMSG', 'Order Acceptance Saved Successfully');
             redirect('OrderConfirmationController/show_order_confirmation/' . $number);
         } else {
-            $this->session->set_flashdata('INFOMSG', 'Error Saving Order Confirmation');
+            $this->session->set_flashdata('INFOMSG', 'Error Saving Order Acceptance');
             redirect('OrderConfirmationController/create_order_confirmation');
         }
     }
@@ -169,10 +194,18 @@ class OrderConfirmationController extends MY_Controller {
     public function update_order_confirmation() {
         $number = $this->input->post('number');
         $supplier_id = $this->input->post('supplier_id');
+        $customer_id = $this->input->post('customer_id');
         $po_reference = $this->input->post('po_reference');
+        $po_date = $this->input->post('po_date');
+        $subject = $this->input->post('subject');
         $date = $this->input->post('date');
         $delivery_date = $this->input->post('delivery_date');
         $payment_terms = $this->input->post('payment_terms');
+        $price_basis = $this->input->post('price_basis');
+        $transportation_charges = $this->input->post('transportation_charges');
+        $service_charges = $this->input->post('service_charges');
+        $warranty = $this->input->post('warranty');
+        $salesorder_id = $this->input->post('salesorder_id');
         $project_code = $this->input->post('project_code') ?? '';
         $remarks = $this->input->post('remarks');
         $sub_total = $this->input->post('sub_total');
@@ -180,16 +213,24 @@ class OrderConfirmationController extends MY_Controller {
         $total_amount = $this->input->post('total_amount');
         
         $oc_data = array(
-            'supplier_id' => $supplier_id,
-            'po_reference' => $po_reference,
-            'date' => $date,
-            'delivery_date' => $delivery_date,
-            'payment_terms' => $payment_terms,
-            'project_code' => $project_code,
-            'remarks' => $remarks,
-            'sub_total' => $sub_total,
-            'tax_amount' => $tax_amount,
-            'total' => $total_amount
+            'supplier_id'            => $supplier_id,
+            'customer_id'            => $customer_id,
+            'po_reference'           => $po_reference,
+            'po_date'                => $po_date,
+            'subject'                => $subject,
+            'date'                   => $date,
+            'delivery_date'          => $delivery_date,
+            'payment_terms'          => $payment_terms,
+            'price_basis'            => $price_basis,
+            'transportation_charges' => $transportation_charges,
+            'service_charges'        => $service_charges,
+            'warranty'               => $warranty,
+            'salesorder_id'          => $salesorder_id,
+            'project_code'           => $project_code,
+            'remarks'                => $remarks,
+            'sub_total'              => $sub_total,
+            'tax_amount'             => $tax_amount,
+            'total'                  => $total_amount
         );
 
         if($this->orderconfirmation->update_orderconfirmation($number, $oc_data, $this->user_id)) {
@@ -226,10 +267,10 @@ class OrderConfirmationController extends MY_Controller {
                 }
             }
             
-            $this->session->set_flashdata('SUCCESSMSG', 'Order Confirmation Updated Successfully');
+            $this->session->set_flashdata('SUCCESSMSG', 'Order Acceptance Updated Successfully');
             redirect('OrderConfirmationController/show_order_confirmation/' . $number);
         } else {
-            $this->session->set_flashdata('INFOMSG', 'Error Updating Order Confirmation');
+            $this->session->set_flashdata('INFOMSG', 'Error Updating Order Acceptance');
             redirect('OrderConfirmationController/edit_order_confirmation_details/' . $number);
         }
     }
@@ -238,9 +279,9 @@ class OrderConfirmationController extends MY_Controller {
         $number = $this->uri->segment(3);
         
         if($this->orderconfirmation->delete_orderconfirmation_by_number($number, $this->user_id)) {
-            $this->session->set_flashdata('SUCCESSMSG', 'Order Confirmation Deleted Successfully');
+            $this->session->set_flashdata('SUCCESSMSG', 'Order Acceptance Deleted Successfully');
         } else {
-            $this->session->set_flashdata('INFOMSG', 'Error Deleting Order Confirmation');
+            $this->session->set_flashdata('INFOMSG', 'Error Deleting Order Acceptance');
         }
         redirect('OrderConfirmationController/index');
     }
@@ -265,6 +306,38 @@ class OrderConfirmationController extends MY_Controller {
         $data['settings'] = $this->login->get_settings($this->user_id);
         
         $this->load->view('orderconfirmation/print_order_confirmation', $data);
+    }
+
+    public function print_oa_letter() {
+        $number = $this->uri->segment(3);
+        
+        $data['oc'] = $this->orderconfirmation->get_orderconfirmation_by_number($number, $this->user_id);
+        $data['oc_detail'] = $this->orderconfirmation->get_orderconfirmation_detail($number, $this->user_id);
+        $data['settings'] = $this->login->get_settings($this->user_id);
+        
+        $this->load->view('orderconfirmation/print_oa_letter', $data);
+    }
+
+    public function create_from_so() {
+        $so_number = $this->uri->segment(3);
+        $this->load->model('salesorder');
+        
+        $so_header = $this->salesorder->get_salesorder_by_number($so_number, $this->user_id);
+        $so_details = $this->salesorder->get_salesorder_detail($so_number, $this->user_id);
+        
+        $data['so_header'] = $so_header;
+        $data['so_details'] = $so_details;
+        $data['supplier_result'] = $this->orderconfirmation->get_supplier($this->user_id);
+        $data['customer_result'] = $this->orderconfirmation->get_customers($this->user_id);
+        $data['oc_id'] = $this->orderconfirmation->get_last_oc_number($this->user_id);
+        $data['paymentterm_result'] = $this->paymentterm->get_paymentterm($this->user_id);
+        $data['item_name'] = $this->inventory->get_item_name($this->user_id);
+        $data['project_code_result'] = $this->orderconfirmation->get_project_code($this->user_id);
+        $data['settings'] = $this->login->get_settings($this->user_id);
+        
+        $session_data_head = $this->session->userdata('session_data_head');
+        $this->load->view('admin/header_side_bar', $session_data_head);
+        $this->load->view('orderconfirmation/create_order_confirmation', $data);
     }
 }
 ?>

@@ -145,6 +145,9 @@ function format_show_date($date) {
                                         <!-- Edit button -->
                                         <a href="<?php echo base_url(); ?>SalesOrderController/edit_salesorder_details/<?php echo $salesorders_data_group['id']; ?>" class="btn btn-primary">Edit</a>
 
+                                        <!-- Issue Order Acceptance (OA) -->
+                                        <a href="<?php echo base_url(); ?>OrderConfirmationController/create_from_so/<?php echo $salesorders_data_group['number_fk']; ?>" class="btn btn-success"><i class="fa fa-file-text-o"></i> Issue Order Acceptance (OA)</a>
+
                                         <!-- Convert to Invoice form -->
                                         <form method="POST" action="<?php echo base_url(); ?>SalesOrderController/convert_to_invoice/<?php echo $salesorders_data_group['id']; ?>" class="d-inline-block">
                                             <input type="hidden" name="number" value="<?php echo $salesorders_data_group['id']; ?>">
