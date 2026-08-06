@@ -212,7 +212,8 @@ if (!empty($result)) {
         $sheet->getStyle('K' . $rowCount)->applyFromArray($rightAlignStyle); // Total right-aligned
         
         // Highlight low stock in red
-        if ($row->stock <= 5) {
+        $reorder_lvl = isset($row->reorder_level) && $row->reorder_level !== '' ? intval($row->reorder_level) : 10;
+        if ($row->stock <= $reorder_lvl) {
             $sheet->getStyle('I' . $rowCount)->getFont()->getColor()->setRGB('FF0000');
             $sheet->getStyle('I' . $rowCount)->getFont()->setBold(true);
         }

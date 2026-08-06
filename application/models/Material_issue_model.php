@@ -900,11 +900,11 @@ class Material_issue_model extends CI_Model
             $this->db->where('i.item_type', $filters['item_type']);
         }
         if (isset($filters['low_stock']) && $filters['low_stock']) {
-            $this->db->where('i.stock <=', 10);
+            $this->db->where('i.stock <= COALESCE(i.reorder_level, 10)', NULL, FALSE);
             $this->db->where('i.stock >', 0);
         }
         if (isset($filters['out_of_stock']) && $filters['out_of_stock']) {
-            $this->db->where('i.stock <=', 0);
+            $this->db->where('i.stock <= 0');
         }
 
         $this->db->order_by('i.item_name');
@@ -1088,7 +1088,7 @@ class Material_issue_model extends CI_Model
         $this->db->from($this->inventory_table . ' i');
         $this->db->join('item_category_master cat', 'cat.category_id = i.category_id', 'left');
         $this->db->join('item_group_master grp', 'grp.group_id = i.group_id', 'left');
-        $this->db->where('i.stock <=', 10);
+        $this->db->where('i.stock <= COALESCE(i.reorder_level, 10)', NULL, FALSE);
         $this->db->order_by('i.stock', 'ASC');
 
         return $this->db->get()->result_array();
@@ -1181,13 +1181,13 @@ class Material_issue_model extends CI_Model
         // Low stock items
         $this->db->select('COUNT(*) as low_stock_items');
         $this->db->where('stock >', 0);
-        $this->db->where('stock <=', 10);
+        $this->db->where('stock <= COALESCE(reorder_level, 10)', NULL, FALSE);
         $result = $this->db->get($this->inventory_table)->row();
         $summary['low_stock_items'] = $result->low_stock_items;
 
         // Out of stock items
         $this->db->select('COUNT(*) as out_of_stock_items');
-        $this->db->where('stock <=', 0);
+        $this->db->where('stock <= 0');
         $result = $this->db->get($this->inventory_table)->row();
         $summary['out_of_stock_items'] = $result->out_of_stock_items;
 

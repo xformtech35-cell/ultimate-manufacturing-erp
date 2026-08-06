@@ -1236,7 +1236,8 @@ public function add_expense_data_indirect()
                 
                 $stockCell = $sheet->getCell('H' . $row);
                 $stockCell->setValue($item->stock);
-                if ($item->stock <= 5) {
+                $reorder_lvl = isset($item->reorder_level) && $item->reorder_level !== '' ? intval($item->reorder_level) : 10;
+                if ($item->stock <= $reorder_lvl) {
                     $sheet->getStyle('H' . $row)->getFont()->getColor()
                         ->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_RED);
                 }
@@ -1757,7 +1758,8 @@ public function add_expense_data_indirect()
     {
         $count = 0;
         foreach ($result as $item) {
-            if ($item->stock <= 5) {
+            $reorder_lvl = isset($item->reorder_level) && $item->reorder_level !== '' ? intval($item->reorder_level) : 10;
+            if ($item->stock <= $reorder_lvl) {
                 $count++;
             }
         }
