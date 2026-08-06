@@ -22,8 +22,9 @@ class DeleteApprovalController extends MY_Controller
     private function _ensure_table()
     {
         if (!$this->db->table_exists('item_delete_requests')) {
+            $table_name = $this->db->dbprefix('item_delete_requests');
             $this->db->query("
-                CREATE TABLE IF NOT EXISTS `item_delete_requests` (
+                CREATE TABLE IF NOT EXISTS `$table_name` (
                     `id`                int(11)      NOT NULL AUTO_INCREMENT,
                     `item_id`           varchar(50)  NOT NULL,
                     `item_code`         varchar(100) DEFAULT NULL,
