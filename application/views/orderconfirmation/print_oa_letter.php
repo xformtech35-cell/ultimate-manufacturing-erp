@@ -6,11 +6,11 @@
     <style>
         @page {
             size: A4;
-            margin: 15mm;
+            margin: 10mm;
         }
         body {
-            font-family: 'Times New Roman', Times, serif, Arial, sans-serif;
-            font-size: 13px;
+            font-family: Calibri, 'Segoe UI', Arial, sans-serif;
+            font-size: 11pt;
             line-height: 1.5;
             color: #000;
             background: #fff;
@@ -18,97 +18,103 @@
             padding: 0;
         }
         .outer-box {
-            border: 3px double #000;
-            padding: 25px 30px;
+            border: 4px double #000;
+            padding: 30px 40px;
             margin: 0 auto;
-            min-height: 950px;
+            min-height: 1000px;
             box-sizing: border-box;
             position: relative;
         }
         .header-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         .header-logo {
-            width: 80px;
-            vertical-align: top;
+            width: 85px;
+            vertical-align: middle;
         }
         .header-logo img {
-            max-width: 75px;
+            max-width: 80px;
             height: auto;
         }
         .company-title {
-            font-size: 22px;
+            font-size: 20pt;
             font-weight: bold;
             color: #0d2b5c;
-            font-family: Arial, sans-serif;
-            text-transform: uppercase;
+            font-family: Calibri, Arial, sans-serif;
+            letter-spacing: 0.5px;
         }
         .company-subtitle {
-            font-size: 13px;
-            color: #b30000;
+            font-size: 11pt;
+            color: #c00000;
             font-style: italic;
             font-weight: bold;
-            font-family: Arial, sans-serif;
+            font-family: Calibri, Arial, sans-serif;
+            margin-top: 2px;
         }
         .doc-title {
             text-align: center;
-            font-size: 16px;
+            font-size: 14pt;
             font-weight: bold;
             text-decoration: underline;
-            margin: 15px 0 20px 0;
-            text-transform: capitalize;
+            margin: 20px 0 25px 0;
         }
         .ref-date-table {
             width: 100%;
-            margin-bottom: 15px;
-            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 11pt;
         }
         .subject-line {
-            font-size: 13.5px;
-            margin-bottom: 15px;
+            font-size: 11pt;
+            margin-bottom: 20px;
+            line-height: 1.5;
         }
         .content-para {
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             text-align: justify;
+            font-size: 11pt;
         }
         .terms-list {
-            margin: 15px 0;
+            margin: 18px 0;
             padding-left: 0;
             list-style: none;
         }
         .terms-list li {
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            font-size: 11pt;
+            line-height: 1.5;
         }
         .terms-label {
             font-weight: bold;
         }
         .signature-section {
-            margin-top: 30px;
+            margin-top: 35px;
+            font-size: 11pt;
         }
         .stamp-box {
             width: 120px;
-            height: 70px;
-            margin: 10px 0;
-            display: inline-block;
+            min-height: 75px;
+            margin: 8px 0;
         }
         .stamp-box img {
             max-width: 120px;
-            max-height: 70px;
+            max-height: 75px;
         }
         .footer-section {
-            margin-top: 40px;
+            position: absolute;
+            bottom: 25px;
+            left: 40px;
+            right: 40px;
             text-align: center;
-            font-size: 11.5px;
+            font-size: 10pt;
             line-height: 1.4;
-            border-top: 1px solid #ccc;
-            padding-top: 8px;
         }
         .footer-company {
             font-weight: bold;
-            font-size: 13px;
-            color: #0d2b5c;
+            font-size: 13pt;
+            color: #3b1660;
+            margin-bottom: 4px;
         }
         .no-print {
             margin-bottom: 15px;
@@ -135,7 +141,9 @@
         }
         @media print {
             .no-print { display: none !important; }
-            .outer-box { border: 3px double #000 !important; }
+            .outer-box { border: 4px double #000 !important; }
+            @page { margin: 0; }
+            body { padding: 10mm; }
         }
     </style>
 </head>
@@ -156,7 +164,7 @@
                     ?>
                     <img src="<?php echo $logo_path; ?>" alt="Company Logo" onerror="this.style.display='none';">
                 </td>
-                <td style="padding-left: 10px;">
+                <td style="padding-left: 15px;">
                     <div class="company-title">
                         <?php echo !empty($settings['company_name']) ? strtoupper($settings['company_name']) : 'UWS ENVIRO-TECH PVT LTD'; ?>
                     </div>
@@ -176,10 +184,10 @@
         <table class="ref-date-table">
             <tr>
                 <td align="left">
-                    Ref. No. <span><?php echo !empty($oc['number_fk']) ? $oc['number_fk'] : 'UWSEPL/OA/25-26/011'; ?></span>
+                    <strong>Ref. No.</strong> <span><?php echo !empty($oc['number_fk']) ? $oc['number_fk'] : 'UWSEPL/OA/25-26/011'; ?></span>
                 </td>
                 <td align="right">
-                    Date: <span><?php echo !empty($oc['date']) ? date('d/m/Y', strtotime($oc['date'])) : date('d/m/Y'); ?></span>
+                    <strong>Date:</strong> <span><?php echo !empty($oc['date']) ? date('d/m/Y', strtotime($oc['date'])) : date('d/m/Y'); ?></span>
                 </td>
             </tr>
         </table>
@@ -250,19 +258,19 @@
         <!-- Signature Section -->
         <div class="signature-section">
             <div>For <strong><?php echo !empty($settings['company_name']) ? $settings['company_name'] : 'UWS Enviro-Tech Pvt Ltd'; ?></strong></div>
-            <div class="stamp-box" style="margin: 10px 0; min-height: 80px;">
+            <div class="stamp-box">
                 <?php if (!empty($settings['stamp_signature'])): ?>
                     <img src="<?php echo base_url() . $settings['stamp_signature']; ?>" alt="Stamp & Signature">
                 <?php else: ?>
-                    <svg width="100" height="80" viewBox="0 0 100 80">
-                        <circle cx="45" cy="40" r="32" stroke="#1d4ed8" stroke-width="1.5" fill="none" stroke-dasharray="3,1" />
-                        <circle cx="45" cy="40" r="26" stroke="#1d4ed8" stroke-width="1" fill="none" />
-                        <path id="stampArc" d="M 21,40 A 24,24 0 1,1 69,40" fill="none" />
-                        <text font-size="5" font-family="sans-serif" font-weight="bold" fill="#1d4ed8">
+                    <svg width="100" height="75" viewBox="0 0 100 75">
+                        <circle cx="45" cy="38" r="30" stroke="#1d4ed8" stroke-width="1.5" fill="none" stroke-dasharray="3,1" />
+                        <circle cx="45" cy="38" r="24" stroke="#1d4ed8" stroke-width="1" fill="none" />
+                        <path id="stampArc" d="M 22,38 A 22,22 0 1,1 68,38" fill="none" />
+                        <text font-size="4.5" font-family="sans-serif" font-weight="bold" fill="#1d4ed8">
                             <textPath href="#stampArc" startOffset="50%" text-anchor="middle">UWS ENVIRO-TECH PVT LTD</textPath>
                         </text>
-                        <text x="45" y="44" font-size="8" font-family="cursive" font-weight="bold" fill="#1d4ed8" text-anchor="middle">Signed</text>
-                        <text x="45" y="55" font-size="5" font-family="sans-serif" fill="#1d4ed8" text-anchor="middle">PUNE</text>
+                        <text x="45" y="41" font-size="7.5" font-family="cursive" font-weight="bold" fill="#1d4ed8" text-anchor="middle">Signed</text>
+                        <text x="45" y="52" font-size="4.5" font-family="sans-serif" fill="#1d4ed8" text-anchor="middle">PUNE</text>
                     </svg>
                 <?php endif; ?>
             </div>
@@ -270,19 +278,19 @@
         </div>
 
         <!-- Footer -->
-        <div class="footer-section" style="position: absolute; bottom: 20px; left: 30px; right: 30px; margin-top: 0;">
-            <div class="footer-company" style="color: #3b1660; font-size: 15px; font-weight: bold; margin-bottom: 3px;">
+        <div class="footer-section">
+            <div class="footer-company">
                 <?php echo !empty($settings['company_name']) ? $settings['company_name'] : 'UWS Enviro-Tech Pvt. Ltd'; ?>
             </div>
-            <div style="font-weight: bold; font-size: 11.5px; color: #111;">
+            <div style="font-weight: bold; color: #000;">
                 <?php echo !empty($settings['company_address']) ? $settings['company_address'] : 'Plot No. 19/C, D-1 Block, Shop No. 342, 3<sup>rd</sup> Floor, HEUU Industrial Spaces, MIDC Chinchwad, Pune-411019.'; ?>
             </div>
-            <div style="font-size: 11.5px; margin-top: 2px;">
-                E-mail: <span style="color: #4338ca; text-decoration: underline;"><?php echo !empty($settings['company_email']) ? $settings['company_email'] : 'projects@ultimatewater.in'; ?></span>
+            <div style="margin-top: 2px;">
+                E-mail: <span style="color: #0000ff; text-decoration: underline;"><?php echo !empty($settings['company_email']) ? $settings['company_email'] : 'projects@ultimatewater.in'; ?></span>
                 &nbsp;
-                Website: <span style="color: #4338ca; text-decoration: underline;"><?php echo !empty($settings['website']) ? $settings['website'] : 'www.ultimatewater.in'; ?></span>
+                Website: <span style="color: #0000ff; text-decoration: underline;"><?php echo !empty($settings['website']) ? $settings['website'] : 'www.ultimatewater.in'; ?></span>
             </div>
-            <div style="font-weight: bold; font-size: 11.5px; margin-top: 2px;">
+            <div style="font-weight: bold; margin-top: 2px;">
                 Phone: <?php echo !empty($settings['company_mobile']) ? $settings['company_mobile'] : '020 29528571'; ?>
             </div>
         </div>
