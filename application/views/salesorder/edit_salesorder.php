@@ -140,7 +140,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                         <option value="2" <?php if (($status_result[0]->status ?? '') == 2) { echo 'selected="selected"'; } ?>>Sent</option>
                                                         <option value="3" <?php if (($status_result[0]->status ?? '') == 3) { echo 'selected="selected"'; } ?>>Viewed</option>
                                                         <option value="4" <?php if (($status_result[0]->status ?? '') == 4) { echo 'selected="selected"'; } ?>>Approved</option> 
-                                                        <option value="5" <?php if (($status_result[0]->status ?? '') == 5) { echo 'selected="selected"'; } ?>>Rejected</option>
+                                                        <option value="5" <?php if (($status_result[0]->status ?? '') == 5) { echo 'selected="selected"'; } ?>>Hold</option>
                                                         <option value="6" <?php if (($status_result[0]->status ?? '') == 6) { echo 'selected="selected"'; } ?>>Canceled</option> 
                                                     </select>
                                                 </div>

@@ -1076,7 +1076,7 @@ public function edit_salesorder_salesorder()
     }
 
     $app_uid = '';
-    if ($status == '4') {
+    if (in_array($status, [2, 3, 4, 5, 6])) {
         $app_uid = $this->user_id;
     }
 
