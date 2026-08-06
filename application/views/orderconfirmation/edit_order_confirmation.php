@@ -70,30 +70,49 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                      <div class="row">
                                          <div class="col-md-6">
                                              <div class="form-group">
-                                                 <label for="customer_id">Customer</label>
-                                                 <select class="form-control" id="customer_id" name="customer_id">
+                                                 <label for="customer_id">Customer <span style="color: red;">*</span></label>
+                                                 <select class="form-control" id="customer_id" name="customer_id" required>
                                                      <option value="">-- Select Customer --</option>
                                                      <?php if(isset($customer_result) && !empty($customer_result)) {
                                                          foreach($customer_result as $cust) {
                                                              $selected = (isset($oc['customer_id']) && $oc['customer_id'] == $cust->customer_id) ? 'selected' : '';
-                                                             echo '<option value="'.$cust->customer_id.'" '.$selected.'>'.$cust->company_name.'</option>';
+                                                             $addr = isset($cust->address) ? htmlspecialchars($cust->address, ENT_QUOTES) : '';
+                                                             $gstin = isset($cust->gstin) ? htmlspecialchars($cust->gstin, ENT_QUOTES) : '';
+                                                             $mobile = isset($cust->mobile_number) ? htmlspecialchars($cust->mobile_number, ENT_QUOTES) : '';
+                                                             echo '<option value="'.$cust->customer_id.'" '.$selected.' data-address="'.$addr.'" data-gstin="'.$gstin.'" data-mobile="'.$mobile.'">'.$cust->company_name.'</option>';
                                                          }
                                                      } ?>
                                                  </select>
+                                                 <div id="customer_info_box" style="display:none; margin-top: 6px; padding: 8px 12px; background: #f8f9fa; border-left: 3px solid #007bff; border-radius: 3px; font-size: 12px;"></div>
                                              </div>
                                          </div>
                                          <div class="col-md-6">
                                              <div class="form-group">
-                                                 <label for="supplier_id">Supplier</label>
+                                                 <label for="supplier_id">Supplier / Issued By (Company Settings)</label>
                                                  <select class="form-control" id="supplier_id" name="supplier_id">
-                                                     <option value="">-- Select Supplier --</option>
-                                                     <?php if(isset($supplier_result) && !empty($supplier_result)) {
+                                                     <?php 
+                                                     $setting_comp_name = isset($settings['company_name']) ? $settings['company_name'] : '';
+                                                     $setting_comp_lower = strtolower(trim($setting_comp_name));
+                                                     $supplier_found = false;
+
+                                                     if(isset($supplier_result) && !empty($supplier_result)) {
                                                          foreach($supplier_result as $supplier) {
+                                                             $supp_name_lower = strtolower(trim($supplier->company_name));
                                                              $selected = ($supplier->supplier_id == $oc['supplier_id']) ? 'selected' : '';
-                                                             echo '<option value="'.$supplier->supplier_id.'" '.$selected.'>'.$supplier->company_name . " - " . $supplier->s_code.'</option>';
+                                                             if ($selected) $supplier_found = true;
+                                                             if (!$oc['supplier_id'] && $setting_comp_lower && (strpos($supp_name_lower, $setting_comp_lower) !== false || strpos($setting_comp_lower, $supp_name_lower) !== false)) {
+                                                                 $selected = 'selected';
+                                                                 $supplier_found = true;
+                                                             }
+                                                             echo '<option value="'.$supplier->supplier_id.'" '.$selected.'>'.$supplier->company_name . ($supplier->s_code ? " - " . $supplier->s_code : '').'</option>';
                                                          }
-                                                     } ?>
+                                                     }
+                                                     if (!$supplier_found && !empty($setting_comp_name)) {
+                                                         echo '<option value="0" selected>'.$setting_comp_name.' (Company Settings)</option>';
+                                                     }
+                                                     ?>
                                                  </select>
+                                                 <small class="help-block" style="margin-bottom:0;">Issued By: <strong><?php echo !empty($setting_comp_name) ? $setting_comp_name : 'Our Company Settings'; ?></strong></small>
                                              </div>
                                          </div>
                                      </div>
@@ -371,6 +390,23 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                 $('#tax_amount').val(total_tax.toFixed(2));
                 $('#total_amount').val(grand_total.toFixed(2));
             }
+
+            // Customer Selection Info Display
+            $('#customer_id').on('change', function() {
+                var selected = $(this).find(':selected');
+                var address = selected.data('address');
+                var gstin = selected.data('gstin');
+                var mobile = selected.data('mobile');
+                if (address || gstin || mobile) {
+                    var html = '';
+                    if (address) html += '<div style="margin-bottom:2px;"><i class="fa fa-map-marker" style="color:#007bff;"></i> <strong>Address:</strong> ' + address + '</div>';
+                    if (gstin) html += '<div style="margin-bottom:2px;"><i class="fa fa-credit-card" style="color:#28a745;"></i> <strong>GSTIN:</strong> ' + gstin + '</div>';
+                    if (mobile) html += '<div><i class="fa fa-phone" style="color:#17a2b8;"></i> <strong>Contact:</strong> ' + mobile + '</div>';
+                    $('#customer_info_box').html(html).slideDown();
+                } else {
+                    $('#customer_info_box').slideUp();
+                }
+            }).trigger('change');
         });
     </script>
 </body>
