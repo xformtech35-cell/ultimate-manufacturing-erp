@@ -406,73 +406,82 @@ $password = $session_data_head['password_str'] ?? '';
         @media (max-width: 600px) {
             .calculator-call-window { width: calc(100vw - 20px); right: 10px; bottom: 10px; }
         }
-        /* Fixed Header & Sidebar Layout (Desktop/Tablet) */
+        /* Global Fixed Header & Sidebar Layout */
+        .main-header {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 1030 !important;
+        }
+        .main-sidebar {
+            position: fixed !important;
+            top: 50px !important;
+            bottom: 0 !important;
+            height: calc(100vh - 50px) !important;
+            z-index: 1020 !important;
+            overflow-y: auto !important;
+        }
         @media (min-width: 768px) {
-            .main-header {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                z-index: 1030 !important;
-            }
             .main-sidebar {
-                position: fixed !important;
-                top: 50px !important;
                 left: 0 !important;
-                bottom: 0 !important;
-                height: calc(100vh - 50px) !important;
-                z-index: 1020 !important;
-                overflow-y: auto !important;
             }
-            /* Style sidebar scrollbar */
-            .main-sidebar::-webkit-scrollbar {
-                width: 5px;
-            }
-            .main-sidebar::-webkit-scrollbar-track {
-                background: rgba(0,0,0,0.05);
-            }
-            .main-sidebar::-webkit-scrollbar-thumb {
-                background: rgba(255,255,255,0.12);
-                border-radius: 3px;
-            }
-            .main-sidebar::-webkit-scrollbar-thumb:hover {
-                background: rgba(255,255,255,0.25);
-            }
-            .content-wrapper {
-                margin-top: 50px !important;
-            }
-            .sidebar-sticky-header {
-                position: sticky !important;
-                top: 0 !important;
-                z-index: 1000 !important;
-                background: #222d32 !important;
-                border-bottom: 1px solid rgba(255,255,255,0.08) !important;
-            }
-            .sidebar-sticky-header .user-panel {
-                background: #fff !important;
-                border-bottom: 1px solid #eee !important;
-                padding: 0 !important;
-            }
-            .sidebar-sticky-header .sidebar-search-container {
-                padding: 10px !important;
-            }
-            .sidebar-sticky-header #myInput {
-                margin: 0 !important;
-                width: 100% !important;
-                background: #374850 !important;
-                color: #fff !important;
-                border: 1px solid #2c3b41 !important;
-                border-radius: 4px !important;
-            }
-            .sidebar-sticky-header #myInput::placeholder {
-                color: #8aa4af !important;
-            }
-            .sidebar-collapse .sidebar-sticky-header .sidebar-search-container {
-                display: none !important;
-            }
-            .sidebar-collapse .sidebar-sticky-header .user-panel {
-                display: none !important;
-            }
+        }
+        .sidebar {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+            padding-bottom: 50px !important;
+        }
+        /* Style sidebar scrollbar globally */
+        .main-sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .main-sidebar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+        }
+        .main-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.12);
+            border-radius: 3px;
+        }
+        .main-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.25);
+        }
+        .content-wrapper {
+            margin-top: 50px !important;
+        }
+        
+        /* Sticky Sidebar Header (Logo + Search) */
+        .sidebar-sticky-header {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 1000 !important;
+            background: #222d32 !important;
+            border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+        }
+        .sidebar-sticky-header .user-panel {
+            background: #fff !important;
+            border-bottom: 1px solid #eee !important;
+            padding: 0 !important;
+        }
+        .sidebar-sticky-header .sidebar-search-container {
+            padding: 10px !important;
+        }
+        .sidebar-sticky-header #myInput {
+            margin: 0 !important;
+            width: 100% !important;
+            background: #374850 !important;
+            color: #fff !important;
+            border: 1px solid #2c3b41 !important;
+            border-radius: 4px !important;
+        }
+        .sidebar-sticky-header #myInput::placeholder {
+            color: #8aa4af !important;
+        }
+        .sidebar-collapse .sidebar-sticky-header .sidebar-search-container {
+            display: none !important;
+        }
+        .sidebar-collapse .sidebar-sticky-header .user-panel {
+            display: none !important;
         }
         /* Custom table responsive wrapper that isolates scrolling only to the table */
         .table-responsive-container {
