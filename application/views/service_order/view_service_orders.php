@@ -139,13 +139,4 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         </div>
         <?php $this->load->view('admin/footer'); ?>
     </div>
-    
-    <script>
-        $(document).ready(function() {
-            $('#service_orders_table').DataTable({
-                "order": [[ 0, "asc" ]],
-                "responsive": true
-            });
-        });
-    </script>
 </body>
