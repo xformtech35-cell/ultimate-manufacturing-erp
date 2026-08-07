@@ -38,8 +38,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         <!-- Optional date filtering -->
                                     </div>
                                     <div class="col-md-5">
-                                        <a href="<?php echo base_url(); ?>ServiceOrderController/<?php echo $config['url_prefix']; ?>?str=All" class="btn btn-success btn-sm"> Show All</a>
-                                        <a href="<?php echo base_url(); ?>ServiceOrderController/create_service_order/<?php echo $config['type']; ?>" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-plus"></i> Create <?php echo $config['title']; ?></a>
+                                        <div class="pull-right">
+                                            <a href="<?php echo base_url(); ?>ServiceOrderController/<?php echo $config['url_prefix']; ?>?str=All" class="btn btn-success btn-sm"> Show All</a>
+                                            <a href="<?php echo base_url(); ?>ServiceOrderController/create_service_order/<?php echo $config['type']; ?>" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-plus"></i> Create <?php echo $config['title']; ?></a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
