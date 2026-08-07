@@ -59,8 +59,12 @@ require_once(APPPATH . "views/admin/modal.php");
                                     ?>
                                     
                                     <div class="row">
-                                        <div class="col-md-12 text-center" style="margin-bottom: 20px;">
-                                            <h2><?php echo $config['title']; ?>: <b><?php echo $doc_num_val; ?></b></h2>
+                                        <div class="col-md-12">
+                                            <div class="form-group row">
+                                                <label class="col-sm-12 control-label" style="text-align: right; padding-right: 30px;">
+                                                    <h2><?php echo $config['title']; ?>: <b><?php echo $doc_num_val; ?></b></h2>
+                                                </label>
+                                            </div>
                                             <input type="hidden" name="doc_number" id="doc_number" value="<?php echo $doc_num_val; ?>">
                                         </div>
                                     </div>
