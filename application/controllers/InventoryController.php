@@ -238,7 +238,22 @@ class InventoryController extends MY_Controller
         $this->load->model('supplier', '', TRUE);
         $data['supplier_result'] = $this->supplier->get_supplier_name();
 
+        // Fetch deletion requests for tabs
         $session_data_head = $this->session->userdata('session_data_head');
+        $res = $session_data_head['result'] ?? [];
+        $role_name = strtolower($res['role_name'] ?? '');
+        $role_id   = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
+        $user_id   = (int)($res['user_id'] ?? 0);
+        $is_admin  = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
+
+        if ($is_admin) {
+            $data['approved_deletions'] = $this->db->where('status', 'approved')->where('module', 'inventory')->order_by('updated_at', 'DESC')->get('item_delete_requests')->result_array();
+            $data['deletion_history']   = $this->db->where_in('status', ['pending', 'rejected', 'deleted'])->where('module', 'inventory')->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+        } else {
+            $data['approved_deletions'] = $this->db->where('status', 'approved')->where('module', 'inventory')->where('requested_by', $user_id)->order_by('updated_at', 'DESC')->get('item_delete_requests')->result_array();
+            $data['deletion_history']   = $this->db->where_in('status', ['pending', 'approved', 'rejected', 'deleted'])->where('module', 'inventory')->where('requested_by', $user_id)->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+        }
+
         $this->load->view('admin/header_side_bar', $session_data_head);
         $this->load->view('inventory/add_inventory', $data);
     }
@@ -1019,6 +1034,21 @@ public function add_expense_data_indirect()
             }
         }
         $data['issued_data'] = $issued_data;
+
+        // Fetch deletion requests for tabs
+        $res = $session_data_head['result'] ?? [];
+        $role_name = strtolower($res['role_name'] ?? '');
+        $role_id   = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
+        $user_id   = (int)($res['user_id'] ?? 0);
+        $is_admin  = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
+
+        if ($is_admin) {
+            $data['approved_deletions'] = $this->db->where('status', 'approved')->where('module', 'inventory')->order_by('updated_at', 'DESC')->get('item_delete_requests')->result_array();
+            $data['deletion_history']   = $this->db->where_in('status', ['pending', 'rejected', 'deleted'])->where('module', 'inventory')->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+        } else {
+            $data['approved_deletions'] = $this->db->where('status', 'approved')->where('module', 'inventory')->where('requested_by', $user_id)->order_by('updated_at', 'DESC')->get('item_delete_requests')->result_array();
+            $data['deletion_history']   = $this->db->where_in('status', ['pending', 'approved', 'rejected', 'deleted'])->where('module', 'inventory')->where('requested_by', $user_id)->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+        }
 
         $this->load->view('admin/header_side_bar', $session_data_head);
         $this->load->view('inventory/inventory_history', $data);

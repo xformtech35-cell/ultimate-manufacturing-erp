@@ -293,140 +293,223 @@ $is_admin  = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
                             <!-- /.box-header -->
                             <div class="box-body">
 
-                              
+                                <div class="nav-tabs-custom">
+                                    <ul class="nav nav-tabs">
+                                        <li class="active"><a href="#tab_inventory" data-toggle="tab"><i class="fa fa-cubes"></i> Inventory List</a></li>
+                                        <li><a href="#tab_approved_deletions" data-toggle="tab"><i class="fa fa-check-circle text-success"></i> Approved Deletions <span class="label label-success"><?= count($approved_deletions); ?></span></a></li>
+                                        <li><a href="#tab_deletion_history" data-toggle="tab"><i class="fa fa-history"></i> Deletion History <span class="label label-info"><?= count($deletion_history); ?></span></a></li>
+                                    </ul>
+                                    <div class="tab-content" style="padding: 15px 0 0 0;">
+                                        <!-- Tab 1: Inventory List -->
+                                        <div class="tab-pane active" id="tab_inventory">
+                                            <div class="table-responsive">
+                                                <table id="add_inventory" class="table table-enhance table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>#</th>
+                                                            <th>Item Code</th>
+                                                            <th>Item Name</th>
+                                                            <th>Description</th>
+                                                            <th>Category</th>
+                                                            <th>Group</th>
+                                                            <th>Company Name</th>
+                                                            <th>HSN/SAC</th>
+                                                            <th>Unit</th>
+                                                            <th>Stock</th>
+                                                            <th>GST%</th>
+                                                            <th>Type</th>
+                                                            <th>Packing</th>
+                                                            <th>Cost Price</th>
+                                                            <th>Sell Price</th>
+                                                            <th class="text-center">Actions</th>
+                                                        </tr>
+                                                    </thead>
 
-                                <div class="table-responsive">
-                                    <table id="add_inventory" class="table table-enhance table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Item Code</th>
-                                                <th>Item Name</th>
-                                                <th>Description</th>
-                                                <th>Category</th>
-                                                <th>Group</th>
-                                                <th>Company Name</th>
-                                                <th>HSN/SAC</th>
-                                                <th>Unit</th>
-                                                <th>Stock</th>
-                                                <th>GST%</th>
-                                                <th>Type</th>
-                                                <th>Packing</th>
-                                                <th>Cost Price</th>
-                                                <th>Sell Price</th>
-                                                <th class="text-center">Actions</th>
-                                            </tr>
-                                        </thead>
+                                                    <tbody>
+                                                        <?php $i = 1; ?>
+                                                        <?php foreach ($result as $key): ?>
+                                                            <?php
+                                                            $type_class = $key->item_type == 'B' ? 'badge-boughtout' : 'badge-manufacturing';
+                                                            $type_text = $key->item_type == 'B' ? 'Boughtout' : 'Manufacturing';
+                                                            ?>
+                                                            <tr>
+                                                                <td><?= $i; ?></td>
 
-                                        <tbody>
-                                            <?php $i = 1; ?>
-                                            <?php foreach ($result as $key): ?>
-                                                <?php
-                                                $type_class = $key->item_type == 'B' ? 'badge-boughtout' : 'badge-manufacturing';
-                                                $type_text = $key->item_type == 'B' ? 'Boughtout' : 'Manufacturing';
-                                                ?>
-                                                <tr>
-                                                    <td><?= $i; ?></td>
+                                                                <td>
+                                                                    <strong><?= $key->code; ?></strong>
+                                                                    <?php if ($key->stock <= 5): ?>
+                                                                        <br><small class="stock-warning"><i class="fa fa-exclamation-triangle"></i> Low Stock</small>
+                                                                    <?php endif; ?>
+                                                                </td>
 
-                                                    <td>
-                                                        <strong><?= $key->code; ?></strong>
-                                                        <?php if ($key->stock <= 5): ?>
-                                                            <br><small class="stock-warning"><i class="fa fa-exclamation-triangle"></i> Low Stock</small>
+                                                                <td><?= $key->item_name; ?></td>
+                                                                <td><?= $key->prod_description; ?></td>
+                                                                <td><?= !empty($key->category_name) ? $key->category_name : 'N/A'; ?></td>
+                                                                <td><?= !empty($key->group_name) ? $key->group_name : 'N/A'; ?></td>
+                                                                <td><?= !empty($key->supplier_name) ? $key->supplier_name : 'N/A'; ?></td>
+                                                                <td><?= !empty($key->hsn) ? $key->hsn : 'N/A'; ?></td>
+
+                                                                <td>
+                                                                    <span class="label label-default"><?= $key->unit; ?></span>
+                                                                </td>
+                                                                <td><?= $key->stock; ?></td>
+
+                                                                <td>
+                                                                    <span class="label label-primary"><?= $key->gst_per; ?></span>
+                                                                </td>
+
+                                                                <td>
+                                                                    <span class="badge-type <?= $type_class; ?>">
+                                                                        <?= $type_text; ?>
+                                                                    </span>
+                                                                </td>
+                                                                <td><?= isset($key->packing) ? $key->packing : 'N/A'; ?></td>
+
+                                                                <td class="price-cost">
+                                                                    ₹<?php require_once(APPPATH . '/third_party/amount_convert.php'); echo indian_number_format(round($key->cost_price), 0); ?>
+                                                                </td>
+
+                                                                <td class="price-sell">
+                                                                    ₹<?= indian_number_format(round($key->sell_price), 0); ?>
+                                                                </td>
+
+                                                                <td class="text-center">
+                                                                     <div class="btn-group">
+                                                                         <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding: 4px 10px; font-weight: 600; font-size: 12px; border-radius: 4px; border: 1px solid #ccc; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                                                             Action <span class="caret" style="margin-left: 3px;"></span>
+                                                                         </button>
+                                                                         <ul class="dropdown-menu dropdown-menu-right text-left" style="min-width: 170px; box-shadow: 0 6px 18px rgba(0,0,0,0.15); border-radius: 6px; padding: 6px 0; margin-top: 4px;">
+                                                                             <li>
+                                                                                 <a href="<?= base_url('InventoryController/get_inventory_by_id/' . $key->inventory_id); ?>" style="padding: 6px 15px; font-size: 13px;">
+                                                                                     <i class="fa fa-pencil-square text-primary" style="margin-right: 8px; width: 16px;"></i> Edit Item
+                                                                                 </a>
+                                                                             </li>
+                                                                             <li>
+                                                                                 <a href="<?= base_url('MaterialIssueController/stock_ledger/' . $key->inventory_id); ?>" style="padding: 6px 15px; font-size: 13px;">
+                                                                                     <i class="fa fa-history text-info" style="margin-right: 8px; width: 16px;"></i> Stock History
+                                                                                 </a>
+                                                                             </li>
+                                                                             <li role="separator" class="divider" style="margin: 4px 0;"></li>
+                                                                             <li>
+                                                                                 <?php if ($is_admin): ?>
+                                                                                     <a href="<?= base_url('InventoryController/delete_inventory_by_id/' . $key->inventory_id); ?>"
+                                                                                        onclick="return confirm('Are you sure you want to delete this item?')"
+                                                                                        style="padding: 6px 15px; font-size: 13px; color: #d9534f;">
+                                                                                         <i class="fa fa-trash text-danger" style="margin-right: 8px; width: 16px;"></i> Delete Item
+                                                                                     </a>
+                                                                                 <?php else: ?>
+                                                                                     <a href="javascript:void(0);"
+                                                                                        onclick="openDeleteRequestModal('<?= $key->inventory_id; ?>', '<?= htmlspecialchars($key->code, ENT_QUOTES); ?>', 'inventory')"
+                                                                                        style="padding: 6px 15px; font-size: 13px; color: #d9534f;">
+                                                                                         <i class="fa fa-trash text-danger" style="margin-right: 8px; width: 16px;"></i> Delete Item
+                                                                                     </a>
+                                                                                 <?php endif; ?>
+                                                                             </li>
+                                                                         </ul>
+                                                                     </div>
+                                                                </td>
+                                                            </tr>
+                                                            <?php $i++; ?>
+                                                        <?php endforeach; ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tab 2: Approved Deletions -->
+                                        <div class="tab-pane" id="tab_approved_deletions">
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-striped" style="margin-bottom:0;">
+                                                    <thead>
+                                                        <tr style="background:#f4f4f4;">
+                                                            <th style="width:40px;">#</th>
+                                                            <th>Item Code</th>
+                                                            <th>Item Name</th>
+                                                            <th>Reason for Deletion</th>
+                                                            <th>Approved At</th>
+                                                            <th style="width:150px;text-align:center;">Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php if (empty($approved_deletions)): ?>
+                                                            <tr>
+                                                                <td colspan="6" class="text-center text-muted" style="padding:20px;">
+                                                                    <i class="fa fa-check-circle text-success" style="font-size:24px;display:block;margin-bottom:8px;"></i>
+                                                                    No approved deletion requests pending execution.
+                                                                </td>
+                                                            </tr>
+                                                        <?php else: ?>
+                                                            <?php foreach ($approved_deletions as $idx => $row): ?>
+                                                                <tr>
+                                                                    <td><?= $idx + 1; ?></td>
+                                                                    <td><strong><?= htmlspecialchars($row['item_code']); ?></strong></td>
+                                                                    <td><?= htmlspecialchars($row['item_name']); ?></td>
+                                                                    <td><?= htmlspecialchars($row['reason']); ?></td>
+                                                                    <td><?= date('d M Y, h:i A', strtotime($row['updated_at'])); ?></td>
+                                                                    <td class="text-center">
+                                                                        <a href="<?= base_url('DeleteApprovalController/execute_delete/' . $row['id']); ?>" 
+                                                                           class="btn btn-xs btn-danger"
+                                                                           onclick="return confirm('Delete [<?= htmlspecialchars($row['item_code']); ?>] permanently? This CANNOT be undone.');"
+                                                                           style="font-weight:600;padding:4px 10px;">
+                                                                            <i class="fa fa-trash"></i> Delete Permanently
+                                                                        </a>
+                                                                    </td>
+                                                                </tr>
+                                                            <?php endforeach; ?>
                                                         <?php endif; ?>
-                                                    </td>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
 
-                                                    <td>
-                                                        <strong><?= $key->item_name ?? 'N/A'; ?></strong>
-                                                    </td>
-
-                                                    <td>
-                                                        <div style="max-width: 200px;">
-                                                            <?= $key->prod_description; ?>
-                                                        </div>
-                                                    </td>
-
-                                                    <td><?= $key->category_name ?? 'N/A'; ?></td>
-
-                                                    <td><?= $key->group_name ?? 'N/A'; ?></td>
-
-                                                    <td><?= !empty($key->company_name) ? htmlspecialchars($key->company_name) : 'N/A'; ?></td>
-
-                                                    <td><?= $key->hsn; ?></td>
-
-                                                    <td>
-                                                        <span class="label label-default"><?= $key->unit; ?></span>
-                                                    </td>
-                                                    <td><?= $key->stock; ?></td>
-
-                                                    <td>
-                                                        <span class="label label-primary"><?= $key->gst_per; ?></span>
-                                                    </td>
-
-                                                    <td>
-                                                        <span class="badge-type <?= $type_class; ?>">
-                                                            <?= $type_text; ?>
-                                                        </span>
-                                                    </td>
-                                                    <td><?= isset($key->packing) ? $key->packing : 'N/A'; ?></td>
-
-                                                    <td class="price-cost">
-                                                        ₹<?php require_once(APPPATH . '/third_party/amount_convert.php'); echo indian_number_format(round($key->cost_price), 0); ?>
-                                                    </td>
-
-                                                    <td class="price-sell">
-                                                        ₹<?= indian_number_format(round($key->sell_price), 0); ?>
-                                                    </td>
-
-                                                    <td class="text-center">
-                                                         <div class="btn-group">
-                                                             <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding: 4px 10px; font-weight: 600; font-size: 12px; border-radius: 4px; border: 1px solid #ccc; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                                                                 Action <span class="caret" style="margin-left: 3px;"></span>
-                                                             </button>
-                                                             <ul class="dropdown-menu dropdown-menu-right text-left" style="min-width: 170px; box-shadow: 0 6px 18px rgba(0,0,0,0.15); border-radius: 6px; padding: 6px 0; margin-top: 4px;">
-                                                                 <li>
-                                                                     <a href="<?= base_url('InventoryController/get_inventory_by_id/' . $key->inventory_id); ?>" style="padding: 6px 15px; font-size: 13px;">
-                                                                         <i class="fa fa-pencil-square text-primary" style="margin-right: 8px; width: 16px;"></i> Edit Item
-                                                                     </a>
-                                                                 </li>
-                                                                 <li>
-                                                                     <a href="<?= base_url('MaterialIssueController/stock_ledger/' . $key->inventory_id); ?>" style="padding: 6px 15px; font-size: 13px;">
-                                                                         <i class="fa fa-history text-info" style="margin-right: 8px; width: 16px;"></i> Stock History
-                                                                     </a>
-                                                                 </li>
-                                                                 <li>
-                                                                     <a href="<?= base_url('MaterialIssueController/create'); ?>" style="padding: 6px 15px; font-size: 13px;">
-                                                                         <i class="fa fa-share-square-o text-warning" style="margin-right: 8px; width: 16px;"></i> Issue Material
-                                                                     </a>
-                                                                 </li>
-                                                                 <li>
-                                                                     <a href="<?= base_url('InventoryController/get_inventory_by_id_to_generate_bar_code/' . $key->inventory_id); ?>" style="padding: 6px 15px; font-size: 13px;">
-                                                                         <i class="fa fa-barcode text-success" style="margin-right: 8px; width: 16px;"></i> Generate Barcode
-                                                                     </a>
-                                                                 </li>
-                                                                 <li role="separator" class="divider" style="margin: 4px 0;"></li>
-                                                                 <li>
-                                                                     <?php if ($is_admin): ?>
-                                                                         <a href="<?= base_url('InventoryController/delete_inventory_by_id/' . $key->inventory_id); ?>"
-                                                                            onclick="return confirm('Are you sure you want to delete this item?')"
-                                                                            style="padding: 6px 15px; font-size: 13px; color: #d9534f;">
-                                                                             <i class="fa fa-trash text-danger" style="margin-right: 8px; width: 16px;"></i> Delete Item
-                                                                         </a>
-                                                                     <?php else: ?>
-                                                                         <a href="javascript:void(0);"
-                                                                            onclick="requestDeleteInventory('<?= $key->inventory_id; ?>', '<?= htmlspecialchars($key->code, ENT_QUOTES); ?>')"
-                                                                            style="padding: 6px 15px; font-size: 13px; color: #d9534f;">
-                                                                             <i class="fa fa-trash text-danger" style="margin-right: 8px; width: 16px;"></i> Delete Item
-                                                                         </a>
-                                                                     <?php endif; ?>
-                                                                 </li>
-                                                             </ul>
-                                                         </div>
-                                                    </td>
-                                                </tr>
-                                                <?php $i++; ?>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
+                                        <!-- Tab 3: Deletion History -->
+                                        <div class="tab-pane" id="tab_deletion_history">
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-striped" style="margin-bottom:0;">
+                                                    <thead>
+                                                        <tr style="background:#f4f4f4;">
+                                                            <th style="width:40px;">#</th>
+                                                            <th>Item Code</th>
+                                                            <th>Item Name</th>
+                                                            <th>Status</th>
+                                                            <th>Remarks</th>
+                                                            <th>Requested At</th>
+                                                            <th>Reviewed At</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php if (empty($deletion_history)): ?>
+                                                            <tr>
+                                                                <td colspan="7" class="text-center text-muted" style="padding:20px;">No deletion requests found.</td>
+                                                            </tr>
+                                                        <?php else: ?>
+                                                            <?php foreach ($deletion_history as $idx => $row): ?>
+                                                                <tr>
+                                                                    <td><?= $idx + 1; ?></td>
+                                                                    <td><strong><?= htmlspecialchars($row['item_code']); ?></strong></td>
+                                                                    <td><?= htmlspecialchars($row['item_name']); ?></td>
+                                                                    <td>
+                                                                        <?php if ($row['status'] === 'pending'): ?>
+                                                                            <span class="label label-warning"><i class="fa fa-clock-o"></i> Pending</span>
+                                                                        <?php elseif ($row['status'] === 'approved'): ?>
+                                                                            <span class="label label-success"><i class="fa fa-check"></i> Approved</span>
+                                                                        <?php elseif ($row['status'] === 'deleted'): ?>
+                                                                            <span class="label label-default"><i class="fa fa-trash"></i> Deleted</span>
+                                                                        <?php else: ?>
+                                                                            <span class="label label-danger"><i class="fa fa-times"></i> Rejected</span>
+                                                                        <?php endif; ?>
+                                                                    </td>
+                                                                    <td><?= !empty($row['review_remarks']) ? htmlspecialchars($row['review_remarks']) : '<span class="text-muted">—</span>'; ?></td>
+                                                                    <td><?= date('d M Y, h:i A', strtotime($row['created_at'])); ?></td>
+                                                                    <td><?= !empty($row['updated_at']) && $row['status'] !== 'pending' ? date('d M Y, h:i A', strtotime($row['updated_at'])) : '—'; ?></td>
+                                                                </tr>
+                                                            <?php endforeach; ?>
+                                                        <?php endif; ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                             </div>
@@ -519,18 +602,6 @@ $is_admin  = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
             // Reload the page to show new item (simplest approach)
             // You can enhance this to use AJAX reload if needed
             location.reload();
-        }
-
-        // Function to prompt for deletion reason and redirect
-        function requestDeleteInventory(id, code) {
-            var reason = prompt("Please enter the reason for requesting deletion of item " + code + ":");
-            if (reason === null) return; // user cancelled
-            reason = reason.trim();
-            if (reason === "") {
-                alert("Reason is required to submit a deletion request.");
-                return;
-            }
-            window.location.href = "<?= base_url('InventoryController/delete_inventory_by_id/'); ?>" + id + "?reason=" + encodeURIComponent(reason);
         }
     </script>
 </body>

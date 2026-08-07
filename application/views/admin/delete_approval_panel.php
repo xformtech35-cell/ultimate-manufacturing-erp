@@ -42,7 +42,7 @@
                 </h3>
             </div>
             <div class="box-body table-responsive">
-                <table class="table table-bordered table-striped">
+                <table class="table table-bordered table-striped <?php echo empty($pending) ? 'no-datatable' : ''; ?>">
                     <thead>
                         <tr style="background:#f4f4f4;">
                             <th style="width:40px;">#</th>
@@ -112,7 +112,7 @@
                 </div>
             </div>
             <div class="box-body table-responsive">
-                <table class="table table-bordered table-striped">
+                <table class="table table-bordered table-striped <?php echo empty($history) ? 'no-datatable' : ''; ?>">
                     <thead>
                         <tr style="background:#f4f4f4;">
                             <th style="width:40px;">#</th>

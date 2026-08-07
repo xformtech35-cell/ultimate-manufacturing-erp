@@ -2996,35 +2996,6 @@ public function get_direct_expense_report()
 
     private function _has_project_permission()
     {
-        $session_data_head = $this->session->userdata('session_data_head');
-        $user_role_id = $session_data_head['result']['role'] ?? null;
-        $role_name = strtolower($session_data_head['result']['role_name'] ?? '');
-
-        if ($role_name === 'admin' || $user_role_id == 1) {
-            return true;
-        }
-
-        if ($user_role_id) {
-            $perm_row = $this->db->select('grp_perm')
-                                ->from('permission')
-                                ->where('role_id_fk', $user_role_id)
-                                ->group_start()
-                                    ->where('grp_perm', 'Projects')
-                                    ->or_where('grp_perm', 'projects')
-                                ->group_end()
-                                ->get()
-                                ->row_array();
-            if ($perm_row) {
-                return true;
-            }
-
-            $count = $this->db->where('role_id_fk', $user_role_id)->count_all_results('permission');
-            if ($count > 0) {
-                return false;
-            }
-        }
-
-        $session_perms = $session_data_head['permission'] ?? array();
-        return in_array('Projects', $session_perms) || in_array('projects', $session_perms);
+        return false;
     }
 }

@@ -70,7 +70,7 @@ $is_admin  = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
                                                      <?php if ($is_admin): ?>
                                                          <a href="<?php echo base_url() . 'MasterController/delete_product_by_id/' . $key->product_master_id; ?>" class="btn btn-danger" role="button" onClick="return confirm('Are you sure you want to delete?')"><i class="fa fa-trash"></i></a>
                                                      <?php else: ?>
-                                                         <a href="javascript:void(0);" onclick="requestDeleteProduct('<?= $key->product_master_id; ?>', '<?= htmlspecialchars($key->product_master_name, ENT_QUOTES); ?>')" class="btn btn-danger" role="button"><i class="fa fa-trash"></i></a>
+                                                         <a href="javascript:void(0);" onclick="openDeleteRequestModal('<?= $key->product_master_id; ?>', '<?= htmlspecialchars($key->product_master_name, ENT_QUOTES); ?>', 'item_code_master')" class="btn btn-danger" role="button"><i class="fa fa-trash"></i></a>
                                                      <?php endif; ?> 
                                                 </td>
                                             </tr>
@@ -96,16 +96,3 @@ $is_admin  = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
         <div class="control-sidebar-bg"></div>
     </div>
     <!-- ./wrapper -->
-
-<script>
-    function requestDeleteProduct(id, name) {
-        var reason = prompt("Please enter the reason for requesting deletion of product master " + name + ":");
-        if (reason === null) return; // user cancelled
-        reason = reason.trim();
-        if (reason === "") {
-            alert("Reason is required to submit a deletion request.");
-            return;
-        }
-        window.location.href = "<?= base_url('MasterController/delete_product_by_id/'); ?>" + id + "?reason=" + encodeURIComponent(reason);
-    }
-</script>

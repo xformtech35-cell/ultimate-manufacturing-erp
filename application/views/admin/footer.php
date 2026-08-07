@@ -291,9 +291,20 @@ $(document).ready(function() {
         $('.table:not(#dynamic_field):not(#so_reference_items_table):not(#drawings_table):not(#pending_approvals_table)').each(function() {
             if ($(this).find('thead').length > 0 && !$(this).hasClass('no-datatable') && !$(this).hasClass('table-details') && !$.fn.DataTable.isDataTable(this)) {
                 var searchLabel = "Search:";
-                var boxTitle = $(this).closest('.box').find('.box-title').text().trim();
+                var $boxTitleEl = $(this).closest('.box').find('.box-title');
+                var boxTitle = "";
+                if ($boxTitleEl.length > 0) {
+                    var $boxTitleClone = $boxTitleEl.clone();
+                    $boxTitleClone.find('span, i, .label, .badge, button').remove();
+                    boxTitle = $boxTitleClone.text().trim();
+                }
                 if (!boxTitle) {
-                    boxTitle = $('.content-header h1').text().trim();
+                    var $headerEl = $('.content-header h1');
+                    if ($headerEl.length > 0) {
+                        var $headerClone = $headerEl.clone();
+                        $headerClone.find('span, i, small, .label, .badge, button').remove();
+                        boxTitle = $headerClone.text().trim();
+                    }
                 }
                 if (boxTitle) {
                     // Clean up title (remove icons/extra whitespace)

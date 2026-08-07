@@ -618,12 +618,7 @@ $password = $session_data_head['password_str'] ?? '';
                 </li>
 
 
-                <!-- Delete Approval Notifications (Admin only) -->
-                <?php 
-                $check_role = strtolower($user_role ?? '');
-                $check_role_id = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
-                if ($check_role === 'admin' || $check_role_id === 1 || $user_id === 1): 
-                ?>
+                <!-- Delete Approval Notifications -->
                 <li class="dropdown notifications-menu" id="del-approval-notif-menu">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="Item Deletion Requests" onclick="loadPendingDelRequests();">
                         <i class="fa fa-bell-o" style="font-size:18px;"></i>
@@ -682,7 +677,6 @@ $password = $session_data_head['password_str'] ?? '';
                     }
                 });
                 </script>
-                <?php endif; ?>
 
                 <li>
                     <button type="button" class="btn btn-primary pull-right calculator-trigger" onclick="openCalculatorWindow();">
@@ -1072,6 +1066,23 @@ if ($currentPage == 'InventoryController') {
                         'active_cond' => json_encode([
                             'controllers' => ['EngineeringController'],
                             'pages'       => ['budget_sheets']
+                        ])
+                    ]);
+                }
+
+                // Ensure "Item Deletion Requests" menu item exists under Store / Inventory (parent_id = 19)
+                $has_del_requests = $ci->db->where('url', 'DeleteApprovalController/panel')->get('sidebar_menu')->row();
+                if (!$has_del_requests) {
+                    $ci->db->insert('sidebar_menu', [
+                        'parent_id'   => 19,
+                        'title'       => 'Deletion Requests',
+                        'icon'        => 'fa fa-trash',
+                        'url'         => 'DeleteApprovalController/panel',
+                        'permission'  => NULL, // accessible to everyone who has Store / Inventory access
+                        'sort_order'  => 50,
+                        'active_cond' => json_encode([
+                            'controllers' => ['DeleteApprovalController'],
+                            'pages'       => ['panel']
                         ])
                     ]);
                 }
@@ -1932,4 +1943,64 @@ if ($currentPage == 'InventoryController') {
     }
 
 })();
+</script>
+
+<!-- Delete Request Reason Modal -->
+<div class="modal fade" id="deleteRequestModal" tabindex="-1" role="dialog" aria-labelledby="deleteRequestModalLabel" style="z-index: 999999;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="border-radius: 6px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background-color: #d9534f; color: white;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8;"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="deleteRequestModalLabel" style="font-weight: 600;"><i class="fa fa-trash"></i> Request Deletion Approval</h4>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div class="alert alert-warning" style="margin-bottom: 15px; border-radius: 4px; padding: 10px 15px; font-weight: 600;">
+                    <i class="fa fa-exclamation-triangle"></i> This action requires approval from the Admin. The item will not be deleted until the request is approved.
+                </div>
+                <div class="form-group">
+                    <label style="font-weight: 600; color: #333;">Item Code / Name</label>
+                    <input type="text" id="delModalItemDisplay" class="form-control" readonly style="background-color: #eee; font-weight: bold; height: 38px;">
+                </div>
+                <div class="form-group">
+                    <label style="font-weight: 600; color: #333;">Reason for Deletion <span class="text-danger">*</span></label>
+                    <textarea id="delModalReason" class="form-control" rows="4" placeholder="Please enter a detailed reason for deleting this item..." style="resize: none; border-radius: 4px;"></textarea>
+                    <span class="help-block text-danger" id="delModalError" style="display: none; font-weight: 600; margin-top: 5px;">Reason is required.</span>
+                </div>
+            </div>
+            <div class="modal-footer" style="background-color: #f9f9f9; border-top: 1px solid #eee; padding: 15px 20px;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" style="font-weight: 600;">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="submitDeleteModalRequest();" style="font-weight: 600;"><i class="fa fa-paper-plane"></i> Send Request</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var currentDelModalItemId = '';
+var currentDelModalModule = '';
+
+function openDeleteRequestModal(itemId, itemCode, module) {
+    currentDelModalItemId = itemId;
+    currentDelModalModule = module;
+    document.getElementById('delModalItemDisplay').value = itemCode;
+    document.getElementById('delModalReason').value = '';
+    document.getElementById('delModalError').style.display = 'none';
+    jQuery('#deleteRequestModal').modal('show');
+}
+
+function submitDeleteModalRequest() {
+    var reason = document.getElementById('delModalReason').value.trim();
+    if (reason === '') {
+        document.getElementById('delModalError').style.display = 'block';
+        return;
+    }
+    
+    var baseUrl = '<?php echo base_url(); ?>';
+    var redirectUrl = window.location.href.replace(baseUrl, '');
+    
+    window.location.href = baseUrl + 'DeleteApprovalController/request_delete?item_id=' + encodeURIComponent(currentDelModalItemId) + 
+                          '&module=' + encodeURIComponent(currentDelModalModule) + 
+                          '&reason=' + encodeURIComponent(reason) + 
+                          '&redirect_url=' + encodeURIComponent(redirectUrl);
+}
 </script>

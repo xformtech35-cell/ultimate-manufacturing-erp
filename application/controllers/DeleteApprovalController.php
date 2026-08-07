@@ -108,72 +108,171 @@ class DeleteApprovalController extends MY_Controller
     }
 
     // ─────────────────────────────────────────────────────────────
-    // AJAX: pending count badge
+    // AJAX: pending count badge (Admin vs Non-Admin)
     // ─────────────────────────────────────────────────────────────
     public function get_pending_count()
     {
-        $count = $this->db->where('status', 'pending')->count_all_results('item_delete_requests');
+        $session_data = $this->session->userdata('session_data_head');
+        $res          = $session_data['result'] ?? [];
+        $role_name    = strtolower($res['role_name'] ?? '');
+        $role_id      = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
+        $user_id      = (int)($res['user_id'] ?? 0);
+        $is_admin     = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
+
+        if ($is_admin) {
+            $count = $this->db->where('status', 'pending')->count_all_results('item_delete_requests');
+        } else {
+            $count = $this->db
+                ->where_in('status', ['approved', 'rejected'])
+                ->where('requested_by', $user_id)
+                ->where('user_notified', 0)
+                ->count_all_results('item_delete_requests');
+        }
         echo json_encode(['count' => (int)$count]);
     }
 
     // ─────────────────────────────────────────────────────────────
-    // AJAX: dropdown HTML list
+    // AJAX: dropdown HTML list (Admin vs Non-Admin notifications)
     // ─────────────────────────────────────────────────────────────
     public function get_pending_requests_html()
     {
-        $requests = $this->db
-            ->where('status', 'pending')
-            ->order_by('created_at', 'DESC')
-            ->limit(15)
-            ->get('item_delete_requests')
-            ->result_array();
+        $session_data = $this->session->userdata('session_data_head');
+        $res          = $session_data['result'] ?? [];
+        $role_name    = strtolower($res['role_name'] ?? '');
+        $role_id      = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
+        $user_id      = (int)($res['user_id'] ?? 0);
+        $is_admin     = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
 
-        if (empty($requests)) {
-            echo '<li><a href="#" style="text-align:center;color:#999;">No pending deletion requests</a></li>';
-            return;
-        }
+        if ($is_admin) {
+            $requests = $this->db
+                ->where('status', 'pending')
+                ->order_by('created_at', 'DESC')
+                ->limit(15)
+                ->get('item_delete_requests')
+                ->result_array();
 
-        foreach ($requests as $req) {
-            $module_label = $req['module'] === 'inventory' ? 'Inventory' : 'Item Code Master';
-            $time_ago     = $this->_time_ago($req['created_at']);
-            $approve_url  = base_url('DeleteApprovalController/approve/' . $req['id']);
-            $reject_url   = base_url('DeleteApprovalController/reject/'  . $req['id']);
-            echo "
-            <li style=\"border-bottom:1px solid #f0f0f0;\">
-                <a href=\"#\" style=\"white-space:normal;padding:8px 12px;display:block;\">
-                    <div style=\"display:flex;align-items:flex-start;gap:8px;\">
-                        <span style=\"background:#d9534f;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;\">
-                            <i class=\"fa fa-trash\"></i>
-                        </span>
-                        <div style=\"flex:1;\">
-                            <strong style=\"color:#d9534f;\">Delete Request</strong>
-                            <div style=\"font-size:12px;color:#333;margin:2px 0;\">
-                                <strong>" . htmlspecialchars($req['item_code']) . "</strong>
-                                " . (!empty($req['item_name']) && $req['item_name'] !== $req['item_code'] ? '<span style=\"color:#888;\">— ' . htmlspecialchars($req['item_name']) . '</span>' : '') . "
-                            </div>
-                            <div style=\"font-size:11px;color:#777;\">
-                                {$module_label} &bull; By: " . htmlspecialchars($req['requested_by_name']) . "
-                            </div>
-                            " . (!empty($req['reason']) ? '<div style="font-size:11px;color:#888;font-style:italic;">Reason: ' . htmlspecialchars(substr($req['reason'], 0, 60)) . '</div>' : '') . "
-                            <div style=\"font-size:11px;color:#aaa;\">{$time_ago}</div>
-                            <div style=\"margin-top:6px;display:flex;gap:6px;\">
-                                <a href=\"{$approve_url}\" class=\"btn btn-xs btn-success del-approve-btn\" data-id=\"{$req['id']}\"
-                                    onclick=\"return confirm('Approve deletion of [{$req['item_code']}]? This CANNOT be undone.');\">
-                                    <i class=\"fa fa-check\"></i> Approve
-                                </a>
-                                <a href=\"{$reject_url}\" class=\"btn btn-xs btn-danger del-reject-btn\" data-id=\"{$req['id']}\">
-                                    <i class=\"fa fa-times\"></i> Reject
-                                </a>
+            if (empty($requests)) {
+                echo '<li><a href="#" style="text-align:center;color:#999;padding:15px 0;">No pending deletion requests</a></li>';
+                return;
+            }
+
+            foreach ($requests as $req) {
+                $module_label = $req['module'] === 'inventory' ? 'Inventory' : 'Item Code Master';
+                $time_ago     = $this->_time_ago($req['created_at']);
+                $approve_url  = base_url('DeleteApprovalController/approve/' . $req['id']);
+                $reject_url   = base_url('DeleteApprovalController/reject/'  . $req['id']);
+                echo "
+                <li style=\"border-bottom:1px solid #f0f0f0;\">
+                    <div style=\"white-space:normal;padding:8px 12px;display:block;\">
+                        <div style=\"display:flex;align-items:flex-start;gap:8px;\">
+                            <span style=\"background:#f39c12;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;\">
+                                <i class=\"fa fa-clock-o\"></i>
+                            </span>
+                            <div style=\"flex:1;\">
+                                <strong style=\"color:#f39c12;\">Delete Request (Pending)</strong>
+                                <div style=\"font-size:12px;color:#333;margin:2px 0;\">
+                                    <strong>" . htmlspecialchars($req['item_code']) . "</strong>
+                                    " . (!empty($req['item_name']) && $req['item_name'] !== $req['item_code'] ? '<span style=\"color:#888;\">— ' . htmlspecialchars($req['item_name']) . '</span>' : '') . "
+                                </div>
+                                <div style=\"font-size:11px;color:#777;\">
+                                    {$module_label} &bull; By: " . htmlspecialchars($req['requested_by_name']) . "
+                                </div>
+                                " . (!empty($req['reason']) ? '<div style="font-size:11px;color:#888;font-style:italic;">Reason: ' . htmlspecialchars(substr($req['reason'], 0, 60)) . '</div>' : '') . "
+                                <div style=\"font-size:11px;color:#aaa;\">{$time_ago}</div>
+                                <div style=\"margin-top:6px;display:flex;gap:6px;\">
+                                    <a href=\"{$approve_url}\" class=\"btn btn-xs btn-success\"
+                                        onclick=\"return confirm('Approve deletion request of [{$req['item_code']}]? The requester will be notified to perform actual deletion.');\">
+                                        <i class=\"fa fa-check\"></i> Approve
+                                    </a>
+                                    <a href=\"javascript:void(0);\" class=\"btn btn-xs btn-danger\"
+                                        onclick=\"var rem = prompt('Enter rejection remarks:'); if(rem !== null) { window.location.href = '{$reject_url}?remarks=' + encodeURIComponent(rem); }\">
+                                        <i class=\"fa fa-times\"></i> Reject
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </a>
-            </li>";
+                </li>";
+            }
+        } else {
+            // Non-Admin: show approved or rejected requests not yet dismissed
+            $requests = $this->db
+                ->where_in('status', ['approved', 'rejected'])
+                ->where('requested_by', $user_id)
+                ->where('user_notified', 0)
+                ->order_by('updated_at', 'DESC')
+                ->limit(15)
+                ->get('item_delete_requests')
+                ->result_array();
+
+            if (empty($requests)) {
+                echo '<li><a href="#" style="text-align:center;color:#999;padding:15px 0;">No new deletion notifications</a></li>';
+                return;
+            }
+
+            foreach ($requests as $req) {
+                $time_ago     = $this->_time_ago($req['updated_at'] ?: $req['created_at']);
+                $dismiss_url  = base_url('DeleteApprovalController/dismiss_notification/' . $req['id']);
+                $delete_url   = base_url('DeleteApprovalController/execute_delete/' . $req['id']);
+                
+                if ($req['status'] === 'approved') {
+                    echo "
+                    <li style=\"border-bottom:1px solid #f0f0f0;\">
+                        <div style=\"white-space:normal;padding:8px 12px;display:block;\">
+                            <div style=\"display:flex;align-items:flex-start;gap:8px;\">
+                                <span style=\"background:#27ae60;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;\">
+                                    <i class=\"fa fa-check\"></i>
+                                </span>
+                                <div style=\"flex:1;\">
+                                    <strong style=\"color:#27ae60;\">Delete Request Approved</strong>
+                                    <div style=\"font-size:12px;color:#333;margin:2px 0;\">
+                                        Admin approved deletion of <strong>" . htmlspecialchars($req['item_code']) . "</strong>.
+                                    </div>
+                                    <div style=\"font-size:11px;color:#aaa;\">{$time_ago}</div>
+                                    <div style=\"margin-top:6px;display:flex;gap:6px;\">
+                                        <a href=\"{$delete_url}\" class=\"btn btn-xs btn-danger\"
+                                            onclick=\"return confirm('Delete [{$req['item_code']}] permanently from system? This CANNOT be undone.');\">
+                                            <i class=\"fa fa-trash\"></i> Delete Now
+                                        </a>
+                                        <a href=\"{$dismiss_url}\" class=\"btn btn-xs btn-default\">
+                                            Dismiss
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>";
+                } else {
+                    echo "
+                    <li style=\"border-bottom:1px solid #f0f0f0;\">
+                        <div style=\"white-space:normal;padding:8px 12px;display:block;\">
+                            <div style=\"display:flex;align-items:flex-start;gap:8px;\">
+                                <span style=\"background:#d9534f;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;\">
+                                    <i class=\"fa fa-times\"></i>
+                                </span>
+                                <div style=\"flex:1;\">
+                                    <strong style=\"color:#d9534f;\">Delete Request Rejected</strong>
+                                    <div style=\"font-size:12px;color:#333;margin:2px 0;\">
+                                        Admin rejected deletion of <strong>" . htmlspecialchars($req['item_code']) . "</strong>.
+                                        " . (!empty($req['review_remarks']) ? '<div style="margin-top:2px;font-style:italic;color:#e74c3c;">Remarks: ' . htmlspecialchars($req['review_remarks']) . '</div>' : '') . "
+                                    </div>
+                                    <div style=\"font-size:11px;color:#aaa;\">{$time_ago}</div>
+                                    <div style=\"margin-top:6px;display:flex;gap:6px;\">
+                                        <a href=\"{$dismiss_url}\" class=\"btn btn-xs btn-default\">
+                                            Dismiss
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>";
+                }
+            }
         }
     }
 
     // ─────────────────────────────────────────────────────────────
-    // APPROVE  (Admin only)
+    // APPROVE  (Admin only - set approved but do not delete yet)
     // ─────────────────────────────────────────────────────────────
     public function approve($id)
     {
@@ -196,41 +295,15 @@ class DeleteApprovalController extends MY_Controller
             return;
         }
 
-        // Perform the actual deletion
-        $deleted = false;
-        if ($req['module'] === 'inventory') {
-            try {
-                $result = $this->inventory->delete_inventory_by_id($req['item_id']);
-                $deleted = ($result === true);
-                if ($result === 'CONSTRAIN_ERROR') {
-                    $this->session->set_flashdata('ERRORMSG', "Cannot delete item <strong>{$req['item_code']}</strong>: it is referenced in other records.");
-                    $this->db->where('id', $id)->update('item_delete_requests', [
-                        'status'         => 'rejected',
-                        'reviewed_by'    => $reviewer_id,
-                        'review_remarks' => 'Auto-rejected: Foreign key constraint error',
-                    ]);
-                    redirect($req['redirect_url'] ?: 'DeleteApprovalController/panel');
-                    return;
-                }
-            } catch (Exception $e) {
-                $deleted = false;
-            }
-        } elseif ($req['module'] === 'item_code_master') {
-            $result = $this->master->delete_product_by_id($req['item_id']);
-            $deleted = ($result == true);
-        }
+        // Set status to approved, reset user_notified so requester sees it
+        $this->db->where('id', $id)->update('item_delete_requests', [
+            'status'        => 'approved',
+            'reviewed_by'   => $reviewer_id,
+            'user_notified' => 0
+        ]);
 
-        if ($deleted) {
-            $this->db->where('id', $id)->update('item_delete_requests', [
-                'status'      => 'approved',
-                'reviewed_by' => $reviewer_id,
-            ]);
-            $this->session->set_flashdata('SUCCESSMSG', "Item <strong>{$req['item_code']}</strong> deleted successfully (request approved).");
-        } else {
-            $this->session->set_flashdata('ERRORMSG', "Failed to delete item <strong>{$req['item_code']}</strong>.");
-        }
-
-        redirect($req['redirect_url'] ?: 'DeleteApprovalController/panel');
+        $this->session->set_flashdata('SUCCESSMSG', "Deletion request for item <strong>{$req['item_code']}</strong> has been approved. The user will be notified to perform actual deletion.");
+        redirect('DeleteApprovalController/panel');
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -257,31 +330,116 @@ class DeleteApprovalController extends MY_Controller
             return;
         }
 
+        $remarks = $this->input->get_post('remarks') ?: '';
+
         $this->db->where('id', $id)->update('item_delete_requests', [
-            'status'      => 'rejected',
-            'reviewed_by' => $reviewer_id,
+            'status'         => 'rejected',
+            'reviewed_by'    => $reviewer_id,
+            'review_remarks' => $remarks,
+            'user_notified'  => 0
         ]);
 
-        $this->session->set_flashdata('INFOMSG', "Deletion of item <strong>{$req['item_code']}</strong> was rejected.");
-        redirect($req['redirect_url'] ?: 'DeleteApprovalController/panel');
+        $this->session->set_flashdata('INFOMSG', "Deletion request for item <strong>{$req['item_code']}</strong> was rejected.");
+        redirect('DeleteApprovalController/panel');
     }
 
     // ─────────────────────────────────────────────────────────────
-    // FULL PANEL PAGE  (Admin view all requests)
+    // EXECUTE ACTUAL DELETION (Called by requester or Admin after approval)
+    // ─────────────────────────────────────────────────────────────
+    public function execute_delete($id)
+    {
+        $session_data = $this->session->userdata('session_data_head');
+        $res          = $session_data['result'] ?? [];
+        $user_id      = (int)($res['user_id'] ?? 0);
+        $role_name    = strtolower($res['role_name'] ?? '');
+        $role_id      = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
+        $is_admin     = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
+
+        $req = $this->db->where('id', $id)->where('status', 'approved')->get('item_delete_requests')->row_array();
+        if (empty($req)) {
+            $this->session->set_flashdata('ERRORMSG', 'Approved request not found.');
+            redirect('InventoryController/index');
+            return;
+        }
+
+        // Must be original requester or Admin
+        if ($req['requested_by'] !== $user_id && !$is_admin) {
+            $this->session->set_flashdata('ERRORMSG', 'You are not authorized to perform deletion of this item.');
+            redirect('InventoryController/index');
+            return;
+        }
+
+        $deleted = false;
+        if ($req['module'] === 'inventory') {
+            try {
+                $result = $this->inventory->delete_inventory_by_id($req['item_id']);
+                $deleted = ($result === true);
+                if ($result === 'CONSTRAIN_ERROR') {
+                    $this->session->set_flashdata('ERRORMSG', "Cannot delete item <strong>{$req['item_code']}</strong>: it is referenced in other records.");
+                    redirect($req['redirect_url'] ?: 'InventoryController/index');
+                    return;
+                }
+            } catch (Exception $e) {
+                $deleted = false;
+            }
+        } elseif ($req['module'] === 'item_code_master') {
+            $result = $this->master->delete_product_by_id($req['item_id']);
+            $deleted = ($result == true);
+        }
+
+        if ($deleted) {
+            $this->db->where('id', $id)->update('item_delete_requests', [
+                'status'        => 'deleted',
+                'user_notified' => 1
+            ]);
+            $this->session->set_flashdata('SUCCESSMSG', "Item <strong>{$req['item_code']}</strong> has been permanently deleted.");
+        } else {
+            $this->session->set_flashdata('ERRORMSG', "Failed to delete item <strong>{$req['item_code']}</strong>.");
+        }
+
+        redirect($req['redirect_url'] ?: 'InventoryController/index');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // DISMISS NOTIFICATION (Acknowledge Admin's action)
+    // ─────────────────────────────────────────────────────────────
+    public function dismiss_notification($id)
+    {
+        $session_data = $this->session->userdata('session_data_head');
+        $user_id      = (int)($session_data['result']['user_id'] ?? 0);
+
+        $this->db
+            ->where('id', $id)
+            ->where('requested_by', $user_id)
+            ->update('item_delete_requests', ['user_notified' => 1]);
+
+        $req = $this->db->where('id', $id)->get('item_delete_requests')->row_array();
+        $this->session->set_flashdata('INFOMSG', 'Notification dismissed.');
+        redirect($req['redirect_url'] ?: 'InventoryController/index');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // FULL PANEL PAGE  (Admin & Non-Admin request management)
     // ─────────────────────────────────────────────────────────────
     public function panel()
     {
         $session_data = $this->session->userdata('session_data_head');
-        $role_name    = $session_data['result']['role_name'] ?? '';
+        $res          = $session_data['result'] ?? [];
+        $role_name    = strtolower($res['role_name'] ?? '');
+        $role_id      = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
+        $user_id      = (int)($res['user_id'] ?? 0);
+        $is_admin     = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
 
-        if (strtolower($role_name) !== 'admin') {
-            $this->session->set_flashdata('ERRORMSG', 'Access denied.');
-            redirect('Dashboard');
-            return;
+        if ($is_admin) {
+            $data['pending']  = $this->db->where('status', 'pending')->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+            $data['history']  = $this->db->where_in('status', ['approved','rejected','deleted'])->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+        } else {
+            $data['pending']  = $this->db->where('status', 'pending')->where('requested_by', $user_id)->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+            $data['history']  = $this->db->where_in('status', ['approved','rejected','deleted'])->where('requested_by', $user_id)->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
         }
 
-        $data['pending']  = $this->db->where('status', 'pending') ->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
-        $data['history']  = $this->db->where_in('status', ['approved','rejected'])->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+        $data['is_admin'] = $is_admin;
+        $data['user_id']  = $user_id;
 
         $session_data_head = $this->session->userdata('session_data_head');
         $this->load->view('admin/header_side_bar', $session_data_head);

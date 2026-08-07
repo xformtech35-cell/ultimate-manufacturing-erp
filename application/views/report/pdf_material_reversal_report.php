@@ -57,25 +57,7 @@
 <body>
 
 <?php
-if (!isset($show_project_cols)) {
-    $CI =& get_instance();
-    $sess = $CI->session->userdata('session_data_head');
-    $user_role_id = $sess['result']['role'] ?? null;
-    $role_name = strtolower($sess['result']['role_name'] ?? '');
-    if ($role_name === 'admin' || $user_role_id == 1) {
-        $show_project_cols = true;
-    } else if ($user_role_id) {
-        $perm_row = $CI->db->select('grp_perm')->from('permission')->where('role_id_fk', $user_role_id)->group_start()->where('grp_perm', 'Projects')->or_where('grp_perm', 'projects')->group_end()->get()->row_array();
-        if ($perm_row) {
-            $show_project_cols = true;
-        } else {
-            $count = $CI->db->where('role_id_fk', $user_role_id)->count_all_results('permission');
-            $show_project_cols = ($count > 0) ? false : (in_array('Projects', $sess['permission'] ?? []) || in_array('projects', $sess['permission'] ?? []));
-        }
-    } else {
-        $show_project_cols = in_array('Projects', $sess['permission'] ?? []) || in_array('projects', $sess['permission'] ?? []);
-    }
-}
+$show_project_cols = false;
 ?>
     <div class="header">
         <h2>MATERIAL REVERSAL REPORT</h2>
