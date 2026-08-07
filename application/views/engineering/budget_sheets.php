@@ -42,7 +42,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 </style>
 
 <body class="hold-transition skin-blue sidebar-mini">
-    <div id="loader" class="center"></div> 
     <div class="wrapper">
         <?php $this->load->view('admin/header_side_bar'); ?>
         
