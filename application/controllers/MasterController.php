@@ -155,7 +155,8 @@ class MasterController extends MY_Controller {
         $user_id   = (int)($res['user_id'] ?? 0);
 
         if ($role_name !== 'admin' && $role_id !== 1 && $user_id !== 1) {
-            redirect('DeleteApprovalController/request_delete?item_id=' . urlencode($id) . '&module=item_code_master&redirect_url=' . urlencode('MasterController/view_product'));
+            $reason = $this->input->get('reason');
+            redirect('DeleteApprovalController/request_delete?item_id=' . urlencode($id) . '&module=item_code_master&reason=' . urlencode($reason) . '&redirect_url=' . urlencode('MasterController/view_product'));
             return;
         }
 

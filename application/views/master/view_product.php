@@ -6,6 +6,11 @@ if (isset($session_data_head1)) {
     header($this->config->item('header'));
 }
 defined('BASEPATH') OR exit('No direct script access allowed');
+
+$role_name = strtolower($session_data_head1['result']['role_name'] ?? '');
+$role_id   = (int)($session_data_head1['result']['role_id'] ?? $session_data_head1['result']['user_role_id'] ?? 0);
+$user_id   = (int)($session_data_head1['result']['user_id'] ?? 0);
+$is_admin  = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
 ?>
 <body class="hold-transition skin-blue sidebar-mini">
     <div class="wrapper">
@@ -62,8 +67,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                 <td> <?php echo $key->product_master_name; ?> </td>
                                                 <td> 
                                                     <a href="<?php echo base_url() . 'MasterController/get_product_by_id/' . $key->product_master_id; ?> " class="btn btn-primary" role="button"><i class="fa fa-edit"></i></a> 
-                                                     <a href="<?php echo base_url() . 'MasterController/delete_product_by_id/' . $key->product_master_id; ?>" class="btn btn-danger" role="button" onClick="return confirm('Are you sure you want to delete?')"><i class="fa fa-trash"></i>
-                                                    </a> 
+                                                     <?php if ($is_admin): ?>
+                                                         <a href="<?php echo base_url() . 'MasterController/delete_product_by_id/' . $key->product_master_id; ?>" class="btn btn-danger" role="button" onClick="return confirm('Are you sure you want to delete?')"><i class="fa fa-trash"></i></a>
+                                                     <?php else: ?>
+                                                         <a href="javascript:void(0);" onclick="requestDeleteProduct('<?= $key->product_master_id; ?>', '<?= htmlspecialchars($key->product_master_name, ENT_QUOTES); ?>')" class="btn btn-danger" role="button"><i class="fa fa-trash"></i></a>
+                                                     <?php endif; ?> 
                                                 </td>
                                             </tr>
                                         <?php } ?>
@@ -89,6 +97,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     </div>
     <!-- ./wrapper -->
 
-
-
-
+<script>
+    function requestDeleteProduct(id, name) {
+        var reason = prompt("Please enter the reason for requesting deletion of product master " + name + ":");
+        if (reason === null) return; // user cancelled
+        reason = reason.trim();
+        if (reason === "") {
+            alert("Reason is required to submit a deletion request.");
+            return;
+        }
+        window.location.href = "<?= base_url('MasterController/delete_product_by_id/'); ?>" + id + "?reason=" + encodeURIComponent(reason);
+    }
+</script>

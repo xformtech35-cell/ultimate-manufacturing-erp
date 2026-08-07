@@ -6,6 +6,11 @@ if (isset($session_data_head1)) {
 }
 defined('BASEPATH') or exit('No direct script access allowed');
 
+$role_name = strtolower($session_data_head1['result']['role_name'] ?? '');
+$role_id   = (int)($session_data_head1['result']['role_id'] ?? $session_data_head1['result']['user_role_id'] ?? 0);
+$user_id   = (int)($session_data_head1['result']['user_id'] ?? 0);
+$is_admin  = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
+
 // Get filter values from POST or set defaults
 $search_item = isset($_POST['search_item']) ? $_POST['search_item'] : (isset($_GET['search_item']) ? $_GET['search_item'] : '');
 $item_type = isset($_POST['item_type']) ? $_POST['item_type'] : (isset($_GET['item_type']) ? $_GET['item_type'] : '');
@@ -774,11 +779,19 @@ $sort_by = isset($_POST['sort_by']) ? $_POST['sort_by'] : (isset($_GET['sort_by'
                                                                     </li>
                                                                     <li role="separator" class="divider" style="margin: 4px 0;"></li>
                                                                     <li>
-                                                                        <a href="<?php echo base_url('InventoryController/delete_inventory_by_id/' . $key->inventory_id); ?>"
-                                                                           onclick="return confirm('Are you sure you want to delete this inventory item?')"
-                                                                           style="padding: 7px 15px; font-size: 13px; display: block; color: #d9534f;">
-                                                                            <i class="fa fa-trash text-danger" style="margin-right: 8px; width: 16px;"></i> Delete Item
-                                                                        </a>
+                                                                        <?php if ($is_admin): ?>
+                                                                            <a href="<?php echo base_url('InventoryController/delete_inventory_by_id/' . $key->inventory_id); ?>"
+                                                                               onclick="return confirm('Are you sure you want to delete this inventory item?')"
+                                                                               style="padding: 7px 15px; font-size: 13px; display: block; color: #d9534f;">
+                                                                                <i class="fa fa-trash text-danger" style="margin-right: 8px; width: 16px;"></i> Delete Item
+                                                                            </a>
+                                                                        <?php else: ?>
+                                                                            <a href="javascript:void(0);"
+                                                                               onclick="requestDeleteInventory('<?= $key->inventory_id; ?>', '<?= htmlspecialchars($key->code, ENT_QUOTES); ?>')"
+                                                                               style="padding: 7px 15px; font-size: 13px; display: block; color: #d9534f;">
+                                                                                <i class="fa fa-trash text-danger" style="margin-right: 8px; width: 16px;"></i> Delete Item
+                                                                            </a>
+                                                                        <?php endif; ?>
                                                                     </li>
                                                                 </ul>
                                                             </div>
@@ -1037,5 +1050,17 @@ $sort_by = isset($_POST['sort_by']) ? $_POST['sort_by'] : (isset($_GET['sort_by'
             });
         }
         initIssuedTooltips();
+
+        // Function to prompt for deletion reason and redirect
+        function requestDeleteInventory(id, code) {
+            var reason = prompt("Please enter the reason for requesting deletion of item " + code + ":");
+            if (reason === null) return; // user cancelled
+            reason = reason.trim();
+            if (reason === "") {
+                alert("Reason is required to submit a deletion request.");
+                return;
+            }
+            window.location.href = "<?= base_url('InventoryController/delete_inventory_by_id/'); ?>" + id + "?reason=" + encodeURIComponent(reason);
+        }
     </script>
 </body>

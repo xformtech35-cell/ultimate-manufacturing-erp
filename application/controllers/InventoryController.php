@@ -584,7 +584,16 @@ public function add_expense_data_indirect()
         $user_id   = (int)($res['user_id'] ?? 0);
 
         if ($role_name !== 'admin' && $role_id !== 1 && $user_id !== 1) {
-            redirect('DeleteApprovalController/request_delete?item_id=' . urlencode($id) . '&module=inventory&redirect_url=' . urlencode('InventoryController/index'));
+            $reason = $this->input->get('reason');
+            
+            // Dynamically set redirect URL based on referrer
+            $referer = $_SERVER['HTTP_REFERER'] ?? '';
+            $redirect_url = 'InventoryController/index';
+            if (strpos($referer, 'inventory_history') !== false) {
+                $redirect_url = 'InventoryController/inventory_history';
+            }
+            
+            redirect('DeleteApprovalController/request_delete?item_id=' . urlencode($id) . '&module=inventory&reason=' . urlencode($reason) . '&redirect_url=' . urlencode($redirect_url));
             return;
         }
 
