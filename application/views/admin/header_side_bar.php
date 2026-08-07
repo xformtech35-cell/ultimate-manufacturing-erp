@@ -1624,8 +1624,12 @@ if ($currentPage == 'InventoryController') {
 
     /* Hide loader once page fully ready */
     function hideLoader() {
+        console.log("hideLoader called. Loader element:", loader);
         if (loader) {
             loader.classList.add('hidden');
+            console.log("Added hidden class. Classes:", loader.className);
+        } else {
+            console.warn("Loader element not found!");
         }
         if (topBar) {
             topBar.style.width = '100%';
