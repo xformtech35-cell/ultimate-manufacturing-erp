@@ -72,11 +72,14 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                             <div class="form-group">
                                                 <label>Department</label>
                                                 <select name="department" class="form-control select2">
-                                                    <option value="Production" selected>Production</option>
-                                                    <option value="Construction">Construction</option>
-                                                    <option value="Maintenance">Maintenance</option>
-                                                    <option value="Store">Store</option>
-                                                    <option value="Office">Office</option>
+                                                    <option value="">Select Department</option>
+                                                    <?php foreach ($departments as $dept): 
+                                                        $dept_name = trim($dept->department_name);
+                                                    ?>
+                                                    <option value="<?php echo htmlspecialchars($dept_name); ?>" <?php echo (strtolower($dept_name) === 'production') ? 'selected' : ''; ?>>
+                                                        <?php echo htmlspecialchars($dept_name); ?>
+                                                    </option>
+                                                    <?php endforeach; ?>
                                                 </select>
                                             </div>
                                         </div>

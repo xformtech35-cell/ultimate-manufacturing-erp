@@ -2185,6 +2185,8 @@ class MaterialIssueController extends MY_Controller
         $data['inventory_items'] = $this->model->get_all_inventory_items();
         $data['joborders'] = $this->Joborder->get_joborders_with_issued_material($this->uid);
         $data['projects'] = $this->Project_model->get_all_projects();
+        $this->load->model('department');
+        $data['departments'] = $this->department->get_departments();
 
         $this->load->view('admin/header_side_bar');
         $this->load->view('material_issue/create_mrn', $data);
