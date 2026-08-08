@@ -1470,15 +1470,29 @@ public function edit_salesorder_salesorder()
     {
         $session_data_head = $this->session->userdata('session_data_head');
         $permissions = $session_data_head['permission'] ?? array();
+        $user_role = $session_data_head['result']['role_name'] ?? '';
         $is_admin = (isset($session_data_head['result']['role_name']) && strtolower($session_data_head['result']['role_name']) === 'admin');
 
-        if (!$is_admin && !in_array('SO_Approval', $permissions)) {
+        $this->load->model('ApprovalMatrixModel');
+        $so_matrix_rules = $this->ApprovalMatrixModel->getApprovers('SO');
+
+        $is_matrix_approver = false;
+        if (!empty($so_matrix_rules)) {
+            foreach ($so_matrix_rules as $rule) {
+                if (strtolower($rule->approver_role) === strtolower($user_role)) {
+                    $is_matrix_approver = true;
+                    break;
+                }
+            }
+        }
+
+        if (!$is_admin && !in_array('SO_Approval', $permissions) && !$is_matrix_approver) {
             $this->session->set_flashdata('ERRORMSG', 'You do not have permission to change status / approve Sales Orders.');
             redirect('SalesOrderController/index');
         }
 
         $so_number = $this->input->post('so_number');
-        $status = $this->input->post('status');
+        $status = (int)$this->input->post('status');
         $remarks = $this->input->post('remarks');
         $redirect_to = $this->input->post('redirect_to') ?: 'index';
         $data_status = array('status' => $status, 'remarks' => $remarks);
@@ -1487,9 +1501,18 @@ public function edit_salesorder_salesorder()
             $data_status['approved_by'] = $this->user_id;
         }
 
+        $status_label = 'updated';
+        switch ($status) {
+            case 4: $status_label = 'Approved'; break;
+            case 5: $status_label = 'Placed on Hold'; break;
+            case 6: $status_label = 'Canceled'; break;
+            case 2: $status_label = 'Submitted for Approval'; break;
+            case 1: $status_label = 'Set to Draft'; break;
+        }
+
         $result = $this->salesorder->edit_gst_salesorder_status($data_status, $so_number, $this->user_id);
         if ($result) {
-            $this->session->set_flashdata('SUCCESSMSG', "Sales Order status updated successfully!!");
+            $this->session->set_flashdata('SUCCESSMSG', "Sales Order {$so_number} status {$status_label} successfully!");
         } else {
             $this->session->set_flashdata('INFOMSG', "Failed to update status!");
         }
@@ -1500,15 +1523,42 @@ public function edit_salesorder_salesorder()
     {
         $session_data_head = $this->session->userdata('session_data_head');
         $permissions = $session_data_head['permission'] ?? array();
+        $user_role = $session_data_head['result']['role_name'] ?? '';
         $is_admin = (isset($session_data_head['result']['role_name']) && strtolower($session_data_head['result']['role_name']) === 'admin');
 
-        if (!$is_admin && !in_array('SO_Approval', $permissions)) {
+        $this->load->model('ApprovalMatrixModel');
+        $so_matrix_rules = $this->ApprovalMatrixModel->getApprovers('SO');
+
+        $is_matrix_approver = false;
+        if (!empty($so_matrix_rules)) {
+            foreach ($so_matrix_rules as $rule) {
+                if (strtolower($rule->approver_role) === strtolower($user_role)) {
+                    $is_matrix_approver = true;
+                    break;
+                }
+            }
+        }
+
+        if (!$is_admin && !in_array('SO_Approval', $permissions) && !$is_matrix_approver) {
             $this->session->set_flashdata('ERRORMSG', 'You do not have permission to access SO Approval Dashboard.');
             redirect('Home/index');
         }
 
-        $data['salesorders'] = $this->salesorder->get_pending_salesorders($this->user_id);
-        $data['salesorder_count'] = count($data['salesorders']);
+        $status_filter = $this->input->get('status') ?: 'pending';
+
+        $data['status_filter'] = $status_filter;
+        $data['salesorders'] = $this->salesorder->get_pending_salesorders($this->user_id, $status_filter);
+        
+        $data['count_pending'] = count($this->salesorder->get_pending_salesorders($this->user_id, 'pending'));
+        $data['count_approved'] = count($this->salesorder->get_pending_salesorders($this->user_id, 'approved'));
+        $data['count_hold_canceled'] = count($this->salesorder->get_pending_salesorders($this->user_id, 'hold_canceled'));
+        $data['count_all'] = count($this->salesorder->get_pending_salesorders($this->user_id, 'all'));
+
+        $data['so_matrix_rules'] = $so_matrix_rules;
+        $data['user_role'] = $user_role;
+        $data['is_admin'] = $is_admin;
+        $data['is_matrix_approver'] = $is_matrix_approver;
+
         $data['product_name'] = $this->inventory->get_product_part_name($this->user_id);
         $data['settings'] = $this->login->get_settings($this->user_id);
         $data['company_name'] = $this->salesorder->get_company_name($this->user_id);

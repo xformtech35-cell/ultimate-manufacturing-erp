@@ -67,6 +67,9 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                             </span>
                                         </div>
                                     </form>
+                                    <a href="<?php echo base_url('SalesOrderController/so_approval_dashboard'); ?>" class="btn btn-info btn-sm" style="height: 30px; line-height: 20px; font-weight: 600; padding: 5px 15px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; border: none; background-color: #0288d1 !important; color: white !important;">
+                                        <i class="fa fa-check-square-o"></i> SO Approval Dashboard
+                                    </a>
                                     <a href="<?php echo base_url(); ?>SalesOrderController/index?str=All" class="btn btn-success btn-sm" style="height: 30px; line-height: 20px; font-weight: 600; padding: 5px 15px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; border: none; background-color: #2e7d32 !important;">
                                         <i class="fa fa-list"></i> Show All
                                     </a>
@@ -405,7 +408,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                             <label>Status<span style="color:red;">*</span></label>
                             <select name="status" id="so_status_select" class="form-control" required>
                                 <option value="1">Draft</option>
-                                <option value="2">Sent</option>
+                                <option value="2">Sent (Submit for Approval)</option>
                                 <option value="3">Viewed</option>
                                 <option value="4">Approved</option>
                                 <option value="5">Hold</option>

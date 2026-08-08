@@ -571,7 +571,7 @@ public function get_so_list_for_bom($uid)
     return $query->result();
 }
 
-public function get_pending_salesorders($uid)
+public function get_pending_salesorders($uid, $status_filter = 'pending')
 {
     $fy_year = $this->session->userdata('fy_year');
     if (!empty($fy_year)) {
@@ -587,7 +587,17 @@ public function get_pending_salesorders($uid)
     $this->db->from('salesorder_total');
     $this->db->join('customer', 'customer.customer_id=salesorder_total.customer_id_fk', 'left');
     $this->db->join('salesorder q', 'q.number=salesorder_total.number_fk', 'left');
-    $this->db->where_in('salesorder_total.status', [0, 1]); // Draft or Viewed
+
+    if ($status_filter === 'pending') {
+        $this->db->where_in('salesorder_total.status', [0, 1, 2, 3]); // Draft, Sent, Viewed
+    } elseif ($status_filter === 'approved') {
+        $this->db->where('salesorder_total.status', 4);
+    } elseif ($status_filter === 'hold_canceled') {
+        $this->db->where_in('salesorder_total.status', [5, 6]);
+    } elseif (is_numeric($status_filter)) {
+        $this->db->where('salesorder_total.status', (int)$status_filter);
+    }
+
     $this->db->group_by('salesorder_total.id');
     $this->db->order_by('salesorder_total.id', 'DESC');
     $query = $this->db->get();

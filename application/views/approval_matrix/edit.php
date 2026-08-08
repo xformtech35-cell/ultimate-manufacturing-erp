@@ -64,6 +64,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                 <div class="col-sm-5">
                                                     <select name="document_type" class="form-control" required>
                                                         <option value="">Select Type</option>
+                                                        <option value="SO" <?= isset($rule->document_type) && $rule->document_type == 'SO' ? 'selected' : '' ?>>SO (Sales Order)</option>
                                                         <option value="PR" <?= isset($rule->document_type) && $rule->document_type == 'PR' ? 'selected' : '' ?>>PR</option>
                                                         <option value="PO" <?= isset($rule->document_type) && $rule->document_type == 'PO' ? 'selected' : '' ?>>PO</option>
                                                         <option value="PA" <?= isset($rule->document_type) && $rule->document_type == 'PA' ? 'selected' : '' ?>>PO Amendment</option>

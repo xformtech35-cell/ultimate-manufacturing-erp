@@ -68,6 +68,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                 <div class="col-sm-5">
                                                     <select name="document_type" class="form-control" required>
                                                         <option value="">Select Type</option>
+                                                        <option value="SO">SO (Sales Order)</option>
                                                         <option value="PR">PR</option>
                                                         <option value="PO">PO</option>
                                                         <option value="PA">PO Amendment</option>

@@ -38,7 +38,7 @@ class ApprovalMatrixModel extends CI_Model
         $this->db->where('document_type', $document_type)
             ->where('status', 'active');
 
-        if ($document_type === 'PO') {
+        if (in_array($document_type, ['PO', 'SO', 'PR', 'PA'])) {
             $this->db->where('min_amount <=', $amount);
             $this->db->group_start();
             $this->db->where('max_amount >=', $amount);
