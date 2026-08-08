@@ -319,14 +319,7 @@ $count_all = $count_all ?? 0;
                                                     <?php 
                                                     $i++;
                                                 }
-                                            } else { ?>
-                                                <tr>
-                                                    <td colspan="12" class="text-center" style="padding: 30px; color: #888;">
-                                                        <i class="fa fa-info-circle" style="font-size: 24px;"></i><br>
-                                                        No Sales Orders found for this view filter.
-                                                    </td>
-                                                </tr>
-                                            <?php } ?>
+                                            } ?>
                                         </tbody>
                                     </table>
                                 </div>
