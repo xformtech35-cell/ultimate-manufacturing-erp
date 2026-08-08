@@ -134,8 +134,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                          $status_text = 'Draft';
                                                          break;
                                                      case 2:
-                                                         $status_class = 'label-info';
-                                                         $status_text = 'Sent';
+                                                         $status_class = 'label-warning';
+                                                         $status_text = 'Under Process';
                                                          break;
                                                      case 3:
                                                          $status_class = 'label-primary';
@@ -150,7 +150,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                          $status_text = 'Hold';
                                                          break;
                                                      case 6:
-                                                         $status_class = 'label-warning';
+                                                         $status_class = 'label-danger';
                                                          $status_text = 'Canceled';
                                                          break;
                                                      default:
@@ -198,7 +198,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                                       echo '<span class="label label-warning" style="font-size: 11px; font-weight: normal; white-space: normal; display: inline-block; text-align: left; word-break: break-word;">Canceled by: ' . $handler_name . '</span>';
                                                                       break;
                                                                   case 2: // Sent
-                                                                      echo '<span class="label label-info" style="font-size: 11px; font-weight: normal; white-space: normal; display: inline-block; text-align: left; word-break: break-word;">Sent by: ' . $handler_name . '</span>';
+                                                                      echo '<span class="label label-warning" style="font-size: 11px; font-weight: normal; white-space: normal; display: inline-block; text-align: left; word-break: break-word;">Under Process (Sent by: ' . $handler_name . ')</span>';
                                                                       break;
                                                                   case 3: // Viewed
                                                                       echo '<span class="label label-primary" style="font-size: 11px; font-weight: normal; white-space: normal; display: inline-block; text-align: left; word-break: break-word;">Viewed by: ' . $handler_name . '</span>';
@@ -408,9 +408,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
                             <label>Status<span style="color:red;">*</span></label>
                             <select name="status" id="so_status_select" class="form-control" required>
                                 <option value="1">Draft</option>
-                                <option value="2">Sent (Submit for Approval)</option>
+                                <option value="2">Submit for Approval (Under Process)</option>
                                 <option value="3">Viewed</option>
-                                <option value="4">Approved</option>
                                 <option value="5">Hold</option>
                                 <option value="6">Canceled</option>
                             </select>

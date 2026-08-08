@@ -219,8 +219,8 @@ $count_all = $count_all ?? 0;
                                                             $status_text = 'Draft';
                                                             break;
                                                         case 2:
-                                                            $status_class = 'label-info';
-                                                            $status_text = 'Sent';
+                                                            $status_class = 'label-warning';
+                                                            $status_text = 'Under Process';
                                                             break;
                                                         case 3:
                                                             $status_class = 'label-primary';
@@ -276,7 +276,7 @@ $count_all = $count_all ?? 0;
                                                                     echo '<span class="label label-danger">Canceled by: ' . $handler_name . '</span>';
                                                                     break;
                                                                 case 2:
-                                                                    echo '<span class="label label-info">Sent by: ' . $handler_name . '</span>';
+                                                                    echo '<span class="label label-warning">Under Process (Sent by: ' . $handler_name . ')</span>';
                                                                     break;
                                                                 default:
                                                                     echo '-';
