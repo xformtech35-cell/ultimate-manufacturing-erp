@@ -476,13 +476,16 @@ $sort_by = isset($_POST['sort_by']) ? $_POST['sort_by'] : (isset($_GET['sort_by'
                 // Calculate summary data
                 $total_items = count($result ?? []);
                 $low_stock_items = 0;
+                $out_of_stock_items = 0;
                 $total_stock_value = 0;
                 $boughtout_count = 0;
                 $manufacturing_count = 0;
 
                 if (!empty($result)) {
                     foreach ($result as $item) {
-                        if ($item->stock <= 5) {
+                        if ($item->stock <= 0) {
+                            $out_of_stock_items++;
+                        } elseif ($item->stock <= 5) {
                             $low_stock_items++;
                         }
                         $total_stock_value += ($item->stock * $item->cost_price);
@@ -496,32 +499,39 @@ $sort_by = isset($_POST['sort_by']) ? $_POST['sort_by'] : (isset($_GET['sort_by'
                 ?>
 
                 <div class="row">
-                    <div class="col-md-3 col-sm-6">
+                    <div class="col-md-2 col-sm-4 col-xs-6" style="width: 20%;">
                         <div class="summary-card" style="border-top: 4px solid #3498db;">
                             <i class="fa fa-cubes" style="color: #3498db;"></i>
                             <h3><?php echo $total_items; ?></h3>
                             <p>Total Items</p>
                         </div>
                     </div>
-                    <div class="col-md-3 col-sm-6">
-                        <div class="summary-card" style="border-top: 4px solid #e74c3c;">
-                            <i class="fa fa-exclamation-triangle" style="color: #e74c3c;"></i>
+                    <div class="col-md-2 col-sm-4 col-xs-6" style="width: 20%;">
+                        <div class="summary-card" style="border-top: 4px solid #f39c12;">
+                            <i class="fa fa-exclamation-triangle" style="color: #f39c12;"></i>
                             <h3><?php echo $low_stock_items; ?></h3>
-                            <p>Low Stock Items</p>
+                            <p>Low Stock (1-5)</p>
                         </div>
                     </div>
-                    <div class="col-md-3 col-sm-6">
+                    <div class="col-md-2 col-sm-4 col-xs-6" style="width: 20%;">
+                        <div class="summary-card" style="border-top: 4px solid #e74c3c;">
+                            <i class="fa fa-ban" style="color: #e74c3c;"></i>
+                            <h3><?php echo $out_of_stock_items; ?></h3>
+                            <p>Out of Stock</p>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-sm-4 col-xs-6" style="width: 20%;">
                         <div class="summary-card" style="border-top: 4px solid #27ae60;">
                             <i class="fa fa-balance-scale" style="color: #27ae60;"></i>
                             <h3>₹<?php require_once(APPPATH . '/third_party/amount_convert.php'); echo indian_number_format(round($total_stock_value), 0); ?></h3>
-                            <p>Total Stock Value</p>
+                            <p>Total Value</p>
                         </div>
                     </div>
-                    <div class="col-md-3 col-sm-6">
-                        <div class="summary-card" style="border-top: 4px solid #f39c12;">
-                            <i class="fa fa-tags" style="color: #f39c12;"></i>
+                    <div class="col-md-2 col-sm-4 col-xs-6" style="width: 20%;">
+                        <div class="summary-card" style="border-top: 4px solid #17a2b8;">
+                            <i class="fa fa-tags" style="color: #17a2b8;"></i>
                             <h3><?php echo $boughtout_count . '/' . $manufacturing_count; ?></h3>
-                            <p>Boughtout / Manufacturing</p>
+                            <p>Boughtout / Mfg</p>
                         </div>
                     </div>
                 </div>
