@@ -235,16 +235,64 @@ if (empty($unit_result)) {
 
 $(document).ready(function() {
 
-    // Dynamic sticky positioning for dropdown menus on tables & scroll containers
+    // Dynamic sticky positioning ONLY for table action dropdown menus
     $(document).on('show.bs.dropdown shown.bs.dropdown', function(e) {
         var $dropdown = $(e.target);
+
+        // Ignore header / navbar dropdowns completely (User Profile, Notifications, Tasks)
+        if ($dropdown.closest('.main-header, .navbar, .navbar-nav, .user-menu, .navbar-custom-menu').length > 0) {
+            return;
+        }
+
+        // Only target dropdowns inside tables or action containers
+        if ($dropdown.closest('table, .table-responsive, .dataTables_wrapper, .table-enhance, .dropdown-action').length === 0) {
+            return;
+        }
+
         var $toggle = $dropdown.find('[data-toggle="dropdown"]');
         var $menu = $dropdown.find('.dropdown-menu');
 
         if ($toggle.length && $menu.length) {
+            function closeDropdown() {
+                $dropdown.removeClass('open');
+                $menu.removeAttr('style');
+                $(window).off('.dropdownStick');
+                $('.table-responsive, .table-responsive-container, .box-body, .dataTables_wrapper, .content-wrapper, body').off('.dropdownStick');
+            }
+
             function positionTableDropdown() {
                 var offset = $toggle.offset();
-                if (!offset) return;
+                if (!offset || !$toggle.is(':visible')) {
+                    closeDropdown();
+                    return;
+                }
+
+                var headerHeight = $('.main-header').outerHeight() || 50;
+                var scrollTop = $(window).scrollTop();
+                var windowHeight = $(window).height();
+
+                // Close if button is scrolled under top header or off bottom of screen
+                if (offset.top < scrollTop + headerHeight || offset.top > scrollTop + windowHeight - 10) {
+                    closeDropdown();
+                    return;
+                }
+
+                // Check if button is clipped by scrollable parent (.table-responsive)
+                var $scrollParent = $dropdown.closest('.table-responsive, .table-responsive-container, .dataTables_wrapper');
+                if ($scrollParent.length) {
+                    var parentOffset = $scrollParent.offset();
+                    if (parentOffset) {
+                        var parentTop = parentOffset.top;
+                        var parentBottom = parentTop + $scrollParent.outerHeight();
+                        var toggleTop = offset.top;
+                        var toggleBottom = toggleTop + $toggle.outerHeight();
+
+                        if (toggleBottom < parentTop + headerHeight || toggleTop > parentBottom) {
+                            closeDropdown();
+                            return;
+                        }
+                    }
+                }
 
                 var wasHidden = !$menu.is(':visible');
                 if (wasHidden) {
@@ -255,17 +303,10 @@ $(document).ready(function() {
                 var btnWidth = $toggle.outerWidth();
                 var menuWidth = $menu.outerWidth();
                 var menuHeight = $menu.outerHeight();
-                var scrollTop = $(window).scrollTop();
                 var scrollLeft = $(window).scrollLeft();
 
                 if (wasHidden) {
                     $menu.css({ 'display': '', 'visibility': '' });
-                }
-
-                // Close if button is scrolled out of viewport
-                if (offset.top < scrollTop - 80 || offset.top > scrollTop + $(window).height() + 80) {
-                    $dropdown.removeClass('open');
-                    return;
                 }
 
                 var top = offset.top - scrollTop + btnHeight;
@@ -276,11 +317,10 @@ $(document).ready(function() {
                     left = (offset.left - scrollLeft + btnWidth) - menuWidth;
                 }
 
-                // Ensure left doesn't clip off left edge
                 if (left < 10) left = 10;
 
                 // Flip above button if it overflows bottom of screen
-                if (top + menuHeight > $(window).height() && (offset.top - scrollTop - menuHeight) > 0) {
+                if (top + menuHeight > windowHeight - 10 && (offset.top - scrollTop - menuHeight) > headerHeight) {
                     top = offset.top - scrollTop - menuHeight;
                 }
 
@@ -297,7 +337,6 @@ $(document).ready(function() {
 
             positionTableDropdown();
             setTimeout(positionTableDropdown, 0);
-            setTimeout(positionTableDropdown, 50);
 
             $(window).off('.dropdownStick').on('scroll.dropdownStick resize.dropdownStick', positionTableDropdown);
             $('.table-responsive, .table-responsive-container, .box-body, .dataTables_wrapper, .content-wrapper, body').off('.dropdownStick').on('scroll.dropdownStick', positionTableDropdown);
@@ -305,17 +344,13 @@ $(document).ready(function() {
     });
 
     $(document).on('hide.bs.dropdown', function(e) {
+        var $dropdown = $(e.target);
+        if ($dropdown.closest('.main-header, .navbar, .navbar-nav, .user-menu, .navbar-custom-menu').length > 0) {
+            return;
+        }
         $(window).off('.dropdownStick');
         $('.table-responsive, .table-responsive-container, .box-body, .dataTables_wrapper, .content-wrapper, body').off('.dropdownStick');
-        $(e.target).find('.dropdown-menu').css({
-            'position': '',
-            'top': '',
-            'left': '',
-            'bottom': '',
-            'right': '',
-            'z-index': '',
-            'margin': ''
-        });
+        $dropdown.find('.dropdown-menu').removeAttr('style');
     });
 
     // Initialize CKEditor for description
