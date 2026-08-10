@@ -3349,6 +3349,10 @@ class SupplierController extends MY_Controller
 
 
             if ($result['success']) {
+                $this->session->unset_userdata('ERRMSG');
+                $this->session->unset_userdata('ERRORMSG');
+                $this->session->unset_userdata('error');
+
                 if (!empty($result['already_exists'])) {
                     $this->session->set_flashdata('INFOMSG', 'Purchase Order already exists for this quotation! Showing details for ' . $result['po_number']);
                 } else {
@@ -3453,6 +3457,12 @@ class SupplierController extends MY_Controller
     // Show PO Details
     public function show_po_details($po_number = '')
     {
+        if ($this->session->flashdata('SUCCESSMSG') || $this->session->flashdata('INFOMSG')) {
+            $this->session->unset_userdata('ERRMSG');
+            $this->session->unset_userdata('ERRORMSG');
+            $this->session->unset_userdata('error');
+        }
+
         if (empty($po_number)) {
             $this->session->set_flashdata('INFOMSG', 'Invalid PO number!');
             redirect('SupplierController/view_purchase_order');

@@ -123,6 +123,13 @@ class Purchase_model extends CI_Model
             $pr_so = $pr_record ? ($pr_record['so_no'] ?? null) : null;
             $pr_oc = $pr_record ? ($pr_record['oc_no'] ?? null) : null;
 
+            // Mark any previous pending PO for older revisions of this RFQ & Vendor as superseded
+            $this->db->where('rfq_id', $rfq_id)
+                ->where('supplier_id_fk', $vendor_id)
+                ->where('quotation_id !=', $quotation_id)
+                ->where('approval_status', 'pending_approval')
+                ->update('po_total', ['approval_status' => 'superseded', 'note' => 'Superseded by new quotation revision']);
+
             // Generate PO number formatted with SO suffix
             $po_number = $this->generate_po_number($pr_so);
             $total_amount = $quotation['final_amount'] ?? 0;
