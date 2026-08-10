@@ -660,9 +660,65 @@ class Purchase_model extends CI_Model
         return $this->db->get()->result_array();
     }
 
+    public function sync_missing_po_approvals()
+    {
+        $query = $this->db->query("
+            SELECT pt.id, pt.number_fk, pt.total, pt.uid, pt.pr_id
+            FROM {$this->db->dbprefix}po_total pt
+            LEFT JOIN {$this->db->dbprefix}po_approvals pa ON pt.id = pa.po_id_fk
+            WHERE pa.approval_id IS NULL
+        ");
+        $missing_pos = $query->result_array();
+
+        if (empty($missing_pos)) {
+            return;
+        }
+
+        foreach ($missing_pos as $po) {
+            $po_total_id = $po['id'];
+            $po_number = $po['number_fk'];
+            $total_amount = (float)$po['total'];
+            $user_id = $po['uid'] ?: 1;
+
+            $location_id = null;
+            if (!empty($po['pr_id'])) {
+                $pr = $this->db->select('location_id_fk')->where('pr_id', $po['pr_id'])->get('purchase_requisition')->row_array();
+                if (!empty($pr['location_id_fk'])) {
+                    $location_id = $pr['location_id_fk'];
+                }
+            }
+
+            $approval_workflow = $this->get_3level_approval_workflow($total_amount, $location_id);
+
+            $this->db->where('id', $po_total_id)->update('po_total', [
+                'approval_status'  => 'pending_approval',
+                'approval_level'   => $approval_workflow['current_level'],
+                'current_approver' => $approval_workflow['current_approver']
+            ]);
+
+            foreach ($approval_workflow['workflow'] as $level => $approval) {
+                $approval_data = [
+                    'po_id_fk'       => $po_total_id,
+                    'approval_level' => $approval['level_name'],
+                    'approver_role'  => $approval['role'],
+                    'approver_email' => $approval['email'],
+                    'status'         => $approval['status'],
+                    'level'          => $level,
+                    'created_at'     => date('Y-m-d H:i:s'),
+                    'uid'            => $user_id
+                ];
+                if ($this->db->field_exists('po_number', 'po_approvals')) {
+                    $approval_data['po_number'] = $po_number;
+                }
+                $this->db->insert('po_approvals', $approval_data);
+            }
+        }
+    }
+
     // Get pending approvals for a user
     public function get_pending_approvals($user_email)
     {
+        $this->sync_missing_po_approvals();
         $is_admin = $this->is_admin_user($user_email);
         $user_roles = [];
         $locations = [];

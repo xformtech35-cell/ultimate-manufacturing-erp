@@ -745,6 +745,7 @@ class SupplierController extends MY_Controller
                 'po_payment_terms' => $po_payment_terms,
                 'po_process_schedule' => $po_process_schedule,
                 'status' => $status,
+                'approval_status' => 'pending_approval',
                 'po_taxes' => $po_taxes,
                 'po_exclusions' => $po_exclusions,
                 'po_note' => $po_note,
@@ -752,10 +753,35 @@ class SupplierController extends MY_Controller
                 'so_no' => $so_no,
                 'oc_no' => $oc_no
             );
-            //  print_r($data_toatl_amount);die();
             $result = $this->supplier->add_total_amount($data_toatl_amount);
+            $po_total_id = $this->db->insert_id();
 
             if ($result == TRUE) {
+                if ($po_total_id) {
+                    $approval_workflow = $this->Purchase_model->get_3level_approval_workflow($total_quotation_amount);
+                    $this->db->where('id', $po_total_id)->update('po_total', [
+                        'approval_status'  => 'pending_approval',
+                        'approval_level'   => $approval_workflow['current_level'],
+                        'current_approver' => $approval_workflow['current_approver']
+                    ]);
+
+                    foreach ($approval_workflow['workflow'] as $level => $approval) {
+                        $approval_data = [
+                            'po_id_fk'       => $po_total_id,
+                            'approval_level' => $approval['level_name'],
+                            'approver_role'  => $approval['role'],
+                            'approver_email' => $approval['email'],
+                            'status'         => $approval['status'],
+                            'level'          => $level,
+                            'created_at'     => date('Y-m-d H:i:s'),
+                            'uid'            => $this->user_id
+                        ];
+                        if ($this->db->field_exists('po_number', 'po_approvals')) {
+                            $approval_data['po_number'] = $number;
+                        }
+                        $this->db->insert('po_approvals', $approval_data);
+                    }
+                }
                 $this->session->set_flashdata('SUCCESSMSG', "Purchase Order added successfully!!");
                 redirect('SupplierController/view_purchase_order');
             } else {
