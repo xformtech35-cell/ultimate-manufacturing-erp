@@ -635,12 +635,16 @@ class Purchase_model extends CI_Model
     // Self-healing database schema check for po_approvals
     private function ensure_po_approvals_schema()
     {
-        if ($this->db->table_exists('po_approvals')) {
-            if (!$this->db->field_exists('po_number', 'po_approvals')) {
-                $prefix = $this->db->dbprefix;
-                $this->db->query("ALTER TABLE `{$prefix}po_approvals` ADD COLUMN `po_number` VARCHAR(100) NULL AFTER `approval_id`");
-                $this->db->query("UPDATE `{$prefix}po_approvals` pa JOIN `{$prefix}po_total` pt ON pa.po_id_fk = pt.id SET pa.po_number = pt.number_fk WHERE pa.po_number IS NULL OR pa.po_number = ''");
+        try {
+            if ($this->db->table_exists('po_approvals')) {
+                if (!$this->db->field_exists('po_number', 'po_approvals')) {
+                    $prefix = $this->db->dbprefix;
+                    $this->db->query("ALTER TABLE `{$prefix}po_approvals` ADD COLUMN `po_number` VARCHAR(100) NULL AFTER `approval_id`");
+                    $this->db->query("UPDATE `{$prefix}po_approvals` pa JOIN `{$prefix}po_total` pt ON pa.po_id_fk = pt.id SET pa.po_number = pt.number_fk WHERE pa.po_number IS NULL OR pa.po_number = ''");
+                }
             }
+        } catch (\Throwable $e) {
+            log_message('error', 'ensure_po_approvals_schema error: ' . $e->getMessage());
         }
     }
 
@@ -654,13 +658,17 @@ class Purchase_model extends CI_Model
         $actual_po_number = $po['number_fk'] ?? $po_number;
         $po_id = $po['id'] ?? 0;
 
+        $has_po_num_col = $this->db->field_exists('po_number', 'po_approvals');
+
         $this->db->select('po_approvals.*, user.username as action_by_name, role.role_name as action_by_role');
         $this->db->from('po_approvals');
         $this->db->join('user', 'po_approvals.action_by = user.user_email', 'left');
         $this->db->join('role', 'user.role = role.role_id', 'left');
         $this->db->group_start();
-        $this->db->where('po_approvals.po_number', $actual_po_number);
-        $this->db->or_where("REPLACE(po_approvals.po_number, '/', '-') =", $po_number);
+        if ($has_po_num_col) {
+            $this->db->where('po_approvals.po_number', $actual_po_number);
+            $this->db->or_where("REPLACE(po_approvals.po_number, '/', '-') =", $po_number);
+        }
         if ($po_id > 0) {
             $this->db->or_where('po_approvals.po_id_fk', $po_id);
         }
@@ -682,9 +690,15 @@ class Purchase_model extends CI_Model
             $locations = $user_info['locations'];
         }
 
+        $has_po_num_col = $this->db->field_exists('po_number', 'po_approvals');
+
         $this->db->select('po_approvals.*, po_total.date, po_total.total, po_total.so_no, po_total.oc_no, supplier.company_name as supplier_name');
         $this->db->from('po_approvals');
-        $this->db->join('po_total', 'po_approvals.po_number = po_total.number_fk OR po_approvals.po_id_fk = po_total.id', 'left');
+        if ($has_po_num_col) {
+            $this->db->join('po_total', 'po_approvals.po_number = po_total.number_fk OR po_approvals.po_id_fk = po_total.id', 'left');
+        } else {
+            $this->db->join('po_total', 'po_approvals.po_id_fk = po_total.id', 'left');
+        }
         $this->db->join('supplier', 'po_total.supplier_id_fk = supplier.supplier_id', 'left');
         $this->db->join('purchase_requisition', 'po_total.pr_id = purchase_requisition.pr_id', 'left');
         
@@ -725,9 +739,15 @@ class Purchase_model extends CI_Model
             $locations = $user_info['locations'];
         }
 
+        $has_po_num_col = $this->db->field_exists('po_number', 'po_approvals');
+
         $this->db->select('po_approvals.*, po_total.date, po_total.total, po_total.so_no, po_total.oc_no, supplier.company_name as supplier_name, user.username as action_by_name, role.role_name as action_by_role');
         $this->db->from('po_approvals');
-        $this->db->join('po_total', 'po_approvals.po_number = po_total.number_fk', 'left');
+        if ($has_po_num_col) {
+            $this->db->join('po_total', 'po_approvals.po_number = po_total.number_fk OR po_approvals.po_id_fk = po_total.id', 'left');
+        } else {
+            $this->db->join('po_total', 'po_approvals.po_id_fk = po_total.id', 'left');
+        }
         $this->db->join('supplier', 'po_total.supplier_id_fk = supplier.supplier_id', 'left');
         $this->db->join('purchase_requisition', 'po_total.pr_id = purchase_requisition.pr_id', 'left');
         $this->db->join('user', 'po_approvals.action_by = user.user_email', 'left');
@@ -760,6 +780,7 @@ class Purchase_model extends CI_Model
     // Get pending count
     public function get_pending_count($user_email)
     {
+        $this->ensure_po_approvals_schema();
         $is_admin = $this->is_admin_user($user_email);
         $user_roles = [];
         $locations = [];
@@ -769,8 +790,14 @@ class Purchase_model extends CI_Model
             $locations = $user_info['locations'];
         }
 
+        $has_po_num_col = $this->db->field_exists('po_number', 'po_approvals');
+
         $this->db->from('po_approvals');
-        $this->db->join('po_total', 'po_approvals.po_number = po_total.number_fk', 'left');
+        if ($has_po_num_col) {
+            $this->db->join('po_total', 'po_approvals.po_number = po_total.number_fk OR po_approvals.po_id_fk = po_total.id', 'left');
+        } else {
+            $this->db->join('po_total', 'po_approvals.po_id_fk = po_total.id', 'left');
+        }
         $this->db->join('purchase_requisition', 'po_total.pr_id = purchase_requisition.pr_id', 'left');
         
         if (!$is_admin) {
