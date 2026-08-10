@@ -116,6 +116,13 @@ class Supplier extends CI_Model
 
     public function get_po_count($uid)
     {
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('po_total.date >=', $fy_from);
+            $this->db->where('po_total.date <=', $fy_to);
+        }
         $this->db->select('*');
         $this->db->from('po_total');
         //$this->db->where('uid', $uid);
@@ -125,6 +132,13 @@ class Supplier extends CI_Model
 
     public function get_po_total_amount($uid)
     {
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('po_total.date >=', $fy_from);
+            $this->db->where('po_total.date <=', $fy_to);
+        }
         $this->db->select_sum('total');
         $this->db->from('po_total');
         //$this->db->where('uid', $uid);

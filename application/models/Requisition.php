@@ -453,6 +453,14 @@ class Requisition extends CI_Model
         $this->db->join('location_master l', 'pr.location_id_fk = l.location_id', 'left');
         $this->db->join('user u', 'pr.created_by = u.user_id', 'left');
 
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('pr.created_at >=', $fy_from);
+            $this->db->where('pr.created_at <=', $fy_to);
+        }
+
         // ONLY FOR NON-ADMIN USERS: Filter by assigned approver roles
         if (!$is_admin && !empty($user_roles)) {
             $this->db->where_in('pr.current_approver_role', $user_roles);
@@ -951,6 +959,14 @@ class Requisition extends CI_Model
             $this->db->where_in('pr.current_approver_role', $user_roles);
         }
         // ADMIN USERS: No location filter - they see all data!
+
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year) && empty($filters['date_from'])) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('pr.created_at >=', $fy_from);
+            $this->db->where('pr.created_at <=', $fy_to);
+        }
 
         // Apply filters if provided
         if (!empty($filters)) {

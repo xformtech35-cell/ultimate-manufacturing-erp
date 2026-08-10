@@ -11,6 +11,13 @@ class Engineering_model extends CI_Model {
      * Get active sales orders for selection
      */
     public function get_sales_orders() {
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('so.date >=', $fy_from);
+            $this->db->where('so.date <=', $fy_to);
+        }
         $this->db->select('so.id, so.number_fk as so_number, so.project_code, c.company_name');
         $this->db->from('salesorder_total so');
         $this->db->join('customer c', 'c.customer_id = so.customer_id_fk', 'left');
@@ -46,6 +53,13 @@ class Engineering_model extends CI_Model {
     // ================= DATASHEETS METHODS =================
 
     public function get_all_datasheets() {
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('d.created_at >=', $fy_from);
+            $this->db->where('d.created_at <=', $fy_to);
+        }
         $this->db->select('d.*, bt.number_fk as bom_code');
         $this->db->from('engineering_datasheets d');
         $this->db->join('bom_total bt', 'bt.id = d.bom_item_id_fk', 'left');
@@ -74,6 +88,13 @@ class Engineering_model extends CI_Model {
     // ================= BUDGET SHEETS METHODS =================
 
     public function get_all_budgets() {
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('created_at >=', $fy_from);
+            $this->db->where('created_at <=', $fy_to);
+        }
         $this->db->select('*');
         $this->db->from('engineering_budgets');
         $this->db->order_by('id', 'DESC');
