@@ -939,11 +939,30 @@ class GrnController extends MY_Controller
         if (empty($data['grn_data_group'])) {
             $this->session->set_flashdata('ERRORMSG', 'GRN not found or you do not have access to this GRN.');
             redirect('GrnController/grn_approvals');
+            return;
         }
 
+        // Get user's approval for this GRN
         $session_data_head = $this->session->userdata('session_data_head');
+        $role_name = $session_data_head['result']['role_name'] ?? '';
+        $is_admin = (strtolower($role_name) === 'admin');
+
+        if ($is_admin) {
+            $data['user_approval'] = $this->db->where('grn_number', $grn_number)
+                ->where('status', 'pending')
+                ->order_by('level', 'asc')
+                ->get('grn_approvals')
+                ->row_array();
+        } else {
+            $data['user_approval'] = $this->db->where('grn_number', $grn_number)
+                ->where('approver_email', $this->user_email)
+                ->where('status', 'pending')
+                ->get('grn_approvals')
+                ->row_array();
+        }
+
         $this->load->view('admin/header_side_bar', $session_data_head);
-        $this->load->view('grn/grn_approval_details', $data);
+        $this->load->view('grn/view_grn_approval', $data);
     }
 
     public function get_grn_approval_status()
