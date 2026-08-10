@@ -777,8 +777,8 @@ class Grn extends CI_Model
         if (!empty($fy_year)) {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
-            $this->db->where('grn_total.date >=', $fy_from);
-            $this->db->where('grn_total.date <=', $fy_to);
+            $this->db->where('grn.date >=', $fy_from);
+            $this->db->where('grn.date <=', $fy_to);
         }
 
         $this->db->where('grn_approvals.status', 'pending');
@@ -844,8 +844,8 @@ class Grn extends CI_Model
         if (!empty($fy_year)) {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
-            $this->db->where('grn_total.date >=', $fy_from);
-            $this->db->where('grn_total.date <=', $fy_to);
+            $this->db->where('grn.date >=', $fy_from);
+            $this->db->where('grn.date <=', $fy_to);
         }
 
         $this->db->where_in('grn_approvals.status', ['approved', 'rejected']);
