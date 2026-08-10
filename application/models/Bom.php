@@ -120,6 +120,14 @@ Class Bom extends CI_Model {
     }
 
     public function get_bom_data_by_status($status, $uid) {
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('bom_total.date >=', $fy_from);
+            $this->db->where('bom_total.date <=', $fy_to);
+        }
+
         $this->db->select('bom_total.id as bom_total_id, bom_total.number_fk as number, bom_total.date, bom_total.status, 
                           bom_total.note, bom_total.project_code, bom_total.customer_code, bom_total.system, 
                           bom_total.location, bom_total.capacity, bom_total.project_qty, bom_total.oc_number,
@@ -498,6 +506,13 @@ Class Bom extends CI_Model {
             $where_clause .= " AND ba.approver_role = {$approver_role_esc}";
         }
 
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $where_clause .= " AND bt.date >= {$this->db->escape($fy_from)} AND bt.date <= {$this->db->escape($fy_to)}";
+        }
+
         $sql = "SELECT ba.*,
                        bt.date        AS bom_date,
                        bt.oc_number,
@@ -546,6 +561,14 @@ Class Bom extends CI_Model {
     {
         $prefix = $this->db->dbprefix;
 
+        $fy_where = "";
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $fy_where = " AND bt.date >= {$this->db->escape($fy_from)} AND bt.date <= {$this->db->escape($fy_to)}";
+        }
+
         $sql = "SELECT ba.*,
                        bt.date        AS bom_date,
                        bt.oc_number,
@@ -561,7 +584,7 @@ Class Bom extends CI_Model {
                     ON c.customer_id = bt.customer_id_fk
                 LEFT JOIN {$prefix}user u
                     ON u.user_id = bt.uid
-                WHERE ba.status IN ('approved', 'rejected')
+                WHERE ba.status IN ('approved', 'rejected') {$fy_where}
                 ORDER BY ba.action_date DESC";
 
         return $this->db->query($sql)->result_array();

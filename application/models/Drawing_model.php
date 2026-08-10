@@ -18,6 +18,14 @@ class Drawing_model extends CI_Model {
      * Get all drawings with project details
      */
     public function get_all_drawings() {
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('dm.created_at >=', $fy_from);
+            $this->db->where('dm.created_at <=', $fy_to);
+        }
+
         $this->db->select('dm.*, pm.project_name, pm.project_code, (
             SELECT GROUP_CONCAT(so.number_fk SEPARATOR ", ") 
             FROM ' . $this->db->dbprefix . 'salesorder_total so 

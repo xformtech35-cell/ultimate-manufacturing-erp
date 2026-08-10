@@ -697,6 +697,14 @@ class Purchase_model extends CI_Model
             $this->db->group_end();
         }
 
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('pt.date >=', $fy_from);
+            $this->db->where('pt.date <=', $fy_to);
+        }
+
         $this->db->where('pa.status', 'pending');
         $this->db->order_by('pa.created_at', 'DESC');
         return $this->db->get()->result_array();
@@ -741,6 +749,14 @@ class Purchase_model extends CI_Model
             $this->db->group_end();
         }
 
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('pt.date >=', $fy_from);
+            $this->db->where('pt.date <=', $fy_to);
+        }
+
         $this->db->where_in('pa.status', ['approved', 'rejected']);
         $this->db->order_by('pa.action_date', 'DESC');
         return $this->db->get()->result_array();
@@ -779,6 +795,14 @@ class Purchase_model extends CI_Model
                 $this->db->group_end();
             }
             $this->db->group_end();
+        }
+
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('pt.date >=', $fy_from);
+            $this->db->where('pt.date <=', $fy_to);
         }
 
         $this->db->where('pa.status', 'pending');

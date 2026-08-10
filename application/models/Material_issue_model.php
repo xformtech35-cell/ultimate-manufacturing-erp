@@ -502,6 +502,14 @@ class Material_issue_model extends CI_Model
         $this->db->from($this->issue_slip_table . ' mis');
         $this->db->join($this->users_table . ' u', 'u.user_id = mis.uid', 'left');
 
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year) && empty($filters['date_from'])) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('mis.issue_date >=', $fy_from);
+            $this->db->where('mis.issue_date <=', $fy_to);
+        }
+
         // Apply filters
         if (!empty($filters['date_from'])) {
             $this->db->where('mis.issue_date >=', $filters['date_from']);
@@ -530,6 +538,11 @@ class Material_issue_model extends CI_Model
 
     public function get_material_issue_report($from_date = '', $to_date = '', $uid = null)
     {
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year) && empty($from_date)) {
+            $from_date = $fy_year . '-04-01';
+            $to_date   = ($fy_year + 1) . '-03-31 23:59:59';
+        }
         $has_joborder_number = $this->db->field_exists('joborder_number', $this->issue_slip_table);
 
         $select = array(
@@ -611,6 +624,12 @@ class Material_issue_model extends CI_Model
 
     public function get_material_allocation_report($from_date = '', $to_date = '', $uid = null)
     {
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year) && empty($from_date)) {
+            $from_date = $fy_year . '-04-01';
+            $to_date   = ($fy_year + 1) . '-03-31 23:59:59';
+        }
+
         $this->db->select("
             sa.id as allocation_id,
             sa.product_code as item_code,
@@ -1242,6 +1261,14 @@ class Material_issue_model extends CI_Model
         $p  = $this->db->dbprefix;
         $uid = (int) $uid;
 
+        $fy_year = $this->session->userdata('fy_year');
+        $fy_where = "";
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $fy_where = " AND jt.date >= {$this->db->escape($fy_from)} AND jt.date <= {$this->db->escape($fy_to)} ";
+        }
+
         // One summary row per item across all active job orders
         $sql = "
             SELECT
@@ -1267,6 +1294,7 @@ class Material_issue_model extends CI_Model
               AND j.product_name != ''
               AND j.product_name != '__HEADING__'
               AND jt.uid = {$uid}
+              {$fy_where}
             GROUP BY j.product_name, i.item_name, i.unit, i.available_stock, i.allocated_stock, i.stock, i.inventory_id
             ORDER BY i.item_name, j.product_name
         ";

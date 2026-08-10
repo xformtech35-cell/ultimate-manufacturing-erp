@@ -773,6 +773,14 @@ class Grn extends CI_Model
             $this->db->group_end();
         }
 
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('grn_total.date >=', $fy_from);
+            $this->db->where('grn_total.date <=', $fy_to);
+        }
+
         $this->db->where('grn_approvals.status', 'pending');
         $this->db->group_by('grn_approvals.grn_number');
         $this->db->order_by('grn_approvals.created_at', 'DESC');
@@ -830,6 +838,14 @@ class Grn extends CI_Model
                 $this->db->group_end();
             }
             $this->db->group_end();
+        }
+
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('grn_total.date >=', $fy_from);
+            $this->db->where('grn_total.date <=', $fy_to);
         }
 
         $this->db->where_in('grn_approvals.status', ['approved', 'rejected']);

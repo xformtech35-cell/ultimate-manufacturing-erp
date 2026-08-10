@@ -160,6 +160,14 @@ public function get_joborders_with_pending($uid) {
         return $this->db->get()->result();
     }
     public function get_joborder_data_by_status($status, $uid) {
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year)) {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $this->db->where('qt.date >=', $fy_from);
+            $this->db->where('qt.date <=', $fy_to);
+        }
+
         $this->db->select('qt.id, qt.number_fk, qt.date, c.company_name, c.fullname, qt.status,
                           qt.project_code, qt.customer_code, qt.system, qt.location,
                           qt.capacity, qt.project_qty, qt.oc_number, qt.so_reference');
@@ -170,9 +178,6 @@ public function get_joborders_with_pending($uid) {
         $this->db->group_by('qt.number_fk');
         $query = $this->db->get();
 
-
-
-      
         return $query->result();
     }
 
