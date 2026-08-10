@@ -100,7 +100,7 @@ Class Joborder extends CI_Model {
         }
     }
 
-public function get_joborders($uid, $limit = 1000) {
+public function get_joborders($uid, $limit = 0) {
     $fy_year = $this->session->userdata('fy_year');
     if (!empty($fy_year) && $fy_year !== 'all') {
         $fy_from = $fy_year . '-04-01';

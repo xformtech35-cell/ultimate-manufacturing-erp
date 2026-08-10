@@ -159,7 +159,7 @@ class Supplier extends CI_Model
         }
     }
 
-    public function get_supplier($uid, $limit = 1000)
+    public function get_supplier($uid, $limit = 0)
     {
         $this->db->select('*');
         $this->db->from('supplier');

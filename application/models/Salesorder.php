@@ -186,7 +186,7 @@ class Salesorder extends CI_Model
         return $query->row_array();
     }
 
-    public function get_salesorders($uid, $limit = 1000)
+    public function get_salesorders($uid, $limit = 0)
     {
         $fy_year = $this->session->userdata('fy_year');
         if (!empty($fy_year) && $fy_year !== 'all') {
@@ -213,7 +213,7 @@ class Salesorder extends CI_Model
         return $query->result();
     }
 
-    public function get_salesorders_for_joborder($uid, $limit = 1000)
+    public function get_salesorders_for_joborder($uid, $limit = 0)
     {
         $this->db->select('salesorder_total.id, salesorder_total.project_code, customer.company_name as customer_name, customer.fullname, salesorder_total.number_fk as number, COALESCE(q.gst_type, "S") as gst_type, salesorder_total.date, salesorder_total.basic_total, salesorder_total.total, salesorder_total.status, u1.username as created_by_name, u2.username as approved_by_name');
         $this->db->join('user u1', 'u1.user_id = salesorder_total.uid', 'left');

@@ -228,7 +228,7 @@ class Inventory extends CI_Model
     }
 
 
-    public function get_inventory($uid, $limit = 1000)
+    public function get_inventory($uid, $limit = 0)
     {
         $this->db->select(
             'inventory.*, 

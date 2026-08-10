@@ -132,7 +132,7 @@ Class Proformainvoice extends CI_Model {
         return $query->result();
     }
 
-    public function get_proforma_invoices($uid, $limit = 1000) {
+    public function get_proforma_invoices($uid, $limit = 0) {
         $fy_year = $this->session->userdata('fy_year');
         if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';

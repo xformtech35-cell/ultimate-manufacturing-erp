@@ -25,7 +25,7 @@ Class Customer extends CI_Model {
         return $this->db->insert('customer', $data_customer);
     }
 
-    public function get_customer($uid = NULL, $limit = 1000) {
+    public function get_customer($uid = NULL, $limit = 0) {
         $this->db->select('*');
         $this->db->from('customer');
         $this->db->order_by("customer_id", "desc");

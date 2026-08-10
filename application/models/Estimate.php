@@ -178,7 +178,7 @@ class Estimate extends CI_Model
         return $query->row_array();
     }
 
-    public function get_estimates($uid, $limit = 1000)
+    public function get_estimates($uid, $limit = 0)
     {
         $fy_year = $this->session->userdata('fy_year');
         if (!empty($fy_year) && $fy_year !== 'all') {
