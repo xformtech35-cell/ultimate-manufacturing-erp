@@ -842,22 +842,34 @@ class GrnController extends MY_Controller
                         }
                         $this->db->where('number_fk', $approval['grn_number'])->update('grn_total', array('stock_updated' => 1));
                     }
-                    $this->_notify_grn_fully_approved($approval['grn_number']);
+                    try {
+                        $this->_notify_grn_fully_approved($approval['grn_number']);
+                    } catch (\Throwable $e) {
+                        log_message('error', 'Notification error: ' . $e->getMessage());
+                    }
                     $this->session->set_flashdata('SUCCESSMSG', 'GRN fully approved! Stock updated in inventory.');
                 } else {
                     // Move to next approver
-                    $this->_notify_next_approver($approval['grn_number']);
+                    try {
+                        $this->_notify_next_approver($approval['grn_number']);
+                    } catch (\Throwable $e) {
+                        log_message('error', 'Notification error: ' . $e->getMessage());
+                    }
                     $this->session->set_flashdata('SUCCESSMSG', 'GRN approved! Waiting for next approver.');
                 }
             } else {
                 // Notify Purchase Manager when a GRN is rejected in the approval workflow
-                $this->_notify_purchase_manager_rejection(
-                    $approval['grn_number'],
-                    0,
-                    0,
-                    $remarks,
-                    'approval'
-                );
+                try {
+                    $this->_notify_purchase_manager_rejection(
+                        $approval['grn_number'],
+                        0,
+                        0,
+                        $remarks,
+                        'approval'
+                    );
+                } catch (\Throwable $e) {
+                    log_message('error', 'Rejection notification error: ' . $e->getMessage());
+                }
                 $this->session->set_flashdata('SUCCESSMSG', 'GRN rejected successfully!');
             }
         } else {
