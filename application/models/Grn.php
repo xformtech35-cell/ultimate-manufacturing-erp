@@ -47,6 +47,7 @@ class Grn extends CI_Model
         $this->db->group_start();
         $this->db->where('g.grn_number', $grn_number);
         $this->db->or_like('g.grn_number', $grn_number, 'after');
+        $this->db->group_end();
         $this->db->group_by('g.grn_number');
         $this->db->limit(1);
         $query = $this->db->get();
