@@ -378,17 +378,20 @@ class Email_model extends CI_Model
         $this->email->subject($subject);
         $this->email->message($htmlContent);
 
+        $old_er = error_reporting(0);
+        $sent = false;
         try {
-            if ($this->email->send()) {
-                log_message('info', 'GRN approval email sent to ' . $approver_email . ' for GRN ' . $grn_number);
-                return true;
-            } else {
-                log_message('error', 'Failed to send GRN approval email to ' . $approver_email . ' for GRN ' . $grn_number);
-                log_message('error', $this->email->print_debugger());
-                return false;
-            }
+            $sent = @$this->email->send(false);
         } catch (\Throwable $e) {
             log_message('error', 'SMTP socket error in send_grn_approval_notification: ' . $e->getMessage());
+        }
+        error_reporting($old_er);
+
+        if ($sent) {
+            log_message('info', 'GRN approval email sent to ' . $approver_email . ' for GRN ' . $grn_number);
+            return true;
+        } else {
+            log_message('error', 'Failed to send GRN approval email to ' . $approver_email . ' for GRN ' . $grn_number);
             return false;
         }
     }
@@ -438,16 +441,20 @@ class Email_model extends CI_Model
         $this->email->subject($subject);
         $this->email->message($htmlContent);
 
+        $old_er = error_reporting(0);
+        $sent = false;
         try {
-            if ($this->email->send()) {
-                log_message('info', 'GRN fully approved email sent to ' . $creator_email . ' for GRN ' . $grn_number);
-                return true;
-            } else {
-                log_message('error', 'Failed to send GRN fully approved email to ' . $creator_email . ' for GRN ' . $grn_number);
-                return false;
-            }
+            $sent = @$this->email->send(false);
         } catch (\Throwable $e) {
             log_message('error', 'SMTP socket error in send_grn_fully_approved_notification: ' . $e->getMessage());
+        }
+        error_reporting($old_er);
+
+        if ($sent) {
+            log_message('info', 'GRN fully approved email sent to ' . $creator_email . ' for GRN ' . $grn_number);
+            return true;
+        } else {
+            log_message('error', 'Failed to send GRN fully approved email to ' . $creator_email . ' for GRN ' . $grn_number);
             return false;
         }
     }
@@ -496,16 +503,20 @@ class Email_model extends CI_Model
         $this->email->subject($subject);
         $this->email->message($htmlContent);
 
+        $old_er = error_reporting(0);
+        $sent = false;
         try {
-            if ($this->email->send()) {
-                log_message('info', 'GRN accounts email sent to ' . $accounts_email . ' for GRN ' . $grn_number);
-                return true;
-            } else {
-                log_message('error', 'Failed to send GRN accounts email to ' . $accounts_email . ' for GRN ' . $grn_number);
-                return false;
-            }
+            $sent = @$this->email->send(false);
         } catch (\Throwable $e) {
             log_message('error', 'SMTP socket error in send_accounts_notification: ' . $e->getMessage());
+        }
+        error_reporting($old_er);
+
+        if ($sent) {
+            log_message('info', 'GRN accounts email sent to ' . $accounts_email . ' for GRN ' . $grn_number);
+            return true;
+        } else {
+            log_message('error', 'Failed to send GRN accounts email to ' . $accounts_email . ' for GRN ' . $grn_number);
             return false;
         }
     }
@@ -661,17 +672,20 @@ class Email_model extends CI_Model
         $this->email->subject($subject);
         $this->email->message($htmlContent);
 
+        $old_er = error_reporting(0);
+        $sent = false;
         try {
-            if ($this->email->send()) {
-                log_message('info', 'GRN rejection notification sent to Purchase Manager ' . $pm_email . ' for GRN ' . $grn_number);
-                return true;
-            } else {
-                log_message('error', 'Failed to send GRN rejection notification to ' . $pm_email . ' for GRN ' . $grn_number);
-                log_message('error', $this->email->print_debugger());
-                return false;
-            }
+            $sent = @$this->email->send(false);
         } catch (\Throwable $e) {
             log_message('error', 'SMTP socket error in send_grn_rejection_to_purchase_manager: ' . $e->getMessage());
+        }
+        error_reporting($old_er);
+
+        if ($sent) {
+            log_message('info', 'GRN rejection notification sent to Purchase Manager ' . $pm_email . ' for GRN ' . $grn_number);
+            return true;
+        } else {
+            log_message('error', 'Failed to send GRN rejection notification to ' . $pm_email . ' for GRN ' . $grn_number);
             return false;
         }
     }
