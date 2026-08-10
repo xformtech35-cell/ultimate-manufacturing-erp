@@ -104,7 +104,16 @@ class Purchase_model extends CI_Model
                 ->row_array();
 
             if ($existing_po) {
-                throw new Exception('Purchase Order already exists! PO Number: ' . $existing_po['number_fk']);
+                return [
+                    'success' => true,
+                    'already_exists' => true,
+                    'po_number' => $existing_po['number_fk'],
+                    'po_total_id' => $existing_po['id'],
+                    'total_amount' => $existing_po['total'],
+                    'current_approver' => $existing_po['current_approver'],
+                    'approval_workflow' => [],
+                    'quotation_data' => $quotation
+                ];
             }
 
             // Get linked PR details to inherit Project/SO/OC details
@@ -578,20 +587,47 @@ class Purchase_model extends CI_Model
         }
     }
 
-    // Get PO details
+    // Get PO details (robust lookup handling slashes/hyphens)
     public function get_po_details($po_number)
     {
+        // 1. Exact match
         $this->db->select('po.*, s.company_name as supplier_name, s.fullname, s.email, s.mobile, s.address, s.gst, s.pancard');
         $this->db->from('po_total po');
         $this->db->join('supplier s', 'po.supplier_id_fk = s.supplier_id', 'left');
         $this->db->where('po.number_fk', $po_number);
+        $res = $this->db->get()->row_array();
+
+        if ($res) {
+            return $res;
+        }
+
+        // 2. Match converting slashes to hyphens
+        $this->db->select('po.*, s.company_name as supplier_name, s.fullname, s.email, s.mobile, s.address, s.gst, s.pancard');
+        $this->db->from('po_total po');
+        $this->db->join('supplier s', 'po.supplier_id_fk = s.supplier_id', 'left');
+        $this->db->where("REPLACE(po.number_fk, '/', '-') =", $po_number);
+        $res = $this->db->get()->row_array();
+
+        if ($res) {
+            return $res;
+        }
+
+        // 3. Match alphanumeric clean string
+        $clean_param = preg_replace('/[^A-Za-z0-9]/', '', $po_number);
+        $this->db->select('po.*, s.company_name as supplier_name, s.fullname, s.email, s.mobile, s.address, s.gst, s.pancard');
+        $this->db->from('po_total po');
+        $this->db->join('supplier s', 'po.supplier_id_fk = s.supplier_id', 'left');
+        $this->db->where("REPLACE(REPLACE(REPLACE(po.number_fk, '/', ''), '-', ''), '(', '') =", $clean_param);
         return $this->db->get()->row_array();
     }
 
     // Get PO items
     public function get_po_items($po_number)
     {
+        $this->db->group_start();
         $this->db->where('number', $po_number);
+        $this->db->or_where("REPLACE(number, '/', '-') =", $po_number);
+        $this->db->group_end();
         $this->db->order_by('po_id', 'ASC');
         return $this->db->get('purchase_order')->result_array();
     }
@@ -603,7 +639,10 @@ class Purchase_model extends CI_Model
         $this->db->from('po_approvals');
         $this->db->join('user', 'po_approvals.action_by = user.user_email', 'left');
         $this->db->join('role', 'user.role = role.role_id', 'left');
+        $this->db->group_start();
         $this->db->where('po_approvals.po_number', $po_number);
+        $this->db->or_where("REPLACE(po_approvals.po_number, '/', '-') =", $po_number);
+        $this->db->group_end();
         $this->db->order_by('po_approvals.created_at', 'ASC');
         return $this->db->get()->result_array();
     }

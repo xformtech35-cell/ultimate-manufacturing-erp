@@ -235,7 +235,77 @@ if (empty($unit_result)) {
 
 $(document).ready(function() {
 
-// alert("SUHAS 1111111111111" +base_url);
+    // Dynamic sticky positioning for dropdown menus on tables & scroll containers
+    $(document).on('show.bs.dropdown', function(e) {
+        var $dropdown = $(e.target);
+        var $toggle = $dropdown.find('[data-toggle="dropdown"]');
+        var $menu = $dropdown.find('.dropdown-menu');
+
+        if ($toggle.length && $menu.length) {
+            function positionTableDropdown() {
+                if (!$dropdown.hasClass('open') && !$menu.is(':visible')) return;
+
+                var offset = $toggle.offset();
+                if (!offset) return;
+
+                var btnHeight = $toggle.outerHeight();
+                var btnWidth = $toggle.outerWidth();
+                var menuWidth = $menu.outerWidth();
+                var menuHeight = $menu.outerHeight();
+                var scrollTop = $(window).scrollTop();
+                var scrollLeft = $(window).scrollLeft();
+
+                // Close if button is scrolled out of viewport
+                if (offset.top < scrollTop - 60 || offset.top > scrollTop + $(window).height() + 60) {
+                    $dropdown.removeClass('open');
+                    return;
+                }
+
+                var top = offset.top - scrollTop + btnHeight;
+                var left = offset.left - scrollLeft;
+
+                // Adjust for right aligned dropdowns
+                if ($menu.hasClass('pull-right') || $menu.hasClass('dropdown-menu-right')) {
+                    left = (offset.left - scrollLeft + btnWidth) - menuWidth;
+                }
+
+                // Flip above button if it overflows bottom of screen
+                if (top + menuHeight > $(window).height() && (offset.top - scrollTop - menuHeight) > 0) {
+                    top = offset.top - scrollTop - menuHeight;
+                }
+
+                $menu.css({
+                    'position': 'fixed',
+                    'top': top + 'px',
+                    'left': left + 'px',
+                    'bottom': 'auto',
+                    'right': 'auto',
+                    'z-index': 99999,
+                    'margin': 0
+                });
+            }
+
+            setTimeout(positionTableDropdown, 0);
+
+            $(window).off('.dropdownStick').on('scroll.dropdownStick resize.dropdownStick', positionTableDropdown);
+            $('.table-responsive, .table-responsive-container, .box-body, .dataTables_wrapper, .content-wrapper, body').off('.dropdownStick').on('scroll.dropdownStick', positionTableDropdown);
+        }
+    });
+
+    $(document).on('hide.bs.dropdown', function(e) {
+        $(window).off('.dropdownStick');
+        $('.table-responsive, .table-responsive-container, .box-body, .dataTables_wrapper, .content-wrapper, body').off('.dropdownStick');
+        $(e.target).find('.dropdown-menu').css({
+            'position': '',
+            'top': '',
+            'left': '',
+            'bottom': '',
+            'right': '',
+            'z-index': '',
+            'margin': ''
+        });
+    });
+
     // Initialize CKEditor for description
     if (typeof CKEDITOR !== 'undefined') {
         CKEDITOR.replace('prod_description', {

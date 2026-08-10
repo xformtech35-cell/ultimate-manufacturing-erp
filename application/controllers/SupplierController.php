@@ -3349,33 +3349,37 @@ class SupplierController extends MY_Controller
 
 
             if ($result['success']) {
-                // Send approval notification
-                $po_data = [
-                    'pr_id' => $result['quotation_data']['pr_id'] ?? '',
-                    'date' => date('Y-m-d'),
-                    'payment_due_date' => date('d-m-Y', strtotime('+15 days'))
-                ];
+                if (!empty($result['already_exists'])) {
+                    $this->session->set_flashdata('INFOMSG', 'Purchase Order already exists for this quotation! Showing details for ' . $result['po_number']);
+                } else {
+                    // Send approval notification
+                    $po_data = [
+                        'pr_id' => $result['quotation_data']['pr_id'] ?? '',
+                        'date' => date('Y-m-d'),
+                        'payment_due_date' => date('d-m-Y', strtotime('+15 days'))
+                    ];
 
-                // Get supplier data from quotation result
-                $supplier_data = [
-                    'company_name' => $result['quotation_data']['supplier_name'] ?? '',
-                    'fullname' => $result['quotation_data']['fullname'] ?? ''
-                ];
+                    // Get supplier data from quotation result
+                    $supplier_data = [
+                        'company_name' => $result['quotation_data']['supplier_name'] ?? '',
+                        'fullname' => $result['quotation_data']['fullname'] ?? ''
+                    ];
 
-                $approver_email = $result['current_approver'] ?? '';
-                $approver_level = $result['approval_workflow']['current_level'] ?? '';
-                $approver_title = ucwords(str_replace('_', ' ', $approver_level));
+                    $approver_email = $result['current_approver'] ?? '';
+                    $approver_level = $result['approval_workflow']['current_level'] ?? '';
+                    $approver_title = ucwords(str_replace('_', ' ', $approver_level));
 
-                $this->Email_model->send_approval_notification(
-                    $result['po_number'],
-                    $approver_email,
-                    $result['total_amount'],
-                    $approver_level,
-                    $po_data,
-                    $supplier_data
-                );
+                    $this->Email_model->send_approval_notification(
+                        $result['po_number'],
+                        $approver_email,
+                        $result['total_amount'],
+                        $approver_level,
+                        $po_data,
+                        $supplier_data
+                    );
 
-                $this->session->set_flashdata('SUCCESSMSG', 'Purchase Order created successfully! Waiting for approval from ' . $approver_title);
+                    $this->session->set_flashdata('SUCCESSMSG', 'Purchase Order created successfully! Waiting for approval from ' . $approver_title);
+                }
 
                 // Redirect to PO details page
                 redirect('SupplierController/show_po_details/' . str_replace('/', '-', $result['po_number']));
@@ -3447,38 +3451,25 @@ class SupplierController extends MY_Controller
         redirect('SupplierController/po_approvals');
     }
     // Show PO Details
-    public function show_po_details($po_number)
+    public function show_po_details($po_number = '')
     {
-        $parts = explode('-', $po_number);
-
-        // Validate that we have enough parts before accessing array indices
-        if (count($parts) < 5) {
-            $this->session->set_flashdata('INFOMSG', 'Invalid PO number format!');
+        if (empty($po_number)) {
+            $this->session->set_flashdata('INFOMSG', 'Invalid PO number!');
             redirect('SupplierController/view_purchase_order');
             return;
         }
 
-        $po_number = $parts[0] . '/' . $parts[1] . '/' . $parts[2] . '/' . $parts[3] . '-' . $parts[4];
+        $data['po'] = $this->Purchase_model->get_po_details($po_number);
 
-        if (isset($parts[5]) && $parts[5] !== '') {
-            $po_number .= '-' . $parts[5];
+        if (empty($data['po'])) {
+            $this->session->set_flashdata('INFOMSG', 'Purchase Order not found!');
+            redirect('SupplierController/view_purchase_order');
+            return;
         }
 
-        // echo $po_number;
-
-
-
-        //die();
-
-        $data['po'] = $this->Purchase_model->get_po_details($po_number);
-        $data['po_items'] = $this->Purchase_model->get_po_items($po_number);
-        $data['approval_history'] = $this->Purchase_model->get_approval_details($po_number);
-
-
-
-
-        // var_dump($data['po']);
-        // die();
+        $actual_po_number = $data['po']['number_fk'];
+        $data['po_items'] = $this->Purchase_model->get_po_items($actual_po_number);
+        $data['approval_history'] = $this->Purchase_model->get_approval_details($actual_po_number);
 
         $session_data_head = $this->session->userdata('session_data_head');
         $this->load->view('admin/header_side_bar', $session_data_head);
