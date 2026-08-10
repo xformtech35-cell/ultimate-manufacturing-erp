@@ -173,8 +173,8 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                                 <label for="inputEmail3" class="col-sm-4 control-label">Status</label>
                                                 <div class="col-sm-6">
                                                     <select class="form-control input-sm " name="status" id="status">
+                                                        <option value="2" selected>Pending</option>
                                                         <option value="1">Draft</option>
-                                                        <option value="2">Sent</option>
                                                         <option value="3">Viewed</option>
                                                         <option value="4">Approved</option>
                                                         <option value="5">Rejected</option>

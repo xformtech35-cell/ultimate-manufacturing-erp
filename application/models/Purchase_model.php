@@ -143,7 +143,7 @@ class Purchase_model extends CI_Model
                 'uid' => $user_id,
                 'po_payment_terms' => 'Net 30 Days',
                 'po_taxes' => 'GST as applicable',
-                'status' => '1',
+                'status' => '2',
                 'balance' => $total_amount,
                 'paid' => 0,
                 'payment_due_date' => date('d-m-Y', strtotime('+15 days')),
@@ -691,6 +691,7 @@ class Purchase_model extends CI_Model
             $approval_workflow = $this->get_3level_approval_workflow($total_amount, $location_id);
 
             $this->db->where('id', $po_total_id)->update('po_total', [
+                'status'           => '2',
                 'approval_status'  => 'pending_approval',
                 'approval_level'   => $approval_workflow['current_level'],
                 'current_approver' => $approval_workflow['current_approver']
@@ -713,6 +714,11 @@ class Purchase_model extends CI_Model
                 $this->db->insert('po_approvals', $approval_data);
             }
         }
+
+        // Also update any existing POs with status = 1 that are in pending_approval
+        $this->db->where('status', '1')
+                 ->where('approval_status', 'pending_approval')
+                 ->update('po_total', ['status' => '2']);
     }
 
     // Get pending approvals for a user

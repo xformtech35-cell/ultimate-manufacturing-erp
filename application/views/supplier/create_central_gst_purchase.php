@@ -164,14 +164,14 @@ require_once(APPPATH."views/admin/modal.php");
                                             <div class="form-group row">
                                                 <label for="inputEmail3" class="col-sm-4 control-label">Status</label>
                                                 <div class="col-sm-6">
-                                                    <select class="form-control input-sm "  name="status" id="status">
-                                                        <option value="1">Draft</option>
-                                                        <option value="2">Sent</option>
-                                                        <option value="3">Viewed</option>
-                                                        <option value="4">Approved</option> 
-                                                        <option value="5">Rejected</option>
-                                                        <option value="6">Canceled</option>
-                                                    </select>
+                                                     <select class="form-control input-sm "  name="status" id="status">
+                                                         <option value="2" selected>Pending</option>
+                                                         <option value="1">Draft</option>
+                                                         <option value="3">Viewed</option>
+                                                         <option value="4">Approved</option> 
+                                                         <option value="5">Rejected</option>
+                                                         <option value="6">Canceled</option>
+                                                     </select>
                                                 </div>
                                             </div>
                                         </div>

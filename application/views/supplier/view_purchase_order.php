@@ -235,7 +235,7 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
                                                     break;
                                                 case 2:
                                                     $status_class = 'label-info';
-                                                    $status_text = 'Sent';
+                                                    $status_text = 'Pending';
                                                     break;
                                                 case 3:
                                                     $status_class = 'label-primary';

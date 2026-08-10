@@ -744,7 +744,7 @@ class SupplierController extends MY_Controller
                 'po_terms_and_conditions' => $po_terms_and_conditions,
                 'po_payment_terms' => $po_payment_terms,
                 'po_process_schedule' => $po_process_schedule,
-                'status' => $status,
+                'status' => (!empty($status) && $status != '1') ? $status : '2',
                 'approval_status' => 'pending_approval',
                 'po_taxes' => $po_taxes,
                 'po_exclusions' => $po_exclusions,
