@@ -236,17 +236,20 @@ if (empty($unit_result)) {
 $(document).ready(function() {
 
     // Dynamic sticky positioning for dropdown menus on tables & scroll containers
-    $(document).on('show.bs.dropdown', function(e) {
+    $(document).on('show.bs.dropdown shown.bs.dropdown', function(e) {
         var $dropdown = $(e.target);
         var $toggle = $dropdown.find('[data-toggle="dropdown"]');
         var $menu = $dropdown.find('.dropdown-menu');
 
         if ($toggle.length && $menu.length) {
             function positionTableDropdown() {
-                if (!$dropdown.hasClass('open') && !$menu.is(':visible')) return;
-
                 var offset = $toggle.offset();
                 if (!offset) return;
+
+                var wasHidden = !$menu.is(':visible');
+                if (wasHidden) {
+                    $menu.css({ 'display': 'block', 'visibility': 'hidden' });
+                }
 
                 var btnHeight = $toggle.outerHeight();
                 var btnWidth = $toggle.outerWidth();
@@ -255,8 +258,12 @@ $(document).ready(function() {
                 var scrollTop = $(window).scrollTop();
                 var scrollLeft = $(window).scrollLeft();
 
+                if (wasHidden) {
+                    $menu.css({ 'display': '', 'visibility': '' });
+                }
+
                 // Close if button is scrolled out of viewport
-                if (offset.top < scrollTop - 60 || offset.top > scrollTop + $(window).height() + 60) {
+                if (offset.top < scrollTop - 80 || offset.top > scrollTop + $(window).height() + 80) {
                     $dropdown.removeClass('open');
                     return;
                 }
@@ -264,10 +271,13 @@ $(document).ready(function() {
                 var top = offset.top - scrollTop + btnHeight;
                 var left = offset.left - scrollLeft;
 
-                // Adjust for right aligned dropdowns
-                if ($menu.hasClass('pull-right') || $menu.hasClass('dropdown-menu-right')) {
+                // Adjust for right aligned dropdowns or right edge overflow
+                if ($menu.hasClass('pull-right') || $menu.hasClass('dropdown-menu-right') || (left + menuWidth > $(window).width() - 10)) {
                     left = (offset.left - scrollLeft + btnWidth) - menuWidth;
                 }
+
+                // Ensure left doesn't clip off left edge
+                if (left < 10) left = 10;
 
                 // Flip above button if it overflows bottom of screen
                 if (top + menuHeight > $(window).height() && (offset.top - scrollTop - menuHeight) > 0) {
@@ -285,7 +295,9 @@ $(document).ready(function() {
                 });
             }
 
+            positionTableDropdown();
             setTimeout(positionTableDropdown, 0);
+            setTimeout(positionTableDropdown, 50);
 
             $(window).off('.dropdownStick').on('scroll.dropdownStick resize.dropdownStick', positionTableDropdown);
             $('.table-responsive, .table-responsive-container, .box-body, .dataTables_wrapper, .content-wrapper, body').off('.dropdownStick').on('scroll.dropdownStick', positionTableDropdown);

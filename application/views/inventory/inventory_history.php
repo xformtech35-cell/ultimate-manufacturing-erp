@@ -925,17 +925,8 @@ $sort_by = isset($_POST['sort_by']) ? $_POST['sort_by'] : (isset($_GET['sort_by'
                                                         <?php endif; ?>
                                                     </tbody>
                                                 </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>   <?php else: ?>
-                                            <a href="<?php echo base_url('Home/index'); ?>"
-                                                class="btn btn-default">
-                                                <i class="fa fa-dashboard"></i> Go to Dashboard
-                                            </a>
-                                        <?php endif; ?>
-                                    </div>
-                                <?php endif; ?>
+                                </div>
+                            </div>
                             </div>
 
                             <?php if (!empty($result)): ?>
