@@ -632,16 +632,38 @@ class Purchase_model extends CI_Model
         return $this->db->get('purchase_order')->result_array();
     }
 
+    // Self-healing database schema check for po_approvals
+    private function ensure_po_approvals_schema()
+    {
+        if ($this->db->table_exists('po_approvals')) {
+            if (!$this->db->field_exists('po_number', 'po_approvals')) {
+                $prefix = $this->db->dbprefix;
+                $this->db->query("ALTER TABLE `{$prefix}po_approvals` ADD COLUMN `po_number` VARCHAR(100) NULL AFTER `approval_id`");
+                $this->db->query("UPDATE `{$prefix}po_approvals` pa JOIN `{$prefix}po_total` pt ON pa.po_id_fk = pt.id SET pa.po_number = pt.number_fk WHERE pa.po_number IS NULL OR pa.po_number = ''");
+            }
+        }
+    }
+
     // Get approval details
     public function get_approval_details($po_number)
     {
+        $this->ensure_po_approvals_schema();
+
+        // Get PO header row for po_id_fk fallback
+        $po = $this->get_po_details($po_number);
+        $actual_po_number = $po['number_fk'] ?? $po_number;
+        $po_id = $po['id'] ?? 0;
+
         $this->db->select('po_approvals.*, user.username as action_by_name, role.role_name as action_by_role');
         $this->db->from('po_approvals');
         $this->db->join('user', 'po_approvals.action_by = user.user_email', 'left');
         $this->db->join('role', 'user.role = role.role_id', 'left');
         $this->db->group_start();
-        $this->db->where('po_approvals.po_number', $po_number);
+        $this->db->where('po_approvals.po_number', $actual_po_number);
         $this->db->or_where("REPLACE(po_approvals.po_number, '/', '-') =", $po_number);
+        if ($po_id > 0) {
+            $this->db->or_where('po_approvals.po_id_fk', $po_id);
+        }
         $this->db->group_end();
         $this->db->order_by('po_approvals.created_at', 'ASC');
         return $this->db->get()->result_array();
@@ -650,6 +672,7 @@ class Purchase_model extends CI_Model
     // Get pending approvals for a user
     public function get_pending_approvals($user_email)
     {
+        $this->ensure_po_approvals_schema();
         $is_admin = $this->is_admin_user($user_email);
         $user_roles = [];
         $locations = [];
@@ -661,7 +684,7 @@ class Purchase_model extends CI_Model
 
         $this->db->select('po_approvals.*, po_total.date, po_total.total, po_total.so_no, po_total.oc_no, supplier.company_name as supplier_name');
         $this->db->from('po_approvals');
-        $this->db->join('po_total', 'po_approvals.po_number = po_total.number_fk', 'left');
+        $this->db->join('po_total', 'po_approvals.po_number = po_total.number_fk OR po_approvals.po_id_fk = po_total.id', 'left');
         $this->db->join('supplier', 'po_total.supplier_id_fk = supplier.supplier_id', 'left');
         $this->db->join('purchase_requisition', 'po_total.pr_id = purchase_requisition.pr_id', 'left');
         
@@ -692,6 +715,7 @@ class Purchase_model extends CI_Model
     // Get approval history
     public function get_approval_history($user_email)
     {
+        $this->ensure_po_approvals_schema();
         $is_admin = $this->is_admin_user($user_email);
         $user_roles = [];
         $locations = [];

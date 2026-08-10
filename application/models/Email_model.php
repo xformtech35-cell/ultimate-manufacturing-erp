@@ -275,34 +275,30 @@ class Email_model extends CI_Model
     </body>
 </html>';
 
-        // Email sending
-        $this->load->library('email');
-        $this->email->set_mailtype("html");
-        if (strpos(base_url(), 'localhost') !== false) {
+        // Email sending with error suppression for socket / SMTP failures
+        try {
+            $this->load->library('email');
+            $this->email->set_mailtype("html");
+            if (strpos(base_url(), 'localhost') !== false) {
+                // Local server
+                $this->email->from($set_from_email, $set_company_name);
+            } else {
+                // Live server
+                $this->email->from("noreply@uwsenvirotech.com", $set_company_name);
+            }
+            $this->email->to($approver_email);
+            $this->email->subject($subject);
+            $this->email->message($htmlContent);
 
-    // Local server
-    $this->email->from($set_from_email, $set_company_name);
-
-} else {
-
-    // Live server
-    $this->email->from("noreply@uwsenvirotech.com", $set_company_name);
-
-}
-        $this->email->to($approver_email);
-        $this->email->subject($subject);
-
-        // Optional: Add CC if needed
-        // $this->email->cc('procurement@xform.in');
-
-        $this->email->message($htmlContent);
-
-        if ($this->email->send()) {
-            log_message('info', 'PO approval email sent successfully to ' . $approver_email . ' for PO ' . $po_number);
-            return true;
-        } else {
-            log_message('error', 'Failed to send PO approval email to ' . $approver_email . ' for PO ' . $po_number);
-            log_message('error', $this->email->print_debugger());
+            if (@$this->email->send()) {
+                log_message('info', 'PO approval email sent successfully to ' . $approver_email . ' for PO ' . $po_number);
+                return true;
+            } else {
+                log_message('error', 'Failed to send PO approval email to ' . $approver_email . ' for PO ' . $po_number);
+                return false;
+            }
+        } catch (\Throwable $e) {
+            error_log("Suppressed email socket error in send_approval_notification: " . $e->getMessage());
             return false;
         }
     }
