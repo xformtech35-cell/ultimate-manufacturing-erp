@@ -102,7 +102,7 @@ Class Joborder extends CI_Model {
 
 public function get_joborders($uid, $limit = 1000) {
     $fy_year = $this->session->userdata('fy_year');
-    if (!empty($fy_year)) {
+    if (!empty($fy_year) && $fy_year !== 'all') {
         $fy_from = $fy_year . '-04-01';
         $fy_to   = ($fy_year + 1) . '-03-31';
         $this->db->where('joborder_total.date >=', $fy_from);
@@ -161,7 +161,7 @@ public function get_joborders_with_pending($uid) {
     }
     public function get_joborder_data_by_status($status, $uid) {
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
             $this->db->where('qt.date >=', $fy_from);

@@ -96,7 +96,7 @@ Class Bom extends CI_Model {
 
     public function get_boms($uid) {
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31';
             $this->db->where('bom_total.date >=', $fy_from);
@@ -121,7 +121,7 @@ Class Bom extends CI_Model {
 
     public function get_bom_data_by_status($status, $uid) {
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
             $this->db->where('bom_total.date >=', $fy_from);
@@ -228,7 +228,7 @@ Class Bom extends CI_Model {
 
     public function get_bom_count($uid) {
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
             $this->db->where('bom_total.date >=', $fy_from);
@@ -272,7 +272,7 @@ Class Bom extends CI_Model {
     
     public function get_bom_draft_count($status, $uid) {
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
             $this->db->where('bom_total.date >=', $fy_from);
@@ -521,7 +521,7 @@ Class Bom extends CI_Model {
         }
 
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
             $where_clause .= " AND bt.date >= {$this->db->escape($fy_from)} AND bt.date <= {$this->db->escape($fy_to)}";
@@ -577,7 +577,7 @@ Class Bom extends CI_Model {
 
         $fy_where = "";
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
             $fy_where = " AND bt.date >= {$this->db->escape($fy_from)} AND bt.date <= {$this->db->escape($fy_to)}";

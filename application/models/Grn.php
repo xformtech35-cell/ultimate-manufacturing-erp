@@ -158,7 +158,7 @@ class Grn extends CI_Model
     public function get_grn_count($uid)
     {
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
             $this->db->where('created_at >=', $fy_from);
@@ -190,7 +190,7 @@ class Grn extends CI_Model
     public function get_grn($uid)
     {
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
             $this->db->where('gt.created_at >=', $fy_from);
@@ -774,7 +774,7 @@ class Grn extends CI_Model
         }
 
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
             $this->db->where('grn.date >=', $fy_from);
@@ -841,7 +841,7 @@ class Grn extends CI_Model
         }
 
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
             $this->db->where('grn.date >=', $fy_from);

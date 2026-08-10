@@ -41,19 +41,26 @@ class Home extends MY_Controller {
         // Persist FY selection in session
         $fy_get = $this->input->get('fy');
         if ($fy_get !== null && $fy_get !== '') {
-            $fy_year = (int)$fy_get;
+            $fy_year = ($fy_get === 'all') ? 'all' : (int)$fy_get;
             $this->session->set_userdata('fy_year', $fy_year);
         } else {
-            $fy_year = (int)($this->session->userdata('fy_year') ?: $defaultFyYear);
+            $fy_year = $this->session->userdata('fy_year') ?: 'all';
         }
 
-        if ($fy_year < 2015 || $fy_year > $currentYear + 1) {
-            $fy_year = $defaultFyYear;
-            $this->session->set_userdata('fy_year', $fy_year);
+        if ($fy_year === 'all') {
+            $fy_from  = '2000-01-01';
+            $fy_to    = '2099-12-31 23:59:59';
+            $fy_label = 'All Financial Years';
+        } else {
+            $fy_year = (int)$fy_year;
+            if ($fy_year < 2015 || $fy_year > $currentYear + 1) {
+                $fy_year = $defaultFyYear;
+                $this->session->set_userdata('fy_year', $fy_year);
+            }
+            $fy_from  = $fy_year . '-04-01';
+            $fy_to    = ($fy_year + 1) . '-03-31 23:59:59';
+            $fy_label = 'FY ' . $fy_year . '-' . substr($fy_year + 1, -2);
         }
-        $fy_from  = $fy_year . '-04-01';
-        $fy_to    = ($fy_year + 1) . '-03-31';
-        $fy_label = 'FY ' . $fy_year . '-' . substr($fy_year + 1, -2);
 
         // Base data array
         $data = [

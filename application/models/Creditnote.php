@@ -125,7 +125,7 @@ Class Creditnote extends CI_Model {
 
     public function get_credit_notes($uid) {
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31';
             $this->db->where('credit_note.date >=', $fy_from);

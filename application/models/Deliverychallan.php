@@ -134,7 +134,7 @@ Class Deliverychallan extends CI_Model {
 
     public function get_delivery_challans($uid, $limit = 1000) {
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31';
             $this->db->where('delivery_challan_total.date >=', $fy_from);

@@ -12,7 +12,11 @@ class MY_Controller extends CI_Controller {
         // Global Financial Year handling
         $fy_get = $this->input->get('fy');
         if ($fy_get !== null && $fy_get !== '') {
-            $this->session->set_userdata('fy_year', (int)$fy_get);
+            if ($fy_get === 'all') {
+                $this->session->set_userdata('fy_year', 'all');
+            } else {
+                $this->session->set_userdata('fy_year', (int)$fy_get);
+            }
         }
 
         // Classes that are exempt from login check

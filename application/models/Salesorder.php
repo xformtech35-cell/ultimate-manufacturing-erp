@@ -210,7 +210,7 @@ class Salesorder extends CI_Model
     public function get_salesorders($uid, $limit = 1000)
     {
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31';
             $this->db->where('salesorder_total.date >=', $fy_from);
@@ -399,7 +399,7 @@ class Salesorder extends CI_Model
     public function get_salesorder_count($uid)
     {
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31';
             $this->db->where('date >=', $fy_from);
@@ -471,7 +471,7 @@ class Salesorder extends CI_Model
     public function get_salesorder_draft_count($status, $uid)
     {
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31';
             $this->db->where('salesorder_total.date >=', $fy_from);
@@ -574,7 +574,7 @@ public function get_so_list_for_bom($uid)
 public function get_pending_salesorders($uid, $status_filter = 'pending')
 {
     $fy_year = $this->session->userdata('fy_year');
-    if (!empty($fy_year)) {
+    if (!empty($fy_year) && $fy_year !== 'all') {
         $fy_from = $fy_year . '-04-01';
         $fy_to   = ($fy_year + 1) . '-03-31';
         $this->db->where('salesorder_total.date >=', $fy_from);

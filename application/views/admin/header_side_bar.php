@@ -588,7 +588,10 @@ $password = $session_data_head['password_str'] ?? '';
                     $cur_m = (int)date('m');
                     $cur_y = (int)date('Y');
                     $def_fy = ($cur_m >= 4) ? $cur_y : $cur_y - 1;
-                    $sel_fy = (int)($this->session->userdata('fy_year') ?: $def_fy);
+                    $sel_fy = $this->session->userdata('fy_year');
+                    if ($sel_fy === null) {
+                        $sel_fy = 'all';
+                    }
                     ?>
                     <form method="get" action="" style="margin: 0; display: inline-block;">
                         <?php
@@ -600,15 +603,16 @@ $password = $session_data_head['password_str'] ?? '';
                             }
                         }
                         ?>
-                        <div class="input-group input-group-sm" style="width: 170px;">
+                        <div class="input-group input-group-sm" style="width: 175px;">
                             <span class="input-group-addon" style="background-color: #1a6496; color: #fff; border-color: #1a6496; font-size: 11px; padding: 4px 8px;">
                                 <i class="fa fa-calendar"></i> FY
                             </span>
                             <select name="fy" onchange="this.form.submit()" class="form-control input-sm" style="background-color: #1a6496; color: #fff; font-weight: 700; border-color: #1a6496; cursor: pointer; height: 30px; padding: 3px 6px;">
+                                <option value="all" <?= ($sel_fy === 'all' || empty($sel_fy)) ? 'selected' : ''; ?>>All FY (All Data)</option>
                                 <?php
                                 for ($y = $def_fy + 1; $y >= 2020; $y--) {
                                     $lbl = 'FY ' . $y . '-' . substr($y + 1, -2);
-                                    $s = ($y == $sel_fy) ? 'selected' : '';
+                                    $s = ((string)$y === (string)$sel_fy && $sel_fy !== 'all') ? 'selected' : '';
                                     echo "<option value=\"$y\" $s>$lbl</option>";
                                 }
                                 ?>

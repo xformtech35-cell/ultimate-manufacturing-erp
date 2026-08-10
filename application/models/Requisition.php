@@ -454,7 +454,7 @@ class Requisition extends CI_Model
         $this->db->join('user u', 'pr.created_by = u.user_id', 'left');
 
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
             $this->db->where('pr.created_at >=', $fy_from);
@@ -1367,7 +1367,7 @@ class Requisition extends CI_Model
     public function get_purchase_requisition($user_id = null)
     {
         $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year)) {
+        if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
             $this->db->where('pr.created_at >=', $fy_from);
