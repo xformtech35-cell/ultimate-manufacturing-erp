@@ -20,30 +20,9 @@ class Salesorder extends CI_Model
 
     public function get_last_salesorder_number($uid)
     {
-        $financial_year = '';
-        if (date('m') <= 3) { //Upto June 2014-2015
-            // echo "hrov";die();
-            $financial_year = (date('y') - 1) . '-' . date('y');
-        } else { //After June 2015-2016
-            // echo "hrov123";die();
-            $financial_year = date('y') . '-' . (date('y') + 1);
-        }
-        //   echo $financial_year;die();
-
-        $this->db->select('count(number_fk) as id');
-        $this->db->from('salesorder_total');
-        $this->db->like('number_fk', $financial_year, "before");
-        $this->db->order_by('id', 'DESC');
-
-        $query = $this->db->get();
+        $query = $this->db->query("SELECT MAX(CAST(SUBSTRING_INDEX(number_fk, '-OC-', -1) AS UNSIGNED)) AS max_seq FROM {$this->db->dbprefix}salesorder_total WHERE number_fk LIKE '%-OC-%'");
         $result = $query->row();
-        if($result->id == 0){
-            $result->id = 1;
-        }
-
-        return $result->id;
-
-
+        return (int)($result->max_seq ?? 0);
     }
 
 
