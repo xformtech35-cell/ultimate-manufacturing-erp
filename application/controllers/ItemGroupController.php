@@ -56,6 +56,28 @@ class ItemGroupController extends MY_Controller
         redirect('ItemGroupController/index');
     }
 
+    public function update_group()
+    {
+        $id = $this->input->post('group_id');
+        $group = trim($this->input->post('group_name') ?? '');
+
+        if (empty($id) || $group === '') {
+            $this->session->set_flashdata('INFOMSG', "Group name cannot be empty!");
+            redirect('ItemGroupController/index');
+            return;
+        }
+
+        $data_group = array('group_name' => $group);
+        $result = $this->ItemGroup->update_group($id, $data_group);
+
+        if ($result) {
+            $this->session->set_flashdata('SUCCESSMSG', "Group updated successfully!");
+        } else {
+            $this->session->set_flashdata('INFOMSG', "Failed to update group or no changes made.");
+        }
+        redirect('ItemGroupController/index');
+    }
+
     public function delete_group($id)
     {
         // Safety Check: Check if group is used in inventory to prevent foreign key exception

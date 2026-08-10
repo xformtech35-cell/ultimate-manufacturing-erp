@@ -26,6 +26,12 @@ class ItemGroup extends CI_Model
         return $query->num_rows() > 0;
     }
 
+    public function update_group($id, $data)
+    {
+        $this->db->where('group_id', $id);
+        return $this->db->update('item_group_master', $data);
+    }
+
     public function delete_group($id)
     {
         $this->db->where('group_id', $id);

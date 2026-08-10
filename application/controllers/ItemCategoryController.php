@@ -52,6 +52,28 @@ class ItemCategoryController extends MY_Controller
         redirect('ItemCategoryController/index');
     }
 
+    public function update_category()
+    {
+        $id = $this->input->post('category_id');
+        $cat = trim($this->input->post('category_name') ?? '');
+
+        if (empty($id) || $cat === '') {
+            $this->session->set_flashdata('INFOMSG', "Category name cannot be empty!");
+            redirect('ItemCategoryController/index');
+            return;
+        }
+
+        $data_cat = array('category_name' => $cat);
+        $result = $this->ItemCategory->update_category($id, $data_cat);
+
+        if ($result) {
+            $this->session->set_flashdata('SUCCESSMSG', "Category updated successfully!");
+        } else {
+            $this->session->set_flashdata('INFOMSG', "Failed to update category or no changes made.");
+        }
+        redirect('ItemCategoryController/index');
+    }
+
     public function delete_category($id)
     {
         // Safety Check: Check if category is used in inventory to prevent foreign key exception

@@ -26,6 +26,12 @@ class ItemCategory extends CI_Model
         return $query->num_rows() > 0;
     }
 
+    public function update_category($id, $data)
+    {
+        $this->db->where('category_id', $id);
+        return $this->db->update('item_category_master', $data);
+    }
+
     public function delete_category($id)
     {
         $this->db->where('category_id', $id);

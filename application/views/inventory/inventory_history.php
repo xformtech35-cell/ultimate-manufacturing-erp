@@ -837,7 +837,7 @@ $sort_by = isset($_POST['sort_by']) ? $_POST['sort_by'] : (isset($_GET['sort_by'
                                         <!-- Tab 2: Approved Deletions -->
                                         <div class="tab-pane" id="tab_approved_deletions">
                                             <div class="table-responsive">
-                                                <table class="table table-bordered table-striped" style="margin-bottom:0;">
+                                                <table class="table table-bordered table-striped no-datatable" style="margin-bottom:0;">
                                                     <thead>
                                                         <tr style="background:#f4f4f4;">
                                                             <th style="width:40px;">#</th>
@@ -883,7 +883,7 @@ $sort_by = isset($_POST['sort_by']) ? $_POST['sort_by'] : (isset($_GET['sort_by'
                                         <!-- Tab 3: Deletion History -->
                                         <div class="tab-pane" id="tab_deletion_history">
                                             <div class="table-responsive">
-                                                <table class="table table-bordered table-striped" style="margin-bottom:0;">
+                                                <table class="table table-bordered table-striped no-datatable" style="margin-bottom:0;">
                                                     <thead>
                                                         <tr style="background:#f4f4f4;">
                                                             <th style="width:40px;">#</th>

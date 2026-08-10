@@ -373,6 +373,9 @@ $(document).ready(function() {
     
     // Initialize DataTables if table exists (skip already-initialized tables)
     if ($.fn.DataTable) {
+        // Suppress intrusive browser alert popups for DataTables parameter errors
+        $.fn.dataTable.ext.errMode = 'none';
+
         // Global DataTables Defaults for ALL tables in the application
         $.extend(true, $.fn.dataTable.defaults, {
             "dom": '<"top"<"pull-left"l><"pull-right"f>><"table-responsive-container"t><"bottom"<"pull-left"i><"pull-right"p>><"clear">',
@@ -407,6 +410,11 @@ $(document).ready(function() {
 
         $('.table:not(#dynamic_field):not(#so_reference_items_table):not(#drawings_table):not(#pending_approvals_table)').each(function() {
             if ($(this).find('thead').length > 0 && !$(this).hasClass('no-datatable') && !$(this).hasClass('table-details') && !$.fn.DataTable.isDataTable(this)) {
+                // Skip auto-initializing DataTables if table body only has a single fallback row with colspan
+                var $firstRowTds = $(this).find('tbody tr:first-child td');
+                if ($firstRowTds.length === 1 && $firstRowTds.attr('colspan')) {
+                    return;
+                }
                 var searchLabel = "Search:";
                 var $boxTitleEl = $(this).closest('.box').find('.box-title');
                 var boxTitle = "";
