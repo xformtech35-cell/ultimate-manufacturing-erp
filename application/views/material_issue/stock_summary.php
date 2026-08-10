@@ -337,7 +337,7 @@ if (!empty($stock_items)) {
                     <div class="col-md-3 col-sm-6">
                         <div class="summary-card" style="border-top: 4px solid #f39c12;">
                             <i class="fa fa-exclamation-triangle" style="color: #f39c12;"></i>
-                            <h3><?= count(array_filter($stock_items, function ($item) { return $item['stock'] <= 10 && $item['stock'] > 0; })) ?></h3>
+                            <h3><?= count(array_filter($stock_items, function ($item) { return $item['stock'] <= 5 && $item['stock'] > 0; })) ?></h3>
                             <p>Low Stock Items</p>
                         </div>
                     </div>
