@@ -5,6 +5,7 @@ if (isset($session_data_head1)) {
 } else {
     header($this->config->item('header'));
 }
+$_has_project_master = isset($session_data_head1['permission']) && in_array('Projects', $session_data_head1['permission']);
 defined('BASEPATH') OR exit('No direct script access allowed');
 ?>
 <style>
@@ -263,13 +264,17 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 <span class="info-value"><?php echo isset($drawing) ? htmlspecialchars($drawing->drawing_name) : ''; ?></span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label"><i class="fa fa-building-o"></i> SO / Project:</span>
+                                <span class="info-label"><i class="fa fa-building-o"></i> <?php echo $_has_project_master ? 'SO / Project:' : 'SO Number:'; ?></span>
                                 <span class="info-value">
                                     <?php 
                                     if (isset($drawing)) {
-                                        $proj_display = $drawing->project_code . ' - ' . $drawing->project_name;
-                                        if (!empty($drawing->so_numbers)) {
-                                            $proj_display .= ' (SO: ' . $drawing->so_numbers . ')';
+                                        if ($_has_project_master) {
+                                            $proj_display = $drawing->project_code . ' - ' . $drawing->project_name;
+                                            if (!empty($drawing->so_numbers)) {
+                                                $proj_display .= ' (SO: ' . $drawing->so_numbers . ')';
+                                            }
+                                        } else {
+                                            $proj_display = !empty($drawing->so_numbers) ? $drawing->so_numbers : (!empty($drawing->project_code) ? $drawing->project_code : $drawing->project_name);
                                         }
                                         echo htmlspecialchars($proj_display);
                                     }

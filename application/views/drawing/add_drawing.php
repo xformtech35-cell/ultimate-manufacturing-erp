@@ -374,7 +374,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             <tr>
                                                 <th width="5%">ID</th>
                                                 <th width="10%">Drawing Date</th>
-                                                <th width="18%">SO</th>
+                                                <th width="18%"><?php echo $_has_project_master ? 'SO / Project' : 'SO Number'; ?></th>
                                                 <th width="15%">Drawing No</th>
                                                 <th width="20%">Drawing Name</th>
                                                 <th width="10%">Drawing Revision</th>
@@ -393,7 +393,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                         <td><?php echo isset($drawing->created_at) && $drawing->created_at ? date('d-m-Y', strtotime($drawing->created_at)) : 'N/A'; ?></td>
                                                         <td>
                                                             <?php
-                                                            $so_display = !empty($drawing->so_numbers) ? $drawing->so_numbers : (!empty($drawing->project_code) ? $drawing->project_code : (!empty($drawing->project_name) ? $drawing->project_name : 'N/A'));
+                                                            if ($_has_project_master) {
+                                                                $so_display = $drawing->project_code . ' - ' . $drawing->project_name;
+                                                                if (!empty($drawing->so_numbers)) {
+                                                                    $so_display .= ' (SO: ' . $drawing->so_numbers . ')';
+                                                                }
+                                                            } else {
+                                                                $so_display = !empty($drawing->so_numbers) ? $drawing->so_numbers : (!empty($drawing->project_code) ? $drawing->project_code : $drawing->project_name);
+                                                            }
                                                             echo htmlspecialchars($so_display);
                                                             ?>
                                                         </td>
