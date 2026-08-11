@@ -165,9 +165,22 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         background: #f9e5e5;
     }
     
+    /* Table container overflow fix for dropdowns */
+    .table-responsive {
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+    }
+    .box-body {
+        overflow: visible !important;
+    }
+    #drawings_table_wrapper {
+        overflow: visible !important;
+    }
+
     /* Action cell styling */
     .action-cell {
         text-align: center;
+        position: relative;
     }
     
     /* File row styling */
@@ -403,27 +416,33 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                             <?php } ?>
                                                         </td>
                                                         <td class="action-cell">
-                                                            <!-- Single Action Button with Dropdown -->
-                                                            <div class="action-dropdown">
-                                                                <button class="action-btn" data-dropdown-id="dropdown-<?php echo $drawing->drawing_id; ?>">
-                                                                    <span class="caret"></span>
+                                                            <div class="btn-group">
+                                                                <button type="button" class="btn btn-primary btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding: 4px 10px; font-weight: 600; font-size: 12px; border-radius: 4px;">
+                                                                    Action <span class="caret"></span>
                                                                 </button>
-                                                                <div id="dropdown-<?php echo $drawing->drawing_id; ?>" class="dropdown-menu-custom">
-                                                                    <a href="<?php echo base_url() . 'DrawingController/show_drawing/' . $drawing->drawing_id; ?>">
-                                                                        <i class="fa fa-eye"></i> View Revisions
-                                                                    </a>
-                                                                    <a href="<?php echo base_url() . 'DrawingController/edit_drawing/' . $drawing->drawing_id; ?>">
-                                                                        <i class="fa fa-edit"></i> Edit Drawing
-                                                                    </a>
-                                                                    <a href="<?php echo base_url() . 'DrawingController/add_revision/' . $drawing->drawing_id; ?>">
-                                                                        <i class="fa fa-plus"></i> Add Revision
-                                                                    </a>
-                                                                    <a href="<?php echo base_url() . 'DrawingController/delete_drawing/' . $drawing->drawing_id; ?>" 
-                                                                       class="text-danger"
-                                                                       onclick="return confirmDeleteDrawing(event, this.href)">
-                                                                        <i class="fa fa-trash"></i> Delete Drawing
-                                                                    </a>
-                                                                </div>
+                                                                <ul class="dropdown-menu dropdown-menu-right" style="min-width: 140px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 4px; padding: 5px 0;">
+                                                                    <li>
+                                                                        <a href="<?php echo base_url() . 'DrawingController/show_drawing/' . $drawing->drawing_id; ?>" style="padding: 6px 12px; font-size: 12px; color: #333;">
+                                                                            <i class="fa fa-eye" style="color: #3b82f6; width: 16px; margin-right: 6px;"></i> View Revisions
+                                                                        </a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a href="<?php echo base_url() . 'DrawingController/edit_drawing/' . $drawing->drawing_id; ?>" style="padding: 6px 12px; font-size: 12px; color: #333;">
+                                                                            <i class="fa fa-pencil" style="color: #f59e0b; width: 16px; margin-right: 6px;"></i> Edit Drawing
+                                                                        </a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a href="<?php echo base_url() . 'DrawingController/add_revision/' . $drawing->drawing_id; ?>" style="padding: 6px 12px; font-size: 12px; color: #333;">
+                                                                            <i class="fa fa-plus" style="color: #10b981; width: 16px; margin-right: 6px;"></i> Add Revision
+                                                                        </a>
+                                                                    </li>
+                                                                    <li class="divider" style="margin: 4px 0;"></li>
+                                                                    <li>
+                                                                        <a href="<?php echo base_url() . 'DrawingController/delete_drawing/' . $drawing->drawing_id; ?>" class="text-danger" style="padding: 6px 12px; font-size: 12px;" onclick="return confirmDeleteDrawing(event, this.href)">
+                                                                            <i class="fa fa-trash" style="color: #ef4444; width: 16px; margin-right: 6px;"></i> Delete Drawing
+                                                                        </a>
+                                                                    </li>
+                                                                </ul>
                                                             </div>
                                                         </td>
                                                     </tr>
