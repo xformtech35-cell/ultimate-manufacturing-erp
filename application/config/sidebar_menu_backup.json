@@ -246,7 +246,7 @@
         }
       },
       {
-        "title": "GRN Approvals",
+        "title": "GRN Quality Approvals",
         "icon": "fa fa-check-circle",
         "url": "GrnController/grn_approvals",
         "permission": "GRN",
@@ -508,7 +508,7 @@
     },
     "submenu": [
       {
-        "title": "GRN Approvals",
+        "title": "GRN Quality Approvals",
         "icon": "fa fa-check-circle",
         "url": "GrnController/grn_approvals",
         "permission": "GRN",
