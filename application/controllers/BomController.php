@@ -570,43 +570,53 @@ public function add_bom_bom() {
 
     $item_count = count($product_name);
     
-    // Check if bom_total record exists
+    // Check if bom_total record exists or if this SO already has an existing MRP-run BOM
     $bom_total_exists = $this->db
         ->where('number_fk', $number)
         ->get('bom_total')
         ->row();
 
+    // Check if an existing BOM for this OC/SO number has already had MRP RUN executed
+    $so_mrp_run_bom = null;
+    if (!empty($oc_number) && $edit_bom != 'edit_bom') {
+        $so_mrp_run_bom = $this->db
+            ->where('oc_number', $oc_number)
+            ->where('send_to_mrp', 2)
+            ->order_by('id', 'DESC')
+            ->get('bom_total')
+            ->row();
+    }
+
     $mrp_has_run = false;
-    if ($edit_bom == 'edit_bom' && $bom_total_exists) {
-        if ($bom_total_exists->send_to_mrp == 2) {
-            $mrp_has_run = true;
-            
-            // Extract base BOM number (e.g. "BOM/00163/26-27" from "BOM/00163/26-27/R1" or "BOM/00163/26-27")
-            $base_bom_number = preg_replace('/(?:\/R|-R)\d+$/i', '', $number);
-            
-            // Query DB for highest revision number for this base BOM
-            $existing_revs = $this->db->select('number_fk')
-                                      ->like('number_fk', $base_bom_number)
-                                      ->get('bom_total')
-                                      ->result_array();
-            
-            $max_rev = 0;
-            foreach ($existing_revs as $er) {
-                if (preg_match('/(?:\/R|-R)(\d+)$/i', $er['number_fk'], $matches)) {
-                    $r = intval($matches[1]);
-                    if ($r > $max_rev) {
-                        $max_rev = $r;
-                    }
+    if (($edit_bom == 'edit_bom' && $bom_total_exists && $bom_total_exists->send_to_mrp == 2) || $so_mrp_run_bom) {
+        $target_bom = $so_mrp_run_bom ? $so_mrp_run_bom : $bom_total_exists;
+        $mrp_has_run = true;
+        
+        // Extract base BOM number (e.g. "BOM/00163/26-27" from "BOM/00163/26-27/R1" or "BOM/00163/26-27")
+        $base_bom_number = preg_replace('/(?:\/R|-R)\d+$/i', '', $target_bom->number_fk);
+        
+        // Query DB for highest revision number for this base BOM
+        $existing_revs = $this->db->select('number_fk')
+                                  ->like('number_fk', $base_bom_number)
+                                  ->get('bom_total')
+                                  ->result_array();
+        
+        $max_rev = 0;
+        foreach ($existing_revs as $er) {
+            if (preg_match('/(?:\/R|-R)(\d+)$/i', $er['number_fk'], $matches)) {
+                $r = intval($matches[1]);
+                if ($r > $max_rev) {
+                    $max_rev = $r;
                 }
             }
-            
-            $next_rev = $max_rev + 1;
-            $new_number = $base_bom_number . '/R' . $next_rev;
-            
-            $number = $new_number;
-            $bom_total_exists = null; // Force insert instead of update/delete
-            $status_main = 1; // Reset new revision to Draft status for re-approval
         }
+        
+        $next_rev = $max_rev + 1;
+        $new_number = $base_bom_number . '/R' . $next_rev;
+        
+        $number = $new_number;
+        $bom_total_exists = null; // Force insert instead of update/delete
+        $status_main = 1; // Reset new revision to Draft status for re-approval
     }
 
     // Parse date from dd-mm-yy format to Y-m-d

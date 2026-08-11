@@ -540,14 +540,43 @@ public function get_project_code($uid)
  */
 public function get_so_list_for_bom($uid)
 {
+    // Fetch all sales orders
     $this->db->select('salesorder_total.number_fk as so_number, customer.company_name as customer_name, customer.c_code');
     $this->db->from('salesorder_total');
     $this->db->join('customer', 'customer.customer_id = salesorder_total.customer_id_fk', 'left');
     $this->db->where('salesorder_total.number_fk !=', '');
     $this->db->group_by('salesorder_total.number_fk');
     $this->db->order_by('salesorder_total.id', 'DESC');
-    $query = $this->db->get();
-    return $query->result();
+    $sales_orders = $this->db->get()->result();
+
+    $allowed_sos = array();
+    foreach ($sales_orders as $so) {
+        // Check if a BOM exists for this SO number
+        $existing_boms = $this->db->select('send_to_mrp')
+            ->from('bom_total')
+            ->where('oc_number', $so->so_number)
+            ->get()
+            ->result_array();
+
+        if (empty($existing_boms)) {
+            // Case 1: Brand new SO with no BOM created yet -> Show in dropdown
+            $allowed_sos[] = $so;
+        } else {
+            // Case 2: BOM exists -> Only show in dropdown if MRP RUN has been executed (send_to_mrp == 2)
+            $has_unrun_bom = false;
+            foreach ($existing_boms as $b) {
+                if ($b['send_to_mrp'] != 2) {
+                    $has_unrun_bom = true;
+                    break;
+                }
+            }
+            if (!$has_unrun_bom) {
+                $allowed_sos[] = $so;
+            }
+        }
+    }
+
+    return $allowed_sos;
 }
 
 public function get_pending_salesorders($uid, $status_filter = 'pending')
