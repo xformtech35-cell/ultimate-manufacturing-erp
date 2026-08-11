@@ -132,7 +132,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                     </div>
                                 <?php } ?>
                                 
-                                <form class="form-horizontal" method="post" action="<?php echo base_url(); ?>DrawingController/update_drawing" id="editDrawingForm">
+                                <form class="form-horizontal" method="post" action="<?php echo base_url(); ?>DrawingController/update_drawing" enctype="multipart/form-data" id="editDrawingForm">
                                     <input type="hidden" name="drawing_id" value="<?php echo isset($drawing) ? $drawing->drawing_id : ''; ?>">
                                     
                                     <div class="form-section">
@@ -176,6 +176,30 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                     value="<?php echo isset($drawing) ? htmlspecialchars($drawing->drawing_name) : ''; ?>" 
                                                     placeholder="Enter drawing name" required>
                                                 <?php echo form_error('drawing_name', '<div class="text-danger">', '</div>'); ?>
+                                            </div>
+                                        </div>
+
+                                        <!-- Multiple Files Section -->
+                                        <div class="form-group row">
+                                            <label class="col-sm-3 control-label">Add Files to Latest Revision</label>
+                                            <div class="col-sm-6">
+                                                <div id="files-container">
+                                                    <div class="file-row" id="file-row-1" style="background: #f9f9f9; padding: 10px; margin-bottom: 10px; border-left: 3px solid #3c8dbc; border-radius: 3px; position: relative;">
+                                                        <span class="remove-file" onclick="removeFileRow(1)" style="display: none; position: absolute; top: 5px; right: 10px; color: #dd4b39; font-size: 18px; font-weight: bold; cursor: pointer;">&times;</span>
+                                                        <input type="file" class="form-control input-sm" name="drawing_files[]" style="margin-bottom: 8px;">
+                                                        <input type="text" class="form-control input-sm" name="file_description[]" 
+                                                               placeholder="File description (optional)" style="margin-top: 5px;">
+                                                        <small class="text-muted">
+                                                            <i class="fa fa-info-circle"></i> Allowed: PDF, JPG, PNG, DWG, DXF, DOC, XLS (Max 5MB per file)
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="add-more-files" style="margin-top: 5px;">
+                                                    <button type="button" class="btn btn-sm btn-info" onclick="addFileRow()">
+                                                        <i class="fa fa-plus"></i> Add Another File
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -308,23 +332,106 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     </div>
     
     <script>
+        let fileCounter = 1;
+        
+        function addFileRow() {
+            fileCounter++;
+            const newRow = `
+                <div class="file-row" id="file-row-${fileCounter}" style="background: #f9f9f9; padding: 10px; margin-bottom: 10px; border-left: 3px solid #3c8dbc; border-radius: 3px; position: relative;">
+                    <span class="remove-file" onclick="removeFileRow(${fileCounter})" style="position: absolute; top: 5px; right: 10px; color: #dd4b39; font-size: 18px; font-weight: bold; cursor: pointer;">&times;</span>
+                    <input type="file" class="form-control input-sm" name="drawing_files[]" style="margin-bottom: 8px;">
+                    <input type="text" class="form-control input-sm" name="file_description[]" 
+                           placeholder="File description (optional)" style="margin-top: 5px;">
+                    <small class="text-muted">
+                        <i class="fa fa-info-circle"></i> Allowed: PDF, JPG, PNG, DWG, DXF, DOC, XLS (Max 5MB per file)
+                    </small>
+                </div>
+            `;
+            document.getElementById('files-container').insertAdjacentHTML('beforeend', newRow);
+            
+            if (fileCounter > 1) {
+                const firstRow = document.getElementById('file-row-1');
+                if (firstRow) {
+                    const removeBtn = firstRow.querySelector('.remove-file');
+                    if (removeBtn) removeBtn.style.display = 'inline-block';
+                }
+            }
+            
+            addFileValidation();
+        }
+        
+        function removeFileRow(rowId) {
+            const row = document.getElementById(`file-row-${rowId}`);
+            if (row) {
+                row.remove();
+                fileCounter--;
+            }
+            
+            if (fileCounter === 1) {
+                const firstRow = document.getElementById('file-row-1');
+                if (firstRow) {
+                    const removeBtn = firstRow.querySelector('.remove-file');
+                    if (removeBtn) removeBtn.style.display = 'none';
+                }
+            }
+        }
+        
+        function addFileValidation() {
+            document.querySelectorAll('input[type="file"]').forEach(input => {
+                input.removeEventListener('change', validateFile);
+                input.addEventListener('change', validateFile);
+            });
+        }
+        
+        function validateFile(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const fileSize = file.size / 1024 / 1024;
+                const allowedTypes = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'dwg', 'dxf', 'doc', 'docx', 'xls', 'xlsx'];
+                const fileExt = file.name.split('.').pop().toLowerCase();
+                
+                if (fileSize > 5) {
+                    alert('File size must be less than 5MB');
+                    e.target.value = '';
+                    return false;
+                }
+                
+                if (allowedTypes.indexOf(fileExt) === -1) {
+                    alert('Invalid file type. Allowed: ' + allowedTypes.join(', '));
+                    e.target.value = '';
+                    return false;
+                }
+            }
+        }
+
         // Reset form function
         function resetForm() {
             if (confirm('Are you sure you want to reset all changes? Any unsaved changes will be lost.')) {
                 document.getElementById("editDrawingForm").reset();
-                // Reset select dropdown to original value
                 var originalProjectId = '<?php echo isset($drawing) ? $drawing->project_id_fk : ''; ?>';
                 if (originalProjectId) {
                     document.getElementById('project_id_fk').value = originalProjectId;
                 }
-                // Optionally show a success message
-                alert('Form has been reset to original values.');
+                document.getElementById('files-container').innerHTML = `
+                    <div class="file-row" id="file-row-1" style="background: #f9f9f9; padding: 10px; margin-bottom: 10px; border-left: 3px solid #3c8dbc; border-radius: 3px; position: relative;">
+                        <span class="remove-file" onclick="removeFileRow(1)" style="display: none; position: absolute; top: 5px; right: 10px; color: #dd4b39; font-size: 18px; font-weight: bold; cursor: pointer;">&times;</span>
+                        <input type="file" class="form-control input-sm" name="drawing_files[]" style="margin-bottom: 8px;">
+                        <input type="text" class="form-control input-sm" name="file_description[]" 
+                               placeholder="File description (optional)" style="margin-top: 5px;">
+                        <small class="text-muted">
+                            <i class="fa fa-info-circle"></i> Allowed: PDF, JPG, PNG, DWG, DXF, DOC, XLS (Max 5MB per file)
+                        </small>
+                    </div>
+                `;
+                fileCounter = 1;
+                addFileValidation();
             }
             return false;
         }
         
         // Add form validation before submit
         document.addEventListener('DOMContentLoaded', function() {
+            addFileValidation();
             const form = document.getElementById('editDrawingForm');
             if (form) {
                 form.addEventListener('submit', function(e) {
@@ -358,13 +465,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         // Add tooltips
         $(document).ready(function() {
             $('[title]').tooltip({ placement: 'top', container: 'body' });
-            
-            // Optional: Add confirmation for reset button
-            $('button[type="reset"]').on('click', function(e) {
-                if (!confirm('Are you sure you want to reset all changes?')) {
-                    e.preventDefault();
-                }
-            });
         });
     </script>
 </body>

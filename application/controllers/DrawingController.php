@@ -228,7 +228,20 @@ class DrawingController extends MY_Controller {
             $result = $this->Drawing_model->update_drawing($drawing_id, $data);
             
             if ($result) {
-                $this->session->set_flashdata('SUCCESSMSG', 'Drawing updated successfully!');
+                // Process uploaded files if any were attached
+                if (isset($_FILES['drawing_files']) && !empty($_FILES['drawing_files']['name'][0])) {
+                    // Find latest active revision for this drawing
+                    $revisions = $this->Drawing_model->get_revisions_by_drawing($drawing_id);
+                    $latest_rev = !empty($revisions) ? $revisions[0] : null;
+                    
+                    if ($latest_rev) {
+                        $this->_upload_multiple_files($drawing_id, $latest_rev->revision_no, $latest_rev->revision_id);
+                    } else {
+                        // Create initial revision if drawing has no revisions
+                        $this->_create_initial_revision_with_file($drawing_id);
+                    }
+                }
+                $this->session->set_flashdata('SUCCESSMSG', 'Drawing and files updated successfully!');
             } else {
                 $this->session->set_flashdata('INFOMSG', 'Failed to update drawing.');
             }
