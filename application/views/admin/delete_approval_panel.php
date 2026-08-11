@@ -81,16 +81,20 @@
                                     <td><?php echo !empty($row['reason']) ? htmlspecialchars($row['reason']) : '<span class="text-muted">—</span>'; ?></td>
                                     <td><?php echo date('d M Y, h:i A', strtotime($row['created_at'])); ?></td>
                                     <td class="text-center">
-                                        <a href="<?php echo base_url('DeleteApprovalController/approve/' . $row['id']); ?>"
-                                           class="btn btn-xs btn-success"
-                                           onclick="return confirm('Approve deletion of [<?php echo htmlspecialchars($row['item_code']); ?>]? This CANNOT be undone.');">
-                                            <i class="fa fa-check"></i> Approve
-                                        </a>
-                                        <a href="<?php echo base_url('DeleteApprovalController/reject/' . $row['id']); ?>"
-                                           class="btn btn-xs btn-danger"
-                                           onclick="return confirm('Reject deletion of [<?php echo htmlspecialchars($row['item_code']); ?>]?');">
-                                            <i class="fa fa-times"></i> Reject
-                                        </a>
+                                        <?php if (!empty($is_admin)): ?>
+                                            <a href="<?php echo base_url('DeleteApprovalController/approve/' . $row['id']); ?>"
+                                               class="btn btn-xs btn-success"
+                                               onclick="return confirm('Approve deletion of [<?php echo htmlspecialchars($row['item_code']); ?>]? This CANNOT be undone.');">
+                                                <i class="fa fa-check"></i> Approve
+                                            </a>
+                                            <a href="<?php echo base_url('DeleteApprovalController/reject/' . $row['id']); ?>"
+                                               class="btn btn-xs btn-danger"
+                                               onclick="return confirm('Reject deletion of [<?php echo htmlspecialchars($row['item_code']); ?>]?');">
+                                                <i class="fa fa-times"></i> Reject
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="label label-warning"><i class="fa fa-clock-o"></i> Pending Admin Approval</span>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

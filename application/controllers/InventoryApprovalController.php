@@ -106,21 +106,24 @@ class InventoryApprovalController extends MY_Controller
         // Sync legacy delete requests into inventory_approval_requests if any exist
         $this->_sync_delete_requests();
 
-        // Fetch pending, approved, and rejected requests
-        $data['pending_requests'] = $this->db
-            ->order_by('id', 'DESC')
-            ->get_where('inventory_approval_requests', ['status' => 'pending'])
-            ->result_array();
+        $session_data = $this->session->userdata('session_data_head');
+        $res          = $session_data['result'] ?? [];
+        $role_name    = strtolower($res['role_name'] ?? '');
+        $role_id      = (int)($res['role_id'] ?? $res['role'] ?? 0);
+        $user_id      = (int)($res['user_id'] ?? 0);
+        $is_admin     = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
 
-        $data['approved_requests'] = $this->db
-            ->order_by('id', 'DESC')
-            ->get_where('inventory_approval_requests', ['status' => 'approved'])
-            ->result_array();
+        $data['is_admin'] = $is_admin;
 
-        $data['rejected_requests'] = $this->db
-            ->order_by('id', 'DESC')
-            ->get_where('inventory_approval_requests', ['status' => 'rejected'])
-            ->result_array();
+        if ($is_admin) {
+            $data['pending_requests']  = $this->db->order_by('id', 'DESC')->get_where('inventory_approval_requests', ['status' => 'pending'])->result_array();
+            $data['approved_requests'] = $this->db->order_by('id', 'DESC')->get_where('inventory_approval_requests', ['status' => 'approved'])->result_array();
+            $data['rejected_requests'] = $this->db->order_by('id', 'DESC')->get_where('inventory_approval_requests', ['status' => 'rejected'])->result_array();
+        } else {
+            $data['pending_requests']  = $this->db->order_by('id', 'DESC')->get_where('inventory_approval_requests', ['requested_by' => $user_id, 'status' => 'pending'])->result_array();
+            $data['approved_requests'] = $this->db->order_by('id', 'DESC')->get_where('inventory_approval_requests', ['requested_by' => $user_id, 'status' => 'approved'])->result_array();
+            $data['rejected_requests'] = $this->db->order_by('id', 'DESC')->get_where('inventory_approval_requests', ['requested_by' => $user_id, 'status' => 'rejected'])->result_array();
+        }
 
         $session_data_head = $this->session->userdata('session_data_head');
         $this->load->view('admin/header_side_bar', $session_data_head);

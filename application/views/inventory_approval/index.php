@@ -138,15 +138,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                             </span>
                                                         <?php } ?>
 
-                                                        <a href="<?= base_url('InventoryApprovalController/approve/' . $req['id']); ?>" 
-                                                           class="btn btn-xs btn-success" style="margin-left: 5px;"
-                                                           onclick="return confirm('Are you sure you want to APPROVE this inventory request?');">
-                                                            <i class="fa fa-check"></i> Approve
-                                                        </a>
+                                                        <?php if (!empty($is_admin)) { ?>
+                                                            <a href="<?= base_url('InventoryApprovalController/approve/' . $req['id']); ?>" 
+                                                               class="btn btn-xs btn-success" style="margin-left: 5px;"
+                                                               onclick="return confirm('Are you sure you want to APPROVE this inventory request?');">
+                                                                <i class="fa fa-check"></i> Approve
+                                                            </a>
 
-                                                        <button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target="#modal-reject-<?= $req['id']; ?>">
-                                                            <i class="fa fa-times"></i> Reject
-                                                        </button>
+                                                            <button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target="#modal-reject-<?= $req['id']; ?>">
+                                                                <i class="fa fa-times"></i> Reject
+                                                            </button>
+                                                        <?php } else { ?>
+                                                            <span class="label label-warning" style="margin-left: 5px;"><i class="fa fa-clock-o"></i> Pending Admin Approval</span>
+                                                        <?php } ?>
                                                     </td>
                                                 </tr>
 
