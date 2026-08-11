@@ -734,9 +734,14 @@ public function add_expense_data_indirect()
     private function _requires_inventory_approval($action_type, $res)
     {
         $role_name = strtolower($res['role_name'] ?? '');
-        $role_id   = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
+        $role_id   = (int)($res['role_id'] ?? $res['role'] ?? 0);
         $user_id   = (int)($res['user_id'] ?? 0);
-        $user_role = $res['role_name'] ?? '';
+        $user_role = strtolower(trim($res['role_name'] ?? ''));
+
+        // Super Admin / Role ID 1 / User ID 1 never requires approval
+        if ($role_name === 'admin' || $role_id === 1 || $user_id === 1) {
+            return false;
+        }
 
         // Document types to check in approval_matrix
         $doc_types = ($action_type === 'delete') 
@@ -755,20 +760,20 @@ public function add_expense_data_indirect()
 
         if (empty($rules)) {
             // No specific approval_matrix rule configured for inventory:
-            // Admin users do NOT require approval; non-admin users require Admin approval
-            return ($role_name !== 'admin' && $role_id !== 1 && $user_id !== 1);
+            // Non-admin user requires Admin approval
+            return true;
         }
 
         // Active rules exist in approval_matrix!
-        // Check if current user possesses an authorized approver_role (or is Admin)
+        // Check if current user's role matches any of the designated approver_roles
         foreach ($rules as $rule) {
-            $allowed_role = trim($rule['approver_role']);
-            if (strcasecmp($allowed_role, $user_role) === 0 || strcasecmp($allowed_role, 'admin') === 0 || $role_name === 'admin' || $role_id === 1 || $user_id === 1) {
-                return false; // Authorized approver, direct execution
+            $allowed_role = strtolower(trim($rule['approver_role']));
+            if ($allowed_role === $user_role || $allowed_role === 'all') {
+                return false; // Authorized approver, direct execution allowed
             }
         }
 
-        return true; // Requires approval
+        return true; // Current user is NOT an authorized approver, so require approval!
     }
 
     public function delete_expense_by_id()

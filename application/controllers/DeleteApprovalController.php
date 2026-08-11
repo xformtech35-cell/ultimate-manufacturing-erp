@@ -123,7 +123,6 @@ class DeleteApprovalController extends MY_Controller
             $count = $this->db->where('status', 'pending')->count_all_results('item_delete_requests');
         } else {
             $count = $this->db
-                ->where_in('status', ['approved', 'rejected'])
                 ->where('requested_by', $user_id)
                 ->where('user_notified', 0)
                 ->count_all_results('item_delete_requests');
@@ -181,7 +180,7 @@ class DeleteApprovalController extends MY_Controller
                                 <div style=\"font-size:11px;color:#aaa;\">{$time_ago}</div>
                                 <div style=\"margin-top:6px;display:flex;gap:6px;\">
                                     <a href=\"{$approve_url}\" class=\"btn btn-xs btn-success\"
-                                        onclick=\"return confirm('Approve deletion request of [{$req['item_code']}]? The requester will be notified to perform actual deletion.');\">
+                                        onclick=\"return confirm('Approve deletion request of [{$req['item_code']}]? Item will be deleted permanently.');\">
                                         <i class=\"fa fa-check\"></i> Approve
                                     </a>
                                     <a href=\"javascript:void(0);\" class=\"btn btn-xs btn-danger\"
@@ -195,27 +194,43 @@ class DeleteApprovalController extends MY_Controller
                 </li>";
             }
         } else {
-            // Non-Admin: show approved or rejected requests not yet dismissed
+            // Non-Admin: show user's deletion requests (pending, approved, or rejected)
             $requests = $this->db
-                ->where_in('status', ['approved', 'rejected'])
                 ->where('requested_by', $user_id)
                 ->where('user_notified', 0)
-                ->order_by('updated_at', 'DESC')
+                ->order_by('created_at', 'DESC')
                 ->limit(15)
                 ->get('item_delete_requests')
                 ->result_array();
 
             if (empty($requests)) {
-                echo '<li><a href="#" style="text-align:center;color:#999;padding:15px 0;">No new deletion notifications</a></li>';
+                echo '<li><a href="#" style="text-align:center;color:#999;padding:15px 0;">No active deletion requests</a></li>';
                 return;
             }
 
             foreach ($requests as $req) {
                 $time_ago     = $this->_time_ago($req['updated_at'] ?: $req['created_at']);
                 $dismiss_url  = base_url('DeleteApprovalController/dismiss_notification/' . $req['id']);
-                $delete_url   = base_url('DeleteApprovalController/execute_delete/' . $req['id']);
                 
-                if ($req['status'] === 'approved') {
+                if ($req['status'] === 'pending') {
+                    echo "
+                    <li style=\"border-bottom:1px solid #f0f0f0;\">
+                        <div style=\"white-space:normal;padding:8px 12px;display:block;\">
+                            <div style=\"display:flex;align-items:flex-start;gap:8px;\">
+                                <span style=\"background:#f39c12;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;\">
+                                    <i class=\"fa fa-clock-o\"></i>
+                                </span>
+                                <div style=\"flex:1;\">
+                                    <strong style=\"color:#f39c12;\">Deletion Request Pending</strong>
+                                    <div style=\"font-size:12px;color:#333;margin:2px 0;\">
+                                        Deletion request for <strong>" . htmlspecialchars($req['item_code']) . "</strong> submitted. Awaiting Admin Approval.
+                                    </div>
+                                    <div style=\"font-size:11px;color:#aaa;\">{$time_ago}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>";
+                } elseif ($req['status'] === 'approved' || $req['status'] === 'deleted') {
                     echo "
                     <li style=\"border-bottom:1px solid #f0f0f0;\">
                         <div style=\"white-space:normal;padding:8px 12px;display:block;\">
@@ -224,18 +239,14 @@ class DeleteApprovalController extends MY_Controller
                                     <i class=\"fa fa-check\"></i>
                                 </span>
                                 <div style=\"flex:1;\">
-                                    <strong style=\"color:#27ae60;\">Delete Request Approved</strong>
+                                    <strong style=\"color:#27ae60;\">Delete Request Approved & Completed</strong>
                                     <div style=\"font-size:12px;color:#333;margin:2px 0;\">
-                                        Admin approved deletion of <strong>" . htmlspecialchars($req['item_code']) . "</strong>.
+                                        Admin approved and deleted <strong>" . htmlspecialchars($req['item_code']) . "</strong> from system.
                                     </div>
                                     <div style=\"font-size:11px;color:#aaa;\">{$time_ago}</div>
-                                    <div style=\"margin-top:6px;display:flex;gap:6px;\">
-                                        <a href=\"{$delete_url}\" class=\"btn btn-xs btn-danger\"
-                                            onclick=\"return confirm('Delete [{$req['item_code']}] permanently from system? This CANNOT be undone.');\">
-                                            <i class=\"fa fa-trash\"></i> Delete Now
-                                        </a>
+                                    <div style=\"margin-top:6px;\">
                                         <a href=\"{$dismiss_url}\" class=\"btn btn-xs btn-default\">
-                                            Dismiss
+                                            <i class=\"fa fa-times\"></i> Dismiss Notification
                                         </a>
                                     </div>
                                 </div>
@@ -257,9 +268,9 @@ class DeleteApprovalController extends MY_Controller
                                         " . (!empty($req['review_remarks']) ? '<div style="margin-top:2px;font-style:italic;color:#e74c3c;">Remarks: ' . htmlspecialchars($req['review_remarks']) . '</div>' : '') . "
                                     </div>
                                     <div style=\"font-size:11px;color:#aaa;\">{$time_ago}</div>
-                                    <div style=\"margin-top:6px;display:flex;gap:6px;\">
+                                    <div style=\"margin-top:6px;\">
                                         <a href=\"{$dismiss_url}\" class=\"btn btn-xs btn-default\">
-                                            Dismiss
+                                            <i class=\"fa fa-times\"></i> Dismiss Notification
                                         </a>
                                     </div>
                                 </div>
