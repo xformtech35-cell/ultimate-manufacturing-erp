@@ -107,37 +107,59 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         color: #3c8dbc;
         margin-right: 10px;
     }
+    .box-header {
+        position: relative !important;
+        padding: 12px 15px !important;
+    }
+    .box-header .box-title {
+        font-size: 14px !important;
+        font-weight: bold;
+        display: inline-block;
+    }
+    .box-header .box-tools {
+        position: absolute !important;
+        right: 15px !important;
+        top: 8px !important;
+    }
+    .box-header .box-tools .label {
+        font-size: 11px !important;
+        padding: 5px 10px !important;
+        border-radius: 4px;
+        display: inline-block;
+    }
     .timeline {
         position: relative;
-        padding-left: 30px;
+        padding: 10px 10px 10px 45px;
+        margin: 0;
     }
     .timeline:before {
         content: '';
         position: absolute;
-        left: 15px;
-        top: 0;
-        bottom: 0;
+        left: 20px;
+        top: 10px;
+        bottom: 10px;
         width: 2px;
-        background: #ddd;
+        background: #cbd5e1;
     }
     .timeline-item {
         position: relative;
-        margin-bottom: 30px;
+        margin-bottom: 25px;
     }
     .timeline-badge {
         position: absolute;
-        left: -30px;
-        top: 0;
-        width: 40px;
-        height: 40px;
+        left: -38px;
+        top: 8px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         background: #3c8dbc;
         color: white;
         text-align: center;
-        line-height: 40px;
-        z-index: 1;
+        line-height: 32px;
+        z-index: 2;
         font-weight: bold;
-        font-size: 12px;
+        font-size: 11px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .timeline-badge.active {
         background: #00a65a;
@@ -147,10 +169,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     }
     .timeline-content {
         background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 15px;
-        margin-left: 20px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 0;
+        margin-left: 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        overflow: hidden;
     }
     .btn-group-sm .btn {
         margin: 2px;
@@ -339,7 +363,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             $timeline_class = ($rev->status == 'active') ? 'active' : 'superseded';
                                         ?>
                                             <div class="timeline-item">
-                                                <div class="timeline-badge <?php echo $timeline_class; ?>" style="margin: 15px 40px;">
+                                                <div class="timeline-badge <?php echo $timeline_class; ?>">
                                                     <?php echo $rev->revision_no; ?>
                                                 </div>
                                                 <div class="timeline-content">
