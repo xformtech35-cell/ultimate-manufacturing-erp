@@ -53,31 +53,38 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <div class="col-xs-12">
                         <div class="box box-info">
 
-                            <div class="box-header">
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <h3 class="box-title">GST Invoice Details</h3> 
-                                    </div>
-                                    <div class="col-md-5">
-                                        <form action="<?php echo base_url(); ?>InvoiceController/get_datewise_record" method="post" style="margin:0; display:flex; gap:6px; align-items:center;">
-                                            <div class="input-group input-group-sm" style="width: 150px;">
-                                                <span class="input-group-addon" style="height: 30px; padding: 5px 6px;"><i class="fa fa-calendar"></i> From</span>
-                                                <input type="text" class="form-control backdate input-sm" name="from_date" id="from_date" value="<?php echo isset($from_date) ? htmlspecialchars($from_date) : ''; ?>" onkeydown="return false;" autocomplete="off" required placeholder="From Date" style="height: 30px;">
-                                            </div>
-                                            <div class="input-group input-group-sm" style="width: 150px;">
-                                                <span class="input-group-addon" style="height: 30px; padding: 5px 6px;"><i class="fa fa-calendar"></i> To</span>
-                                                <input type="text" class="form-control backdate input-sm" name="to_date" id="to_date" value="<?php echo isset($to_date) ? htmlspecialchars($to_date) : ''; ?>" onkeydown="return false;" autocomplete="off" required placeholder="To Date" style="height: 30px;">
-                                            </div>
-                                            <button class="btn btn-primary btn-sm" name="submit" value="" type="submit" style="height: 30px; padding: 5px 12px; font-weight: 600; border: none; border-radius: 4px;"><i class="fa fa-filter"></i> Filter</button>
-                                        </form>
-                                    </div>
-                                    <div class="col-md-5 invoice-header-actions"> 
-                                        <a href="<?php echo base_url(); ?>InvoiceController/index?str=All" class="btn btn-success btn-sm">Show All Invoice</a>
-                                        <a href="<?php echo base_url(); ?>InvoiceController/create_invoice" class="btn btn-success btn-sm"><i class="glyphicon glyphicon-plus"></i> Create Invoice</a>
-                                        <button type="button" class="btn btn-info btn-sm view-modal-invoice-waybill-create"><i class="fa fa-truck"></i> Create E-Way Bill</button>
-                                    </div>
+                            <div class="box-header with-border" style="padding: 12px 15px; display: block !important; clear: both !important;">
+                                <div style="float: left !important; display: inline-block;">
+                                    <h3 class="box-title" style="float: left !important; font-weight: 600; margin: 0; font-size: 18px; color: #1e293b; display: inline-flex; align-items: center; gap: 8px; line-height: 30px;">
+                                        <i class="fa fa-table" style="color: #3b82f6;"></i> GST Invoice Details
+                                    </h3>
                                 </div>
-                             </div>
+                                <div style="float: right !important; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px;">
+                                    <form action="<?php echo base_url(); ?>InvoiceController/get_datewise_record" method="post" class="form-inline" style="margin: 0; display: inline-flex; align-items: center; gap: 8px;">
+                                        <div class="input-group input-group-sm" style="width: 170px;">
+                                            <span class="input-group-addon" style="height: 30px; padding: 5px 8px;"><i class="fa fa-calendar"></i> From</span>
+                                            <input type="text" class="form-control backdate input-sm" name="from_date" id="from_date" value="<?php echo isset($from_date) ? htmlspecialchars($from_date) : ''; ?>" onkeydown="return false;" autocomplete="off" required placeholder="From Date" style="height: 30px;">
+                                        </div>
+                                        <div class="input-group input-group-sm" style="width: 170px;">
+                                            <span class="input-group-addon" style="height: 30px; padding: 5px 8px;"><i class="fa fa-calendar"></i> To</span>
+                                            <input type="text" class="form-control backdate input-sm" name="to_date" id="to_date" value="<?php echo isset($to_date) ? htmlspecialchars($to_date) : ''; ?>" onkeydown="return false;" autocomplete="off" required placeholder="To Date" style="height: 30px;">
+                                        </div>
+                                        <button class="btn btn-primary btn-sm" name="submit" type="submit" style="height: 30px; padding: 5px 12px; font-weight: 600; border: none; border-radius: 4px;">
+                                            <i class="fa fa-filter"></i> Filter
+                                        </button>
+                                    </form>
+                                    <a href="<?php echo base_url(); ?>InvoiceController/index?str=All" class="btn btn-success btn-sm" style="height: 30px; line-height: 20px; font-weight: 600; padding: 5px 15px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; border: none; background-color: #2e7d32 !important;">
+                                        <i class="fa fa-list"></i> Show All
+                                    </a>
+                                    <button type="button" class="btn btn-info btn-sm view-modal-invoice-waybill-create" style="height: 30px; line-height: 20px; font-weight: 600; padding: 5px 15px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; border: none;">
+                                        <i class="fa fa-truck"></i> Create E-Way Bill
+                                    </button>
+                                    <a href="<?php echo base_url(); ?>InvoiceController/create_invoice" class="btn btn-primary btn-sm" style="height: 30px; line-height: 20px; font-weight: 600; padding: 5px 15px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; border: none;">
+                                        <i class="fa fa-plus"></i> Create Invoice
+                                    </a>
+                                </div>
+                                <div style="clear: both !important;"></div>
+                            </div>
                             <ul class="nav nav-tabs">
                                 <li class="nav-item">
                                     <a class="nav-link <?php echo ($this->uri->segment(2) == 'get_invoice_data_by_status' && $this->uri->segment(3) == '2') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>InvoiceController/get_invoice_data_by_status/2">Sent <span class="badge badge-light"> <?php echo $invoice_sent_count; ?></span></a>
