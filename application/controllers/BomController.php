@@ -526,6 +526,99 @@ class BomController extends MY_Controller {
         ]);
     }
 
+    /**
+     * AJAX Endpoint: Fetch Sales Order details when an SO is selected in Create BOM form
+     */
+    public function get_salesorder_details()
+    {
+        $so_number = trim($this->input->post('so_number') ?? $this->input->get('so_number') ?? '');
+
+        if (empty($so_number)) {
+            echo json_encode(['success' => false, 'message' => 'No SO number provided']);
+            return;
+        }
+
+        // Fetch salesorder_total header
+        $so_total = $this->db
+            ->select('salesorder_total.*, customer.company_name, customer.c_code')
+            ->from('salesorder_total')
+            ->join('customer', 'customer.customer_id = salesorder_total.customer_id_fk', 'left')
+            ->where('salesorder_total.number_fk', $so_number)
+            ->get()
+            ->row_array();
+
+        if (!$so_total) {
+            echo json_encode(['success' => false, 'message' => 'Sales Order not found']);
+            return;
+        }
+
+        // Fetch item details for system/location/capacity if available
+        $so_item = $this->db
+            ->get_where('salesorder', ['number' => $so_number])
+            ->row_array();
+
+        // Check if an existing BOM exists for this SO number
+        $existing_bom = $this->db
+            ->select('number_fk, send_to_mrp')
+            ->from('bom_total')
+            ->where('oc_number', $so_number)
+            ->order_by('id', 'DESC')
+            ->get()
+            ->row_array();
+
+        $suggested_bom_number = '';
+        if ($existing_bom) {
+            if ($existing_bom['send_to_mrp'] == 2) {
+                // MRP has run -> suggest next revision /R1, /R2, etc.
+                $base_bom = preg_replace('/(?:\/R|-R)\d+$/i', '', $existing_bom['number_fk']);
+                $revs = $this->db->select('number_fk')->like('number_fk', $base_bom)->get('bom_total')->result_array();
+                $max_r = 0;
+                foreach ($revs as $rv) {
+                    if (preg_match('/(?:\/R|-R)(\d+)$/i', $rv['number_fk'], $m)) {
+                        if (intval($m[1]) > $max_r) $max_r = intval($m[1]);
+                    }
+                }
+                $suggested_bom_number = $base_bom . '/R' . ($max_r + 1);
+            } else {
+                $suggested_bom_number = $existing_bom['number_fk'];
+            }
+        } else {
+            // Suggest new BOM number matching SO sequence if applicable
+            $seq = 0;
+            if (preg_match('/-OC-(\d+)$/i', $so_number, $m)) {
+                $seq = (int)$m[1];
+            } elseif (preg_match('/(\d+)$/', $so_number, $m)) {
+                $seq = (int)$m[1];
+            }
+
+            // FY string
+            $m_curr = (int)date('m');
+            $fy_s = ($m_curr <= 3) ? ((int)date('y') - 1) : (int)date('y');
+            $fy_str = sprintf('%02d-%02d', $fy_s, $fy_s + 1);
+
+            if ($seq > 0) {
+                $suggested_bom_number = sprintf('BOM/%05d/%s', $seq, $fy_str);
+            } else {
+                $suggested_bom_number = $this->bom->get_last_bom_number($this->user_id);
+            }
+        }
+
+        echo json_encode([
+            'success'              => true,
+            'so_number'            => $so_total['number_fk'],
+            'customer_id'          => $so_total['customer_id_fk'],
+            'customer_name'        => $so_total['company_name'] ?? '',
+            'customer_code'        => $so_total['c_code'] ?? '',
+            'project_code'         => $so_total['project_code'] ?? '',
+            'oc_number'            => $so_total['number_fk'],
+            'system'               => $so_item['product_name'] ?? '',
+            'location'             => $so_item['description'] ?? '',
+            'capacity'             => $so_item['unit'] ?? '',
+            'project_qty'          => $so_item['quantity'] ?? 1,
+            'suggested_bom_number' => $suggested_bom_number
+        ]);
+    }
+
 public function add_bom_bom() {
     $session_data_head = $this->session->userdata('session_data_head');
     // Check if this is an edit operation
