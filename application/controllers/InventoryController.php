@@ -246,12 +246,19 @@ class InventoryController extends MY_Controller
         $user_id   = (int)($res['user_id'] ?? 0);
         $is_admin  = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
 
+        $data['is_admin'] = $is_admin;
+
         if ($is_admin) {
             $data['approved_deletions'] = $this->db->where('status', 'approved')->where('module', 'inventory')->order_by('updated_at', 'DESC')->get('item_delete_requests')->result_array();
             $data['deletion_history']   = $this->db->where_in('status', ['pending', 'rejected', 'deleted'])->where('module', 'inventory')->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+            // Pending inventory update requests count for Admin badge
+            $data['pending_update_count'] = $this->db->table_exists('inventory_approval_requests')
+                ? $this->db->where('status', 'pending')->where('request_type', 'update')->count_all_results('inventory_approval_requests')
+                : 0;
         } else {
             $data['approved_deletions'] = $this->db->where('status', 'approved')->where('module', 'inventory')->where('requested_by', $user_id)->order_by('updated_at', 'DESC')->get('item_delete_requests')->result_array();
             $data['deletion_history']   = $this->db->where_in('status', ['pending', 'approved', 'rejected', 'deleted'])->where('module', 'inventory')->where('requested_by', $user_id)->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+            $data['pending_update_count'] = 0;
         }
 
         $this->load->view('admin/header_side_bar', $session_data_head);
@@ -599,7 +606,30 @@ public function add_expense_data_indirect()
                 ]);
             }
 
-            $this->session->set_flashdata('INFOMSG', "Inventory update request submitted for '{$item_name}' ({$code})! Pending Admin Approval.");
+            // Get dynamic custom message or approver role from Approval Matrix if configured
+            $custom_msg = '';
+            if ($this->db->table_exists('approval_matrix')) {
+                $matrix_rule = $this->db
+                    ->where_in('document_type', ['INV_UPDATE', 'INV'])
+                    ->where('status', 'active')
+                    ->order_by('level', 'ASC')
+                    ->get('approval_matrix')
+                    ->row_array();
+
+                if (!empty($matrix_rule)) {
+                    if (!empty($matrix_rule['notify_message'])) {
+                        $custom_msg = $matrix_rule['notify_message'];
+                    } else if (!empty($matrix_rule['approver_role'])) {
+                        $custom_msg = "Inventory update request submitted for '{$item_name}' ({$code})! Pending approval by " . htmlspecialchars($matrix_rule['approver_role']) . ".";
+                    }
+                }
+            }
+
+            if (empty($custom_msg)) {
+                $custom_msg = "Inventory update request submitted for '{$item_name}' ({$code})! Pending Approval.";
+            }
+
+            $this->session->set_flashdata('INFOMSG', $custom_msg);
             redirect('InventoryController/index');
             return;
         }
@@ -760,7 +790,11 @@ public function add_expense_data_indirect()
 
         if (empty($rules)) {
             // No specific approval_matrix rule configured for inventory:
-            // Non-admin user requires Admin approval
+            // Check session permissions for direct access authorization
+            $permissions = $res['permission'] ?? [];
+            if (in_array('Store_Inventory', $permissions) || in_array('Inventory_Approval', $permissions)) {
+                return false; // Authorized via permission role
+            }
             return true;
         }
 

@@ -622,24 +622,25 @@ $password = $session_data_head['password_str'] ?? '';
                 </li>
 
 
-                <!-- Delete Approval Notifications -->
+                <!-- Approval Notifications Bell (Deletion + Inventory Updates) -->
                 <li class="dropdown notifications-menu" id="del-approval-notif-menu">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="Item Deletion Requests" onclick="loadPendingDelRequests();">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="Approval Requests" onclick="loadPendingDelRequests();">
                         <i class="fa fa-bell-o" style="font-size:18px;"></i>
                         <span class="label label-danger" id="del-approval-badge" style="display:none;position:absolute;top:9px;right:7px;font-size:10px;padding:2px 5px;border-radius:50%;">0</span>
                     </a>
-                    <ul class="dropdown-menu" style="width:330px;padding:0;">
+                    <ul class="dropdown-menu" style="width:340px;padding:0;">
                         <li class="header" style="background:#f9f9f9;padding:10px 15px;font-weight:700;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
-                            <span><i class="fa fa-trash text-red"></i> Deletion Requests</span>
+                            <span><i class="fa fa-bell text-orange"></i> Approval Requests</span>
                             <span class="label label-danger" id="del-approval-header-count">0 Pending</span>
                         </li>
                         <li>
-                            <ul class="menu" id="del-approval-list" style="max-height:300px;overflow-y:auto;list-style:none;padding:0;margin:0;">
+                            <ul class="menu" id="del-approval-list" style="max-height:320px;overflow-y:auto;list-style:none;padding:0;margin:0;">
                                 <li style="text-align:center;padding:15px;color:#999;"><i class="fa fa-spinner fa-spin"></i> Loading...</li>
                             </ul>
                         </li>
-                        <li class="footer" style="background:#f9f9f9;text-align:center;padding:8px;border-top:1px solid #eee;">
-                            <a href="<?php echo base_url('DeleteApprovalController/panel'); ?>" style="color:#3c8dbc;font-weight:600;">View All Requests</a>
+                        <li class="footer" style="background:#f9f9f9;padding:8px;border-top:1px solid #eee;display:flex;justify-content:space-around;">
+                            <a href="<?php echo base_url('InventoryApprovalController/index'); ?>" style="color:#3c8dbc;font-weight:600;font-size:12px;"><i class="fa fa-cubes"></i> Inventory Approvals</a>
+                            <a href="<?php echo base_url('DeleteApprovalController/panel'); ?>" style="color:#d9534f;font-weight:600;font-size:12px;"><i class="fa fa-trash"></i> Delete Approvals</a>
                         </li>
                     </ul>
                 </li>
@@ -647,13 +648,14 @@ $password = $session_data_head['password_str'] ?? '';
                 function updateDelBadgeCount() {
                     if (typeof jQuery !== 'undefined') {
                         jQuery.ajax({
-                            url: '<?php echo base_url("DeleteApprovalController/get_pending_count"); ?>',
+                            url: '<?php echo base_url("InventoryApprovalController/get_pending_count_ajax"); ?>',
                             type: 'GET',
                             dataType: 'json',
                             success: function(res) {
-                                if (res && res.count > 0) {
-                                    jQuery('#del-approval-badge').text(res.count).show();
-                                    jQuery('#del-approval-header-count').text(res.count + ' Pending');
+                                var total = (res && res.count) ? parseInt(res.count) : 0;
+                                if (total > 0) {
+                                    jQuery('#del-approval-badge').text(total).show();
+                                    jQuery('#del-approval-header-count').text(total + ' Pending');
                                 } else {
                                     jQuery('#del-approval-badge').hide();
                                     jQuery('#del-approval-header-count').text('0 Pending');
@@ -665,7 +667,7 @@ $password = $session_data_head['password_str'] ?? '';
                 function loadPendingDelRequests() {
                     if (typeof jQuery !== 'undefined') {
                         jQuery.ajax({
-                            url: '<?php echo base_url("DeleteApprovalController/get_pending_requests_html"); ?>',
+                            url: '<?php echo base_url("InventoryApprovalController/get_pending_html_ajax"); ?>',
                             type: 'GET',
                             success: function(html) {
                                 jQuery('#del-approval-list').html(html);
@@ -1996,6 +1998,7 @@ if ($currentPage == 'InventoryController') {
     </div>
 </div>
 
+
 <script>
 var currentDelModalItemId = '';
 var currentDelModalModule = '';
@@ -2024,4 +2027,61 @@ function submitDeleteModalRequest() {
                           '&reason=' + encodeURIComponent(reason) + 
                           '&redirect_url=' + encodeURIComponent(redirectUrl);
 }
+
+// ── Edit Item Approval Request Modal ──
+var currentEditItemId = '';
+var currentEditItemCode = '';
+var currentEditItemName = '';
+
+function openEditRequestModal(itemId, itemCode, itemName) {
+    currentEditItemId   = itemId;
+    currentEditItemCode = itemCode;
+    currentEditItemName = itemName;
+    document.getElementById('editModalItemDisplay').value = itemCode + ' — ' + itemName;
+    document.getElementById('editModalReason').value = '';
+    document.getElementById('editModalError').style.display = 'none';
+    jQuery('#editRequestModal').modal('show');
+}
+
+function submitEditModalRequest() {
+    var reason = document.getElementById('editModalReason').value.trim();
+    if (reason === '') {
+        document.getElementById('editModalError').style.display = 'block';
+        return;
+    }
+    var baseUrl = '<?php echo base_url(); ?>';
+    window.location.href = baseUrl + 'InventoryController/get_inventory_by_id/' + encodeURIComponent(currentEditItemId) + '?edit_reason=' + encodeURIComponent(reason);
+    jQuery('#editRequestModal').modal('hide');
+}
 </script>
+
+<!-- Edit Request Reason Modal -->
+<div class="modal fade" id="editRequestModal" tabindex="-1" role="dialog" aria-labelledby="editRequestModalLabel" style="z-index: 999999;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="border-radius: 6px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background-color: #3c8dbc; color: white;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8;"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="editRequestModalLabel" style="font-weight: 600;"><i class="fa fa-pencil-square"></i> Request Item Edit Approval</h4>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div class="alert alert-info" style="margin-bottom: 15px; border-radius: 4px; padding: 10px 15px; font-weight: 600;">
+                    <i class="fa fa-info-circle"></i> Changes to this item require Admin approval before they take effect.
+                </div>
+                <div class="form-group">
+                    <label style="font-weight: 600; color: #333;">Item Code / Name</label>
+                    <input type="text" id="editModalItemDisplay" class="form-control" readonly style="background-color: #eee; font-weight: bold; height: 38px;">
+                </div>
+                <div class="form-group">
+                    <label style="font-weight: 600; color: #333;">Reason for Edit Request <span class="text-danger">*</span></label>
+                    <textarea id="editModalReason" class="form-control" rows="3" placeholder="Enter reason why this item needs to be edited..." style="resize: none; border-radius: 4px;"></textarea>
+                    <span class="help-block text-danger" id="editModalError" style="display: none; font-weight: 600; margin-top: 5px;">Reason is required.</span>
+                </div>
+            </div>
+            <div class="modal-footer" style="background-color: #f9f9f9; border-top: 1px solid #eee; padding: 15px 20px;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" style="font-weight: 600;">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitEditModalRequest();" style="font-weight: 600;"><i class="fa fa-pencil"></i> Continue to Edit</button>
+            </div>
+        </div>
+    </div>
+</div>
+

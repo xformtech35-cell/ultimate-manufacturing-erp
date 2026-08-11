@@ -341,6 +341,17 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                 </div>
                                                 <div class="col-md-5 text-right">
                                                     <div class="btn-group btn-group-sm">
+                                                        <?php 
+                                                        $is_media = in_array(strtolower($file_ext), ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'pdf']);
+                                                        if ($is_media) { 
+                                                        ?>
+                                                            <a href="javascript:void(0);" 
+                                                               class="btn btn-info btn-file-action" 
+                                                               onclick="previewMediaFile('<?php echo base_url() . $file->file_path; ?>', '<?php echo htmlspecialchars($file->file_name, ENT_QUOTES); ?>', '<?php echo $file_ext; ?>')" 
+                                                               title="View File">
+                                                                <i class="fa fa-eye"></i> View File
+                                                            </a>
+                                                        <?php } ?>
                                                         <a href="<?php echo base_url() . 'DrawingController/download_file/' . $file->file_id; ?>" 
                                                            class="btn btn-primary btn-file-action" title="Download">
                                                             <i class="fa fa-download"></i> Download
@@ -399,9 +410,46 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         <div class="control-sidebar-bg"></div>
     </div>
     
+    <!-- File Preview Modal -->
+    <div class="modal fade" id="filePreviewModal" tabindex="-1" role="dialog" aria-labelledby="filePreviewModalLabel" style="z-index: 999999;">
+        <div class="modal-dialog modal-lg" role="document" style="width: 85%; max-width: 1000px;">
+            <div class="modal-content" style="border-radius: 6px; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,0.3);">
+                <div class="modal-header" style="background-color: #3c8dbc; color: white; padding: 12px 20px;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.9; font-size: 24px;"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="filePreviewModalLabel" style="font-weight: 600; font-size: 15px;"><i class="fa fa-eye"></i> <span id="filePreviewTitle">File Preview</span></h4>
+                </div>
+                <div class="modal-body" style="padding: 0; background-color: #1e1e1e; text-align: center; min-height: 450px; display: flex; align-items: center; justify-content: center;">
+                    <div id="filePreviewContainer" style="width: 100%; height: 100%; min-height: 450px;">
+                    </div>
+                </div>
+                <div class="modal-footer" style="background-color: #f9f9f9; padding: 10px 20px;">
+                    <a id="filePreviewDownloadBtn" href="#" class="btn btn-primary" download><i class="fa fa-download"></i> Download</a>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" style="font-weight: 600;">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function previewMediaFile(filePath, fileName, fileExt) {
+            $('#filePreviewTitle').text(fileName);
+            $('#filePreviewDownloadBtn').attr('href', filePath);
+            var container = $('#filePreviewContainer');
+            container.empty();
+
+            var ext = fileExt.toLowerCase();
+            if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].indexOf(ext) !== -1) {
+                container.html('<img src="' + filePath + '" style="max-width: 100%; max-height: 70vh; object-fit: contain; margin: 20px auto; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.5);" alt="' + fileName + '">');
+            } else if (ext === 'pdf') {
+                container.html('<iframe src="' + filePath + '" style="width: 100%; height: 75vh; border: none;"></iframe>');
+            } else {
+                container.html('<div style="padding: 50px; color: #fff;"><h4>No preview available for .' + ext + ' files</h4><p>Click Download below to open the file.</p></div>');
+            }
+
+            $('#filePreviewModal').modal('show');
+        }
+
         $(document).ready(function() {
-            // Add any additional interactivity if needed
             $('[data-toggle="tooltip"]').tooltip();
         });
     </script>

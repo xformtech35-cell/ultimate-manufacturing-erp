@@ -97,6 +97,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                     <?php
                                     $type_class = $inventory['item_type'] == 'B' ? 'badge-boughtout' : 'badge-manufacturing';
                                     $type_text = $inventory['item_type'] == 'B' ? 'Boughtout' : 'Manufacturing';
+                                    $edit_reason = $this->input->get('edit_reason') ?: '';
                                     ?>
 
                                     <div class="alert alert-info" style="border-left: 4px solid var(--info-teal); margin-bottom: 20px;">
@@ -107,12 +108,21 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                 <?php echo $type_text; ?>
                                             </span>
                                         </p>
+                                        <?php if (!empty($edit_reason)): ?>
+                                            <p style="margin-top:6px;margin-bottom:0;"><i class="fa fa-comment"></i> <strong>Reason:</strong> <?php echo htmlspecialchars($edit_reason); ?></p>
+                                        <?php endif; ?>
                                     </div>
+                                    <?php if (!empty($edit_reason)): ?>
+                                        <div class="alert alert-warning" style="margin-bottom: 15px;">
+                                            <i class="fa fa-clock-o"></i> <strong>Approval Required:</strong> Your changes will be submitted for Admin approval before being applied.
+                                        </div>
+                                    <?php endif; ?>
 
                                     <form method="post" action="<?php echo base_url(); ?>InventoryController/edit_inventory" enctype="multipart/form-data">
                                         <div style="padding: 20px;">
                                             <!-- Hidden field -->
                                             <input type="hidden" name="inventory_id" value="<?php echo $inventory['inventory_id']; ?>">
+                                            <input type="hidden" name="reason" value="<?php echo htmlspecialchars($edit_reason, ENT_QUOTES); ?>">
 
                                             <!-- Row 1: Code, Name, HSN -->
                                             <div class="row">

@@ -62,6 +62,7 @@ class ApprovalMatrixController extends MY_Controller
                     'min_amount' => $this->input->post('min_amount') ?: 0,
                     'max_amount' => $this->input->post('max_amount') ?: 0,
                     'status' => $this->input->post('status') ?: 'active',
+                    'notify_message' => $this->input->post('notify_message') ?: null,
                     'created_by' => $this->user_id,
                     'created_at' => date("Y-m-d H:i:s")
                 ];
@@ -101,6 +102,7 @@ class ApprovalMatrixController extends MY_Controller
                     'min_amount' => $this->input->post('min_amount') ?: 0,
                     'max_amount' => $this->input->post('max_amount') ?: 0,
                     'status' => $this->input->post('status') ?: 'active',
+                    'notify_message' => $this->input->post('notify_message') ?: null,
                     'updated_by' => $this->user_id,
                     'updated_at' => date("Y-m-d H:i:s")
                 ];

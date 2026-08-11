@@ -380,9 +380,17 @@ $is_admin  = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
                                                                          </button>
                                                                          <ul class="dropdown-menu dropdown-menu-right text-left" style="min-width: 170px; box-shadow: 0 6px 18px rgba(0,0,0,0.15); border-radius: 6px; padding: 6px 0; margin-top: 4px;">
                                                                              <li>
-                                                                                 <a href="<?= base_url('InventoryController/get_inventory_by_id/' . $key->inventory_id); ?>" style="padding: 6px 15px; font-size: 13px;">
-                                                                                     <i class="fa fa-pencil-square text-primary" style="margin-right: 8px; width: 16px;"></i> Edit Item
-                                                                                 </a>
+                                                                                 <?php if (!empty($is_admin)): ?>
+                                                                                     <a href="<?= base_url('InventoryController/get_inventory_by_id/' . $key->inventory_id); ?>" style="padding: 6px 15px; font-size: 13px;">
+                                                                                         <i class="fa fa-pencil-square text-primary" style="margin-right: 8px; width: 16px;"></i> Edit Item
+                                                                                     </a>
+                                                                                 <?php else: ?>
+                                                                                     <a href="javascript:void(0);"
+                                                                                        onclick="openEditRequestModal('<?= $key->inventory_id; ?>', '<?= htmlspecialchars($key->code, ENT_QUOTES); ?>', '<?= htmlspecialchars($key->item_name, ENT_QUOTES); ?>')"
+                                                                                        style="padding: 6px 15px; font-size: 13px;">
+                                                                                         <i class="fa fa-pencil-square text-primary" style="margin-right: 8px; width: 16px;"></i> Edit Item
+                                                                                     </a>
+                                                                                 <?php endif; ?>
                                                                              </li>
                                                                              <li>
                                                                                  <a href="<?= base_url('MaterialIssueController/stock_ledger/' . $key->inventory_id); ?>" style="padding: 6px 15px; font-size: 13px;">
@@ -391,7 +399,7 @@ $is_admin  = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
                                                                              </li>
                                                                              <li role="separator" class="divider" style="margin: 4px 0;"></li>
                                                                              <li>
-                                                                                 <?php if ($is_admin): ?>
+                                                                                 <?php if (!empty($is_admin)): ?>
                                                                                      <a href="<?= base_url('InventoryController/delete_inventory_by_id/' . $key->inventory_id); ?>"
                                                                                         onclick="return confirm('Are you sure you want to delete this item?')"
                                                                                         style="padding: 6px 15px; font-size: 13px; color: #d9534f;">

@@ -139,6 +139,13 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                             </div>
 
                                             <div class="form-group">
+                                                <label class="col-sm-2 control-label">Custom Alert Message</label>
+                                                <div class="col-sm-5">
+                                                    <textarea name="notify_message" class="form-control" rows="2" placeholder="Custom message shown to user when request goes for approval (optional)"><?= html_escape($rule->notify_message ?? '') ?></textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
                                                 <label class="col-sm-2 control-label">Status</label>
                                                 <div class="col-sm-5">
                                                     <select name="status" class="form-control">

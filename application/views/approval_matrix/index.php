@@ -139,6 +139,13 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                             </div>
 
                                             <div class="form-group">
+                                                <label class="col-sm-2 control-label">Custom Alert Message</label>
+                                                <div class="col-sm-5">
+                                                    <textarea name="notify_message" class="form-control" rows="2" placeholder="Custom message shown to user when request goes for approval (optional)"></textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
                                                 <label class="col-sm-2 control-label">Status</label>
                                                 <div class="col-sm-5">
                                                     <select name="status" class="form-control">
@@ -172,6 +179,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                         <th>Approver Role</th>
                                         <th>Min Amount</th>
                                         <th>Max Amount</th>
+                                        <th>Custom Alert Message</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -187,6 +195,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                             <td><strong><?= html_escape($row->approver_role) ?></strong> <span class="label label-info" style="font-size: 10px; margin-left: 3px;" title="Admin can also approve">+ Admin</span></td>
                                             <td><?= $row->min_amount ?></td>
                                             <td><?= $row->max_amount ?></td>
+                                            <td><?= !empty($row->notify_message) ? html_escape($row->notify_message) : '<span class="text-muted">Default</span>' ?></td>
                                             <td><?= $row->status ?></td>
                                             <td>
                                                 <a href="<?= base_url('ApprovalMatrixController/edit/' . $row->id) ?>" class="btn btn-warning btn-sm">Edit</a>

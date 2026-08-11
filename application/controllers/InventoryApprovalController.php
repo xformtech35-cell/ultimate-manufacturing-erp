@@ -210,6 +210,19 @@ class InventoryApprovalController extends MY_Controller
                     'updated_at'       => date('Y-m-d H:i:s')
                 ]);
 
+                // Create user notification for requester
+                if (!empty($req['requested_by'])) {
+                    $this->db->insert('user_notifications', [
+                        'user_id'    => $req['requested_by'],
+                        'title'      => 'Inventory Update Approved',
+                        'message'    => "Your update request for item '{$req['item_name']}' ({$req['item_code']}) has been approved by {$approver_name}.",
+                        'type'       => 'success',
+                        'module'     => 'inventory',
+                        'ref_id'     => $req['inventory_id'],
+                        'created_at' => date('Y-m-d H:i:s')
+                    ]);
+                }
+
                 $this->session->set_flashdata('SUCCESSMSG', "Inventory update request for item '{$req['item_name']}' approved and applied successfully!");
             } else {
                 $this->session->set_flashdata('ERRORMSG', "Failed to apply inventory updates.");
@@ -235,6 +248,19 @@ class InventoryApprovalController extends MY_Controller
                     'status'      => 'deleted',
                     'reviewed_by' => $approver_id
                 ]);
+
+                // Create user notification for requester
+                if (!empty($req['requested_by'])) {
+                    $this->db->insert('user_notifications', [
+                        'user_id'    => $req['requested_by'],
+                        'title'      => 'Inventory Deletion Approved',
+                        'message'    => "Your deletion request for item '{$req['item_name']}' ({$req['item_code']}) has been approved by {$approver_name}.",
+                        'type'       => 'success',
+                        'module'     => 'inventory',
+                        'ref_id'     => $req['inventory_id'],
+                        'created_at' => date('Y-m-d H:i:s')
+                    ]);
+                }
 
                 $this->session->set_flashdata('SUCCESSMSG', "Item '{$req['item_name']}' deletion approved and completed successfully!");
             }
@@ -279,7 +305,208 @@ class InventoryApprovalController extends MY_Controller
             ]);
         }
 
+        // Create user notification for requester
+        if (!empty($req['requested_by'])) {
+            $this->db->insert('user_notifications', [
+                'user_id'    => $req['requested_by'],
+                'title'      => 'Inventory Request Rejected',
+                'message'    => "Your {$req['request_type']} request for item '{$req['item_name']}' ({$req['item_code']}) was rejected. Remarks: {$remarks}",
+                'type'       => 'error',
+                'module'     => 'inventory',
+                'ref_id'     => $req['inventory_id'],
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+        }
+
         $this->session->set_flashdata('INFOMSG', "Inventory request for item '{$req['item_name']}' has been rejected.");
         redirect('InventoryApprovalController/index');
+    }
+
+    /**
+     * AJAX: Combined pending count (inventory updates + item deletions) for the bell badge
+     */
+    public function get_pending_count_ajax()
+    {
+        $session_data = $this->session->userdata('session_data_head');
+        $res          = $session_data['result'] ?? [];
+        $role_name    = strtolower($res['role_name'] ?? '');
+        $role_id      = (int)($res['role_id'] ?? $res['role'] ?? 0);
+        $user_id      = (int)($res['user_id'] ?? 0);
+        $is_admin     = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
+
+        $count = 0;
+        if ($is_admin) {
+            // Pending inventory update/delete requests
+            if ($this->db->table_exists('inventory_approval_requests')) {
+                $count += $this->db->where('status', 'pending')->count_all_results('inventory_approval_requests');
+            }
+            // Pending item deletion requests (legacy)
+            if ($this->db->table_exists('item_delete_requests')) {
+                $count += $this->db->where('status', 'pending')->count_all_results('item_delete_requests');
+            }
+        } else {
+            // Non-admin: count their own unreviewed requests
+            if ($this->db->table_exists('inventory_approval_requests')) {
+                $count += $this->db->where('requested_by', $user_id)->where('status', 'pending')->count_all_results('inventory_approval_requests');
+            }
+            if ($this->db->table_exists('item_delete_requests')) {
+                $count += $this->db->where('requested_by', $user_id)->where('user_notified', 0)->count_all_results('item_delete_requests');
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(['count' => (int)$count]);
+    }
+
+    /**
+     * AJAX: Combined notification HTML for the bell dropdown
+     */
+    public function get_pending_html_ajax()
+    {
+        $session_data = $this->session->userdata('session_data_head');
+        $res          = $session_data['result'] ?? [];
+        $role_name    = strtolower($res['role_name'] ?? '');
+        $role_id      = (int)($res['role_id'] ?? $res['role'] ?? 0);
+        $user_id      = (int)($res['user_id'] ?? 0);
+        $is_admin     = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
+
+        $html = '';
+
+        if ($is_admin) {
+            // Pending inventory update requests
+            $inv_reqs = [];
+            if ($this->db->table_exists('inventory_approval_requests')) {
+                $inv_reqs = $this->db->where('status', 'pending')->order_by('created_at', 'DESC')->limit(8)->get('inventory_approval_requests')->result_array();
+            }
+            foreach ($inv_reqs as $req) {
+                $type_icon  = $req['request_type'] === 'delete' ? 'fa-trash' : 'fa-pencil-square';
+                $type_label = $req['request_type'] === 'delete' ? 'Delete Request' : 'Edit Request';
+                $type_color = $req['request_type'] === 'delete' ? '#d9534f' : '#3c8dbc';
+                $approve_url = base_url('InventoryApprovalController/approve/' . $req['id']);
+                $reject_url  = base_url('InventoryApprovalController/reject/'  . $req['id']);
+                $time_ago    = $this->_time_ago_inv($req['created_at']);
+                $html .= "
+                <li style=\"border-bottom:1px solid #f0f0f0;\">
+                    <div style=\"white-space:normal;padding:8px 12px;\">
+                        <div style=\"display:flex;align-items:flex-start;gap:8px;\">
+                            <span style=\"background:{$type_color};color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex-shrink:0;\">
+                                <i class=\"fa {$type_icon}\"></i>
+                            </span>
+                            <div style=\"flex:1;\">
+                                <strong style=\"color:{$type_color};font-size:12px;\">{$type_label} (Pending)</strong>
+                                <div style=\"font-size:12px;color:#333;\"><strong>" . htmlspecialchars($req['item_code']) . "</strong> — " . htmlspecialchars($req['item_name']) . "</div>
+                                <div style=\"font-size:11px;color:#777;\">By: " . htmlspecialchars($req['requested_by_name']) . " &bull; {$time_ago}</div>
+                                " . (!empty($req['reason']) ? '<div style="font-size:11px;color:#888;font-style:italic;">Reason: ' . htmlspecialchars(substr($req['reason'], 0, 55)) . '</div>' : '') . "
+                                <div style=\"margin-top:5px;display:flex;gap:5px;\">
+                                    <a href=\"{$approve_url}\" class=\"btn btn-xs btn-success\" onclick=\"return confirm('Approve this request?');\"><i class=\"fa fa-check\"></i> Approve</a>
+                                    <a href=\"javascript:void(0);\" class=\"btn btn-xs btn-danger\" onclick=\"var r=prompt('Rejection remarks:');if(r!==null)window.location.href='{$reject_url}?remarks='+encodeURIComponent(r);\"><i class=\"fa fa-times\"></i> Reject</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>";
+            }
+
+            // Pending item delete requests (legacy)
+            $del_reqs = [];
+            if ($this->db->table_exists('item_delete_requests')) {
+                $del_reqs = $this->db->where('status', 'pending')->order_by('created_at', 'DESC')->limit(5)->get('item_delete_requests')->result_array();
+            }
+            foreach ($del_reqs as $req) {
+                $approve_url = base_url('DeleteApprovalController/approve/' . $req['id']);
+                $reject_url  = base_url('DeleteApprovalController/reject/'  . $req['id']);
+                $time_ago    = $this->_time_ago_inv($req['created_at']);
+                $html .= "
+                <li style=\"border-bottom:1px solid #f0f0f0;\">
+                    <div style=\"white-space:normal;padding:8px 12px;\">
+                        <div style=\"display:flex;align-items:flex-start;gap:8px;\">
+                            <span style=\"background:#f39c12;color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex-shrink:0;\">
+                                <i class=\"fa fa-trash\"></i>
+                            </span>
+                            <div style=\"flex:1;\">
+                                <strong style=\"color:#f39c12;font-size:12px;\">Delete Request (Pending)</strong>
+                                <div style=\"font-size:12px;color:#333;\"><strong>" . htmlspecialchars($req['item_code']) . "</strong></div>
+                                <div style=\"font-size:11px;color:#777;\">By: " . htmlspecialchars($req['requested_by_name']) . " &bull; {$time_ago}</div>
+                                <div style=\"margin-top:5px;display:flex;gap:5px;\">
+                                    <a href=\"{$approve_url}\" class=\"btn btn-xs btn-success\" onclick=\"return confirm('Approve deletion?');\"><i class=\"fa fa-check\"></i> Approve</a>
+                                    <a href=\"javascript:void(0);\" class=\"btn btn-xs btn-danger\" onclick=\"var r=prompt('Rejection remarks:');if(r!==null)window.location.href='{$reject_url}?remarks='+encodeURIComponent(r);\"><i class=\"fa fa-times\"></i> Reject</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>";
+            }
+
+            if (empty($inv_reqs) && empty($del_reqs)) {
+                $html = '<li><a href="#" style="text-align:center;color:#999;padding:15px 0;display:block;">No pending approval requests</a></li>';
+            }
+        } else {
+            // Non-admin: show their own pending/reviewed requests
+            $own_reqs = $this->db->table_exists('inventory_approval_requests')
+                ? $this->db->where('requested_by', $user_id)->order_by('created_at', 'DESC')->limit(8)->get('inventory_approval_requests')->result_array()
+                : [];
+
+            foreach ($own_reqs as $req) {
+                $time_ago = $this->_time_ago_inv($req['updated_at'] ?: $req['created_at']);
+                if ($req['status'] === 'pending') {
+                    $html .= "
+                    <li style=\"border-bottom:1px solid #f0f0f0;\">
+                        <div style=\"white-space:normal;padding:8px 12px;\">
+                            <span style=\"background:#f39c12;color:#fff;border-radius:50%;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;vertical-align:middle;\"><i class=\"fa fa-clock-o\"></i></span>
+                            <strong style=\"color:#f39c12;font-size:12px;\">" . ($req['request_type'] === 'delete' ? 'Delete' : 'Edit') . " Request Pending</strong>
+                            <div style=\"font-size:11px;color:#333;margin-left:36px;\"><strong>" . htmlspecialchars($req['item_code']) . "</strong> — Awaiting Admin Approval</div>
+                            <div style=\"font-size:10px;color:#aaa;margin-left:36px;\">{$time_ago}</div>
+                        </div>
+                    </li>";
+                } elseif ($req['status'] === 'approved') {
+                    $html .= "
+                    <li style=\"border-bottom:1px solid #f0f0f0;\">
+                        <div style=\"white-space:normal;padding:8px 12px;\">
+                            <span style=\"background:#27ae60;color:#fff;border-radius:50%;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;vertical-align:middle;\"><i class=\"fa fa-check\"></i></span>
+                            <strong style=\"color:#27ae60;font-size:12px;\">" . ($req['request_type'] === 'delete' ? 'Delete' : 'Edit') . " Request Approved</strong>
+                            <div style=\"font-size:11px;color:#333;margin-left:36px;\"><strong>" . htmlspecialchars($req['item_code']) . "</strong> — Applied by Admin</div>
+                            <div style=\"font-size:10px;color:#aaa;margin-left:36px;\">{$time_ago}</div>
+                        </div>
+                    </li>";
+                } else {
+                    $html .= "
+                    <li style=\"border-bottom:1px solid #f0f0f0;\">
+                        <div style=\"white-space:normal;padding:8px 12px;\">
+                            <span style=\"background:#d9534f;color:#fff;border-radius:50%;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;vertical-align:middle;\"><i class=\"fa fa-times\"></i></span>
+                            <strong style=\"color:#d9534f;font-size:12px;\">Request Rejected</strong>
+                            <div style=\"font-size:11px;color:#333;margin-left:36px;\"><strong>" . htmlspecialchars($req['item_code']) . "</strong>" . (!empty($req['review_remarks']) ? ' — ' . htmlspecialchars($req['review_remarks']) : '') . "</div>
+                            <div style=\"font-size:10px;color:#aaa;margin-left:36px;\">{$time_ago}</div>
+                        </div>
+                    </li>";
+                }
+            }
+            if (empty($own_reqs)) {
+                $html = '<li><a href="#" style="text-align:center;color:#999;padding:15px 0;display:block;">No approval requests</a></li>';
+            }
+        }
+
+        echo $html;
+    }
+
+    public function mark_notification_read($id)
+    {
+        $session_data = $this->session->userdata('session_data_head');
+        $user_id      = (int)($session_data['result']['user_id'] ?? 0);
+
+        if ($user_id > 0 && $this->db->table_exists('user_notifications')) {
+            $this->db->where('id', (int)$id)->where('user_id', $user_id)->update('user_notifications', ['is_read' => 1]);
+        }
+        echo json_encode(['status' => 'success']);
+    }
+
+    private function _time_ago_inv($datetime)
+    {
+        $now  = new DateTime();
+        $ago  = new DateTime($datetime);
+        $diff = $now->diff($ago);
+        if ($diff->d > 0)  return $diff->d . 'd ago';
+        if ($diff->h > 0)  return $diff->h . 'h ago';
+        if ($diff->i > 0)  return $diff->i . 'm ago';
+        return 'Just now';
     }
 }

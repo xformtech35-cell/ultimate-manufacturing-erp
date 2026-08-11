@@ -64,6 +64,33 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             </div>
         <?php } ?>
 
+        <!-- Per-User Approval Status Notifications -->
+        <?php
+        $user_id_curr = (int)($session_data_head1['result']['user_id'] ?? 0);
+        if ($user_id_curr > 0 && $this->db->table_exists('user_notifications')) {
+            $user_notifs = $this->db
+                ->where('user_id', $user_id_curr)
+                ->where('is_read', 0)
+                ->order_by('created_at', 'DESC')
+                ->limit(5)
+                ->get('user_notifications')
+                ->result_array();
+
+            foreach ($user_notifs as $unotif) {
+                $alert_class = ($unotif['type'] === 'success') ? 'alert-success' : (($unotif['type'] === 'error') ? 'alert-danger' : 'alert-info');
+                $alert_icon  = ($unotif['type'] === 'success') ? 'fa-check-circle' : (($unotif['type'] === 'error') ? 'fa-times-circle' : 'fa-info-circle');
+                ?>
+                <div class="alert <?= $alert_class; ?> alert-dismissible" style="box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true" onclick="jQuery.get('<?= base_url('InventoryApprovalController/mark_notification_read/' . $unotif['id']); ?>');">×</button>
+                    <h4><i class="icon fa <?= $alert_icon; ?>"></i> <?= htmlspecialchars($unotif['title']); ?></h4>
+                    <?= htmlspecialchars($unotif['message']); ?>
+                    <span class="pull-right" style="font-size: 11px; opacity: 0.8;"><?= date('d M Y, h:i A', strtotime($unotif['created_at'])); ?></span>
+                </div>
+                <?php
+            }
+        }
+        ?>
+
         <div class="row">
             <div class="col-xs-12">
                 <div class="nav-tabs-custom">
