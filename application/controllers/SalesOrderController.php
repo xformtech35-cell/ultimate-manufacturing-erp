@@ -1820,6 +1820,21 @@ public function edit_salesorder_salesorder()
             redirect('SalesOrderController/index');
         }
     }
+    public function get_datewise_record()
+    {
+        $from_date = $this->input->post('from_date');
+        $to_date = $this->input->post('to_date');
+        $data['from_date'] = $from_date;
+        $data['to_date'] = $to_date;
+        $data['salesorder_count'] = $this->salesorder->get_salesorder_count($this->user_id);
+        $data['salesorder_draft_count'] = $this->salesorder->get_salesorder_draft_count(1, $this->user_id);
+        $data['salesorder_sent_count'] = $this->salesorder->get_salesorder_draft_count(2, $this->user_id);
+        $data['salesorders'] = $this->salesorder->get_datewise_record($from_date, $to_date, $this->user_id);
+        $session_data_head = $this->session->userdata('session_data_head');
+        $this->load->view('admin/header_side_bar', $session_data_head);
+        $this->load->view('salesorder/view_salesorder', $data);
+    }
+
     public function get_monthyearwise_record()
     {
         $month_year = $this->input->post('month_year');
