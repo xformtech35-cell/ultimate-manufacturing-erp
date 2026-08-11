@@ -939,13 +939,18 @@ class GrnController extends MY_Controller
         }
     }
 
-    public function show_grn_approval_details($grn_number_encoded)
+    public function show_grn_approval_details($grn_number_encoded = null)
     {
-        $decoded = base64_decode(urldecode($grn_number_encoded), true);
+        if (empty($grn_number_encoded)) {
+            $grn_number_encoded = $this->getGrnNumberFromUri(3, 8);
+        }
+
+        $decoded = base64_decode(rawurldecode($grn_number_encoded), true);
         if ($decoded !== false && preg_match('/GRN/i', $decoded)) {
             $grn_number = $decoded;
         } else {
-            $grn_number = str_replace('-', '/', $grn_number_encoded);
+            $raw_uri = $this->getGrnNumberFromUri(3, 8);
+            $grn_number = !empty($raw_uri) ? $raw_uri : str_replace('-', '/', $grn_number_encoded);
         }
 
         $data['show_grn'] = $this->grn->get_grn_data($grn_number, $this->user_id);
@@ -1090,13 +1095,18 @@ class GrnController extends MY_Controller
     }
 
     // Method to view GRN details (for approvers)
-    public function view_grn_details($grn_number_encoded)
+    public function view_grn_details($grn_number_encoded = null)
     {
-        $decoded = base64_decode(urldecode($grn_number_encoded), true);
+        if (empty($grn_number_encoded)) {
+            $grn_number_encoded = $this->getGrnNumberFromUri(3, 8);
+        }
+
+        $decoded = base64_decode(rawurldecode($grn_number_encoded), true);
         if ($decoded !== false && preg_match('/GRN/i', $decoded)) {
             $grn_number = $decoded;
         } else {
-            $grn_number = str_replace('-', '/', $grn_number_encoded);
+            $raw_uri = $this->getGrnNumberFromUri(3, 8);
+            $grn_number = !empty($raw_uri) ? $raw_uri : str_replace('-', '/', $grn_number_encoded);
         }
 
         $data['show_grn'] = $this->grn->get_grn_data($grn_number, $this->user_id);

@@ -1093,6 +1093,9 @@ if ($currentPage == 'InventoryController') {
                     ]);
                 }
 
+                // Ensure GRN Quality Approvals title is updated in sidebar_menu DB table
+                $ci->db->where('url', 'GrnController/grn_approvals')->update('sidebar_menu', ['title' => 'GRN Quality Approvals']);
+
                 // Ensure "Item Deletion Requests" menu item exists under Store / Inventory (parent_id = 19)
                 $has_del_requests = $ci->db->where('url', 'DeleteApprovalController/panel')->get('sidebar_menu')->row();
                 if (!$has_del_requests) {
