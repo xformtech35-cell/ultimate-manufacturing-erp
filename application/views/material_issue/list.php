@@ -378,7 +378,7 @@ $_total_table_width = 1060;
                                                                     <li><a href="#" class="cancel-link" data-id="<?= $slip['issue_id'] ?>">Cancel</a></li>
                                                                 <?php endif; ?>
                                                                 <li role="separator" class="divider"></li>
-                                                                <li><a href="#" class="delete-link" data-id="<?= $slip['issue_id'] ?>" onclick="return confirm('Are you sure you want to delete this issue slip?')">Delete</a></li>
+                                                                <li class="disabled"><a href="javascript:void(0);" style="color: #999; cursor: not-allowed; opacity: 0.6;" onclick="return false;" title="Delete action disabled">Delete</a></li>
                                                             </ul>
                                                         </div>
                                                     </td>
@@ -428,8 +428,8 @@ $_total_table_width = 1060;
                                                             </button>
                                                             <ul class="dropdown-menu pull-right" role="menu">
                                                                 <li><a href="<?= base_url('MaterialIssueController/view/' . $slip['issue_id']) ?>" target="_blank">View Details</a></li>
-                                                                <li role="separator" class="divider"></li>
-                                                                <li><a href="#" class="delete-link" data-id="<?= $slip['issue_id'] ?>" onclick="return confirm('Are you sure you want to delete this return note?')">Delete</a></li>
+                                                                 <li role="separator" class="divider"></li>
+                                                                 <li class="disabled"><a href="javascript:void(0);" style="color: #999; cursor: not-allowed; opacity: 0.6;" onclick="return false;" title="Delete action disabled">Delete</a></li>
                                                             </ul>
                                                         </div>
                                                     </td>
