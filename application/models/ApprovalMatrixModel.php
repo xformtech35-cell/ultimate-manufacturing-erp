@@ -15,15 +15,17 @@ class ApprovalMatrixModel extends CI_Model
 
     private function _ensure_schema()
     {
+        $prefix = $this->db->dbprefix;
+
         if ($this->db->table_exists('approval_matrix')) {
             if (!$this->db->field_exists('notify_message', 'approval_matrix')) {
-                $this->db->query("ALTER TABLE `approval_matrix` ADD COLUMN `notify_message` VARCHAR(500) DEFAULT NULL COMMENT 'Custom approval message' AFTER `status`");
+                $this->db->query("ALTER TABLE `{$prefix}approval_matrix` ADD COLUMN `notify_message` VARCHAR(500) DEFAULT NULL COMMENT 'Custom approval message' AFTER `status`");
             }
         }
 
         if (!$this->db->table_exists('user_notifications')) {
             $this->db->query("
-                CREATE TABLE IF NOT EXISTS `user_notifications` (
+                CREATE TABLE IF NOT EXISTS `{$prefix}user_notifications` (
                     `id`         INT(11)      NOT NULL AUTO_INCREMENT,
                     `user_id`    INT(11)      NOT NULL,
                     `title`      VARCHAR(255) NOT NULL,
@@ -41,7 +43,7 @@ class ApprovalMatrixModel extends CI_Model
 
         if ($this->db->table_exists('inventory_approval_requests')) {
             if (!$this->db->field_exists('requester_notified', 'inventory_approval_requests')) {
-                $this->db->query("ALTER TABLE `inventory_approval_requests` ADD COLUMN `requester_notified` TINYINT(1) DEFAULT 0 AFTER `updated_at`");
+                $this->db->query("ALTER TABLE `{$prefix}inventory_approval_requests` ADD COLUMN `requester_notified` TINYINT(1) DEFAULT 0 AFTER `updated_at`");
             }
         }
     }
