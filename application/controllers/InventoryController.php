@@ -531,11 +531,85 @@ public function add_expense_data_indirect()
             'date_modified'    => $date_updated
         );
         
+        $session_data_head = $this->session->userdata('session_data_head');
+        $res          = $session_data_head['result'] ?? [];
+        $role_name    = strtolower($res['role_name'] ?? '');
+        $role_id      = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
+        $user_id      = (int)($res['user_id'] ?? 0);
+        $user_name    = $res['username'] ?? 'User #' . $user_id;
+
+        $is_admin = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
+
+        if (!$is_admin) {
+            // Non-admin user: Submit Inventory Update Request for Admin Approval
+            $full_old_item = $this->inventory->get_inventory_by_id($inventory_id);
+
+            // Ensure table exists
+            if (!$this->db->table_exists('inventory_approval_requests')) {
+                $table_name = $this->db->dbprefix('inventory_approval_requests');
+                $this->db->query("
+                    CREATE TABLE IF NOT EXISTS `$table_name` (
+                        `id`                INT(11)      NOT NULL AUTO_INCREMENT,
+                        `inventory_id`      INT(11)      NOT NULL,
+                        `item_code`         VARCHAR(100) DEFAULT NULL,
+                        `item_name`         VARCHAR(255) DEFAULT NULL,
+                        `request_type`      ENUM('update','delete') NOT NULL DEFAULT 'update',
+                        `requested_by`      INT(11)      NOT NULL,
+                        `requested_by_name` VARCHAR(100) DEFAULT NULL,
+                        `reason`            TEXT         DEFAULT NULL,
+                        `old_data`          LONGTEXT     DEFAULT NULL,
+                        `new_data`          LONGTEXT     DEFAULT NULL,
+                        `status`            ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+                        `reviewed_by`       INT(11)      DEFAULT NULL,
+                        `reviewed_by_name`  VARCHAR(100) DEFAULT NULL,
+                        `review_remarks`    VARCHAR(500) DEFAULT NULL,
+                        `created_at`        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        `updated_at`        DATETIME     DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+                        PRIMARY KEY (`id`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                ");
+            }
+
+            // Check if pending update request already exists for this item
+            $existing_req = $this->db
+                ->where('inventory_id', $inventory_id)
+                ->where('request_type', 'update')
+                ->where('status', 'pending')
+                ->get('inventory_approval_requests')
+                ->row();
+
+            if ($existing_req) {
+                $this->db->where('id', $existing_req->id)->update('inventory_approval_requests', [
+                    'new_data'          => json_encode($data_inventory),
+                    'reason'            => $this->input->post('reason') ?: 'Inventory update request',
+                    'requested_by'      => $user_id,
+                    'requested_by_name' => $user_name,
+                    'created_at'        => date('Y-m-d H:i:s')
+                ]);
+            } else {
+                $this->db->insert('inventory_approval_requests', [
+                    'inventory_id'      => $inventory_id,
+                    'item_code'         => $code,
+                    'item_name'         => $item_name,
+                    'request_type'      => 'update',
+                    'requested_by'      => $user_id,
+                    'requested_by_name' => $user_name,
+                    'reason'            => $this->input->post('reason') ?: 'Inventory update request',
+                    'old_data'          => json_encode($full_old_item),
+                    'new_data'          => json_encode($data_inventory),
+                    'status'            => 'pending'
+                ]);
+            }
+
+            $this->session->set_flashdata('INFOMSG', "Inventory update request submitted for '{$item_name}' ({$code})! Pending Admin Approval.");
+            redirect('InventoryController/index');
+            return;
+        }
+
         $result = $this->inventory->edit_inventory($data_inventory, $inventory_id, $this->user_id);
         
         if ($result) {
             if ($stock != $old_stock) {
-                // Stock was explicitly changed — tell user exactly what happened
                 $diff    = $stock - $old_stock;
                 $arrow   = $diff > 0 ? '+' . $diff : $diff;
                 $this->session->set_flashdata(
@@ -599,7 +673,32 @@ public function add_expense_data_indirect()
         $user_id   = (int)($res['user_id'] ?? 0);
 
         if ($role_name !== 'admin' && $role_id !== 1 && $user_id !== 1) {
-            $reason = $this->input->get('reason');
+            $reason = $this->input->get('reason') ?: 'Item deletion request';
+            $item   = $this->inventory->get_inventory_by_id($id);
+            $user_name = $res['username'] ?? 'User #' . $user_id;
+
+            // Ensure table exists
+            if ($this->db->table_exists('inventory_approval_requests')) {
+                $existing_del = $this->db
+                    ->where('inventory_id', $id)
+                    ->where('request_type', 'delete')
+                    ->where('status', 'pending')
+                    ->get('inventory_approval_requests')
+                    ->row();
+
+                if (!$existing_del) {
+                    $this->db->insert('inventory_approval_requests', [
+                        'inventory_id'      => $id,
+                        'item_code'         => $item['code'] ?? '',
+                        'item_name'         => $item['item_name'] ?? '',
+                        'request_type'      => 'delete',
+                        'requested_by'      => $user_id,
+                        'requested_by_name' => $user_name,
+                        'reason'            => $reason,
+                        'status'            => 'pending'
+                    ]);
+                }
+            }
             
             // Dynamically set redirect URL based on referrer
             $referer = $_SERVER['HTTP_REFERER'] ?? '';

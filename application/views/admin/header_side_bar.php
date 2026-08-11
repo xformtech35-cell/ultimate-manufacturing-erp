@@ -1074,6 +1074,23 @@ if ($currentPage == 'InventoryController') {
                     ]);
                 }
 
+                // Ensure "Inventory Approval" menu item exists under Store / Inventory (parent_id = 19)
+                $has_inv_approval = $ci->db->where('url', 'InventoryApprovalController/index')->get('sidebar_menu')->row();
+                if (!$has_inv_approval) {
+                    $ci->db->insert('sidebar_menu', [
+                        'parent_id'   => 19,
+                        'title'       => 'Inventory Approval',
+                        'icon'        => 'fa fa-check-square-o',
+                        'url'         => 'InventoryApprovalController/index',
+                        'permission'  => 'Inventory_Approval',
+                        'sort_order'  => 25,
+                        'active_cond' => json_encode([
+                            'controllers' => ['InventoryApprovalController'],
+                            'pages'       => ['index']
+                        ])
+                    ]);
+                }
+
                 // Ensure "Item Deletion Requests" menu item exists under Store / Inventory (parent_id = 19)
                 $has_del_requests = $ci->db->where('url', 'DeleteApprovalController/panel')->get('sidebar_menu')->row();
                 if (!$has_del_requests) {
@@ -1093,7 +1110,7 @@ if ($currentPage == 'InventoryController') {
 
                 // Auto-assign permissions to Admin role (role_id 1)
                 if ($ci->db->table_exists('permission')) {
-                    foreach (['SO_Approval', 'OrderConfirmation', 'Engineering', 'Bom', 'Datasheet_Upload', 'Budget_Sheet_Upload'] as $perm_key) {
+                    foreach (['SO_Approval', 'OrderConfirmation', 'Engineering', 'Bom', 'Datasheet_Upload', 'Budget_Sheet_Upload', 'Inventory_Approval'] as $perm_key) {
                         $admin_perm = $ci->db->where('role_id_fk', 1)->where('grp_perm', $perm_key)->get('permission')->row();
                         if (!$admin_perm) {
                             $ci->db->insert('permission', [

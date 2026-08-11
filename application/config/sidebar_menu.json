@@ -245,6 +245,15 @@
         }
       },
       {
+        "title": "Inventory Approval",
+        "icon": "fa fa-check-square-o",
+        "url": "InventoryApprovalController/index",
+        "permission": "Inventory_Approval",
+        "active_cond": {
+          "currentPage": "InventoryApprovalController"
+        }
+      },
+      {
         "title": "GRN",
         "icon": "fa fa-truck",
         "url": "GrnController/grn_index",
