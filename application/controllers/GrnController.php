@@ -941,7 +941,12 @@ class GrnController extends MY_Controller
 
     public function show_grn_approval_details($grn_number_encoded)
     {
-        $grn_number = str_replace('-', '/', $grn_number_encoded);
+        $decoded = base64_decode(urldecode($grn_number_encoded), true);
+        if ($decoded !== false && preg_match('/GRN/i', $decoded)) {
+            $grn_number = $decoded;
+        } else {
+            $grn_number = str_replace('-', '/', $grn_number_encoded);
+        }
 
         $data['show_grn'] = $this->grn->get_grn_data($grn_number, $this->user_id);
         $data['grn_data_group'] = $this->grn->get_grn_data_group_by($grn_number, $this->user_id);
@@ -1087,7 +1092,12 @@ class GrnController extends MY_Controller
     // Method to view GRN details (for approvers)
     public function view_grn_details($grn_number_encoded)
     {
-        $grn_number = str_replace('-', '/', $grn_number_encoded);
+        $decoded = base64_decode(urldecode($grn_number_encoded), true);
+        if ($decoded !== false && preg_match('/GRN/i', $decoded)) {
+            $grn_number = $decoded;
+        } else {
+            $grn_number = str_replace('-', '/', $grn_number_encoded);
+        }
 
         $data['show_grn'] = $this->grn->get_grn_data($grn_number, $this->user_id);
         $data['grn_data_group'] = $this->grn->get_grn_data_group_by($grn_number, $this->user_id);

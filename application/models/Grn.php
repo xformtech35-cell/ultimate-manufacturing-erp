@@ -29,10 +29,7 @@ class Grn extends CI_Model
         $this->db->select('g.*, inventory.item_name, inventory.unit');
         $this->db->from('grn g');
         $this->db->join('inventory', 'g.product_name = inventory.code AND (inventory.uid = g.uid OR inventory.uid = 1)', 'left');
-        $this->db->group_start();
         $this->db->where('g.grn_number', $grn_number);
-        $this->db->or_like('g.grn_number', $grn_number, 'after');
-        $this->db->group_end();
         $query = $this->db->get();
         return $query->result();
     }
@@ -44,10 +41,7 @@ class Grn extends CI_Model
         $this->db->from('grn g');
         $this->db->join('supplier s', 's.supplier_id = g.supplier_id', 'left');
         $this->db->join('grn_total gt', 'gt.number_fk = g.grn_number', 'left');
-        $this->db->group_start();
         $this->db->where('g.grn_number', $grn_number);
-        $this->db->or_like('g.grn_number', $grn_number, 'after');
-        $this->db->group_end();
         $this->db->group_by('g.grn_number');
         $this->db->limit(1);
         $query = $this->db->get();
