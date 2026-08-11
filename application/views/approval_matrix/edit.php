@@ -70,6 +70,9 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                         <option value="PA" <?= isset($rule->document_type) && $rule->document_type == 'PA' ? 'selected' : '' ?>>PO Amendment</option>
                                                         <option value="GRN" <?= isset($rule->document_type) && $rule->document_type == 'GRN' ? 'selected' : '' ?>>GRN</option>
                                                         <option value="BOM" <?= isset($rule->document_type) && $rule->document_type == 'BOM' ? 'selected' : '' ?>>BOM</option>
+                                                        <option value="INV_UPDATE" <?= isset($rule->document_type) && $rule->document_type == 'INV_UPDATE' ? 'selected' : '' ?>>Inventory Item Update</option>
+                                                        <option value="INV_DELETE" <?= isset($rule->document_type) && $rule->document_type == 'INV_DELETE' ? 'selected' : '' ?>>Inventory Item Delete</option>
+                                                        <option value="INV" <?= isset($rule->document_type) && $rule->document_type == 'INV' ? 'selected' : '' ?>>Inventory (Update & Delete)</option>
                                                     </select>
                                                 </div>
                                             </div>

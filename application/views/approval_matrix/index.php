@@ -74,6 +74,9 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                         <option value="PA">PO Amendment</option>
                                                         <option value="GRN">GRN</option>
                                                         <option value="BOM">BOM</option>
+                                                        <option value="INV_UPDATE">Inventory Item Update</option>
+                                                        <option value="INV_DELETE">Inventory Item Delete</option>
+                                                        <option value="INV">Inventory (Update & Delete)</option>
                                                     </select>
                                                 </div>
                                             </div>

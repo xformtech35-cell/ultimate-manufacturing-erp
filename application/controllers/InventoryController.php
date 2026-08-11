@@ -533,15 +533,13 @@ public function add_expense_data_indirect()
         
         $session_data_head = $this->session->userdata('session_data_head');
         $res          = $session_data_head['result'] ?? [];
-        $role_name    = strtolower($res['role_name'] ?? '');
-        $role_id      = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
         $user_id      = (int)($res['user_id'] ?? 0);
         $user_name    = $res['username'] ?? 'User #' . $user_id;
 
-        $is_admin = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
+        $requires_approval = $this->_requires_inventory_approval('update', $res);
 
-        if (!$is_admin) {
-            // Non-admin user: Submit Inventory Update Request for Admin Approval
+        if ($requires_approval) {
+            // Submit Inventory Update Request for Admin/Approver Approval
             $full_old_item = $this->inventory->get_inventory_by_id($inventory_id);
 
             // Ensure table exists
@@ -668,11 +666,9 @@ public function add_expense_data_indirect()
         $id = $this->uri->segment(3);
         $session_data_head = $this->session->userdata('session_data_head');
         $res = $session_data_head['result'] ?? [];
-        $role_name = strtolower($res['role_name'] ?? '');
-        $role_id   = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
         $user_id   = (int)($res['user_id'] ?? 0);
 
-        if ($role_name !== 'admin' && $role_id !== 1 && $user_id !== 1) {
+        if ($this->_requires_inventory_approval('delete', $res)) {
             $reason = $this->input->get('reason') ?: 'Item deletion request';
             $item   = $this->inventory->get_inventory_by_id($id);
             $user_name = $res['username'] ?? 'User #' . $user_id;
@@ -730,6 +726,49 @@ public function add_expense_data_indirect()
             $this->session->set_flashdata('ERRORMSG', "Cannot delete this inventory item because it is referenced in material issues or other modules.");
             redirect('InventoryController/index');
         }
+    }
+
+    /**
+     * Check if inventory update/delete requires approval based on Approval Matrix or Admin role
+     */
+    private function _requires_inventory_approval($action_type, $res)
+    {
+        $role_name = strtolower($res['role_name'] ?? '');
+        $role_id   = (int)($res['role_id'] ?? $res['user_role_id'] ?? 0);
+        $user_id   = (int)($res['user_id'] ?? 0);
+        $user_role = $res['role_name'] ?? '';
+
+        // Document types to check in approval_matrix
+        $doc_types = ($action_type === 'delete') 
+            ? ['INV_DELETE', 'INV'] 
+            : ['INV_UPDATE', 'INV'];
+
+        // Query active approval matrix rules for this action
+        $rules = [];
+        if ($this->db->table_exists('approval_matrix')) {
+            $rules = $this->db
+                ->where_in('document_type', $doc_types)
+                ->where('status', 'active')
+                ->get('approval_matrix')
+                ->result_array();
+        }
+
+        if (empty($rules)) {
+            // No specific approval_matrix rule configured for inventory:
+            // Admin users do NOT require approval; non-admin users require Admin approval
+            return ($role_name !== 'admin' && $role_id !== 1 && $user_id !== 1);
+        }
+
+        // Active rules exist in approval_matrix!
+        // Check if current user possesses an authorized approver_role (or is Admin)
+        foreach ($rules as $rule) {
+            $allowed_role = trim($rule['approver_role']);
+            if (strcasecmp($allowed_role, $user_role) === 0 || strcasecmp($allowed_role, 'admin') === 0 || $role_name === 'admin' || $role_id === 1 || $user_id === 1) {
+                return false; // Authorized approver, direct execution
+            }
+        }
+
+        return true; // Requires approval
     }
 
     public function delete_expense_by_id()
