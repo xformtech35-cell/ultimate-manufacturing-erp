@@ -1885,7 +1885,11 @@ $(document).ready(function() {
             success: function(res) {
                 $('#bom_so_loading').hide();
                 if (res && res.success) {
-                    $('#bom_so_fetch_status').css('color', '#2e7d32').text('✓ Loaded: ' + res.so_number);
+                    var statusText = '✓ Status: Loaded (' + res.so_number + ')';
+                    if (res.is_revision) {
+                        statusText = '✓ Status: Creating Revision (' + res.suggested_bom_number + ') for ' + res.so_number;
+                    }
+                    $('#bom_so_fetch_status').css('color', '#2e7d32').text(statusText);
                     if (res.customer_id) $('#customer_id').val(res.customer_id).trigger('change');
                     if (res.system) $('input[name="system"]').val(res.system);
                     if (res.location) $('input[name="location"]').val(res.location);

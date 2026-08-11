@@ -567,9 +567,11 @@ class BomController extends MY_Controller {
             ->row_array();
 
         $suggested_bom_number = '';
+        $is_revision = false;
         if ($existing_bom) {
             if ($existing_bom['send_to_mrp'] == 2) {
                 // MRP has run -> suggest next revision /R1, /R2, etc.
+                $is_revision = true;
                 $base_bom = preg_replace('/(?:\/R|-R)\d+$/i', '', $existing_bom['number_fk']);
                 $revs = $this->db->select('number_fk')->like('number_fk', $base_bom)->get('bom_total')->result_array();
                 $max_r = 0;
@@ -615,7 +617,8 @@ class BomController extends MY_Controller {
             'location'             => $so_item['description'] ?? '',
             'capacity'             => $so_item['unit'] ?? '',
             'project_qty'          => $so_item['quantity'] ?? 1,
-            'suggested_bom_number' => $suggested_bom_number
+            'suggested_bom_number' => $suggested_bom_number,
+            'is_revision'          => $is_revision
         ]);
     }
 
