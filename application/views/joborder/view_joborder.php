@@ -58,13 +58,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                             <ul class="nav nav-tabs">
                                 <li class="nav-item">
-                                    <a class="nav-link" href="<?php echo base_url(); ?>JobOrderController/get_joborder_data_by_status/2">Sent <span class="badge badge-light"> <?php echo $joborder_sent_count; ?></span></a>
+                                    <a class="nav-link <?php echo ($this->uri->segment(2) == 'get_joborder_data_by_status' && $this->uri->segment(3) == '6') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>JobOrderController/get_joborder_data_by_status/6">Closed <span class="badge badge-light"> <?php echo $joborder_closed_count ?? 0; ?></span></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="<?php echo base_url(); ?>JobOrderController/get_joborder_data_by_status/1">Draft <span class="badge badge-light"> <?php echo $joborder_draft_count; ?></span></a>
+                                    <a class="nav-link <?php echo ($this->uri->segment(2) == 'get_joborder_data_by_status' && $this->uri->segment(3) == '4') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>JobOrderController/get_joborder_data_by_status/4">Approved <span class="badge badge-light"> <?php echo $joborder_approved_count ?? 0; ?></span></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="<?php echo base_url(); ?>JobOrderController/index?str=All">All Job Orders <span class="badge badge-light"> <?php echo $joborder_count; ?></span></a>
+                                    <a class="nav-link <?php echo ($this->uri->segment(2) == 'get_joborder_data_by_status' && $this->uri->segment(3) == '2') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>JobOrderController/get_joborder_data_by_status/2">Sent <span class="badge badge-light"> <?php echo $joborder_sent_count; ?></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($this->uri->segment(2) == 'get_joborder_data_by_status' && $this->uri->segment(3) == '1') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>JobOrderController/get_joborder_data_by_status/1">Draft <span class="badge badge-light"> <?php echo $joborder_draft_count; ?></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($this->uri->segment(2) == 'index' || $this->uri->segment(2) == '' || $this->uri->segment(2) == 'get_monthyearwise_record') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>JobOrderController/index?str=All">All Job Orders <span class="badge badge-light"> <?php echo $joborder_count; ?></span></a>
                                 </li>
                             </ul>
 
@@ -93,27 +99,41 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             <tr>
                                                 <td><?php echo $i; ?></td>
 
-                                                <?php if ($key->status == 1) { ?>
-                                                    <td>Draft</td>
-                                                <?php } ?>
-                                                <?php if ($key->status == 2) { ?>
-                                                    <td>Sent</td>
-                                                <?php } ?>
-                                                <?php if ($key->status == 3) { ?>
-                                                    <td>Viewed</td>
-                                                <?php } ?>
-                                                <?php if ($key->status == 4) { ?>
-                                                    <td>Approved</td>
-                                                <?php } ?>
-                                                <?php if ($key->status == 5) { ?>
-                                                    <td>Rejected</td>
-                                                <?php } ?>
-                                                <?php if ($key->status == 6) { ?>
-                                                    <td>Canceled</td>
-                                                <?php } ?>
-                                                <?php if ($key->status == 0) { ?>
-                                                    <td></td>
-                                                <?php } ?>
+                                                <?php 
+                                                $status_class = 'label-default';
+                                                $status_text = 'Draft';
+                                                switch ($key->status) {
+                                                    case 1:
+                                                        $status_class = 'label-default';
+                                                        $status_text = 'Draft';
+                                                        break;
+                                                    case 2:
+                                                        $status_class = 'label-warning';
+                                                        $status_text = 'Sent';
+                                                        break;
+                                                    case 3:
+                                                        $status_class = 'label-primary';
+                                                        $status_text = 'Viewed';
+                                                        break;
+                                                    case 4:
+                                                        $status_class = 'label-success';
+                                                        $status_text = 'Approved';
+                                                        break;
+                                                    case 5:
+                                                        $status_class = 'label-danger';
+                                                        $status_text = 'Rejected';
+                                                        break;
+                                                    case 6:
+                                                        $status_class = 'label-danger';
+                                                        $status_text = 'Closed';
+                                                        break;
+                                                    default:
+                                                        $status_class = 'label-default';
+                                                        $status_text = 'Draft';
+                                                        break;
+                                                }
+                                                ?>
+                                                <td><span class="label <?php echo $status_class; ?>" style="font-size: 11px; font-weight: normal;"><?php echo $status_text; ?></span></td>
 
                                                 <td><?php
                                                     if (!empty($key->date) && $key->date !== '0000-00-00') {
@@ -134,7 +154,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                 </td>
                                                 <td><?php echo isset($key->company_name) ? $key->company_name : ''; ?></td>
                                                 <td><span class="label label-info" style="font-size: 11px; font-weight: normal;"><?php echo !empty($key->prepare_by) ? htmlspecialchars($key->prepare_by) : 'Admin'; ?></span></td>
-                                                <td><span class="label label-success" style="font-size: 11px; font-weight: normal;"><?php echo !empty($key->approved_by_name) ? htmlspecialchars($key->approved_by_name) : ($key->status == 4 ? 'Admin' : '-'); ?></span></td>
+                                                <td><span class="label label-success" style="font-size: 11px; font-weight: normal;"><?php echo !empty($key->approved_by_name) ? htmlspecialchars($key->approved_by_name) : ($key->status == 4 || $key->status == 6 ? 'Admin' : '-'); ?></span></td>
 
                                                 <td>
                                                     <div class="dropdown">
@@ -149,6 +169,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                             <li role="presentation" class="divider"></li>
                                                             <li><a href="<?php echo base_url() . 'JobOrderController/show_joborder/' . $key->id; ?>">View</a></li>
                                                             <li><a href="<?php echo base_url() . 'JobOrderController/edit_joborder_details/' . $key->id ?>">Edit</a></li>
+                                                            <li role="presentation" class="divider"></li>
+                                                            <li><a class="change-jo-status-btn" href="#" data-id="<?php echo $key->id; ?>" data-number="<?php echo $key->number_fk; ?>" data-status="<?php echo $key->status; ?>" data-note="<?php echo htmlspecialchars($key->note ?? ''); ?>"><i class="fa fa-refresh"></i> Change Status</a></li>
+                                                            <?php if ($key->status != 6): ?>
+                                                                <li><a href="<?php echo base_url('JobOrderController/force_close_joborder/' . $key->id); ?>" onclick="return confirm('Are you sure you want to FORCEFULLY CLOSE this Job Order?')" style="color:#d9534f;"><i class="fa fa-times-circle"></i> Force Close</a></li>
+                                                            <?php endif; ?>
                                                             <li role="presentation" class="divider"></li>
                                                             <li><a href="<?php echo base_url() . 'JobOrderController/delete_joborder_by_joborder_number/' . $key->number_fk; ?>" onclick="return confirm('Are you sure you want to delete this Job Order?')">Delete</a></li>
                                                         </ul>
@@ -353,5 +378,54 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 }
             });
         });
+
+        // Change Job Order Status modal handler
+        $(document).on('click', '.change-jo-status-btn', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            var number = $(this).data('number');
+            var status = $(this).data('status');
+            var note = $(this).data('note') || '';
+            $('#jo_status_id').val(id);
+            $('#jo_status_number').val(number);
+            $('#jo_status_select').val(status);
+            $('#jo_status_remarks').val(note);
+            $('#joStatusModal').modal('show');
+        });
     });
     </script>
+
+    <!-- Change Job Order Status Modal -->
+    <div class="modal fade" id="joStatusModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background:#3c8dbc; color:#fff;">
+                    <button type="button" class="close" data-dismiss="modal" style="color:#fff;">&times;</button>
+                    <h4 class="modal-title"><i class="fa fa-refresh"></i> Change Status</h4>
+                </div>
+                <form method="post" action="<?php echo base_url(); ?>JobOrderController/update_joborder_status">
+                    <div class="modal-body">
+                        <input type="hidden" name="jo_id" id="jo_status_id">
+                        <input type="hidden" name="jo_number" id="jo_status_number">
+                        <div class="form-group">
+                            <label>Status<span style="color:red;">*</span></label>
+                            <select name="status" id="jo_status_select" class="form-control input-sm" required>
+                                <option value="1">Draft</option>
+                                <option value="2">Sent</option>
+                                <option value="4">Approved</option>
+                                <option value="6">Closed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Remark / Note</label>
+                            <textarea name="remarks" id="jo_status_remarks" class="form-control input-sm" rows="2" placeholder="Enter status change remark..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-check"></i> Update</button>
+                        <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>

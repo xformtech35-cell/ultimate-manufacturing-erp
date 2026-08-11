@@ -479,13 +479,83 @@ class JobOrderController extends MY_Controller {
         
         redirect('JobOrderController/index');
     }
+
+    /**
+     * Change Job Order Status (Draft = 1, Sent = 2, Approved = 4, Closed = 6)
+     */
+    public function update_joborder_status()
+    {
+        $joborder_id = $this->input->post('jo_id');
+        $joborder_number = $this->input->post('jo_number');
+        $status = (int)$this->input->post('status');
+        $remarks = $this->input->post('remarks');
+
+        $session_data_head = $this->session->userdata('session_data_head');
+        $logged_in_uid = $session_data_head['result']['user_id'] ?? $this->user_id;
+
+        $data_status = array(
+            'status' => $status,
+            'note' => $remarks
+        );
+
+        if (in_array($status, [2, 4, 6])) {
+            $data_status['approved_by'] = $logged_in_uid;
+        }
+
+        if (!empty($joborder_number)) {
+            $result = $this->joborder->edit_gst_joborder_status($data_status, $joborder_number, $this->user_id);
+        } else {
+            $this->db->where('id', $joborder_id)->update('joborder_total', $data_status);
+            $result = true;
+        }
+
+        $status_label = 'updated';
+        switch ($status) {
+            case 1: $status_label = 'Set to Draft'; break;
+            case 2: $status_label = 'Sent'; break;
+            case 4: $status_label = 'Approved'; break;
+            case 6: $status_label = 'Closed'; break;
+        }
+
+        if ($result) {
+            $this->session->set_flashdata('SUCCESSMSG', "Job Order status {$status_label} successfully!");
+        } else {
+            $this->session->set_flashdata('INFOMSG', "Failed to update Job Order status.");
+        }
+
+        redirect('JobOrderController/index');
+    }
+
+    /**
+     * Forcefully Close Job Order (Manager / Admin Action)
+     */
+    public function force_close_joborder($id = null)
+    {
+        if (empty($id)) {
+            $id = $this->input->post('jo_id');
+        }
+
+        $session_data_head = $this->session->userdata('session_data_head');
+        $logged_in_uid = $session_data_head['result']['user_id'] ?? $this->user_id;
+
+        $data_status = array(
+            'status' => 6, // Closed
+            'approved_by' => $logged_in_uid,
+            'note' => 'Force closed by Manager/Admin'
+        );
+
+        $this->db->where('id', $id)->update('joborder_total', $data_status);
+
+        $this->session->set_flashdata('SUCCESSMSG', 'Job Order has been Forcefully Closed successfully!');
+        redirect('JobOrderController/index');
+    }
     
     public function index() {
         $data['joborder_count'] = $this->joborder->get_joborder_count($this->user_id);
-        $draft_status = 1;
-        $data['joborder_draft_count'] = $this->joborder->get_joborder_draft_count($draft_status, $this->user_id);
-        $sent_status = 2;
-        $data['joborder_sent_count'] = $this->joborder->get_joborder_draft_count($sent_status, $this->user_id);
+        $data['joborder_draft_count'] = $this->joborder->get_joborder_draft_count(1, $this->user_id);
+        $data['joborder_sent_count'] = $this->joborder->get_joborder_draft_count(2, $this->user_id);
+        $data['joborder_approved_count'] = $this->joborder->get_joborder_draft_count(4, $this->user_id);
+        $data['joborder_closed_count'] = $this->joborder->get_joborder_draft_count(6, $this->user_id);
         $data['joborders'] = $this->joborder->get_joborders($this->user_id);
         $data['unit_result'] = $this->units->get_units($this->user_id);
         $data['settings'] = $this->login->get_settings($this->user_id);
@@ -499,10 +569,10 @@ class JobOrderController extends MY_Controller {
     public function get_monthyearwise_record() {
         $month_year = $this->input->post('month_year');
         $data['joborder_count'] = $this->joborder->get_joborder_count($this->user_id);
-        $draft_status = 1;
-        $data['joborder_draft_count'] = $this->joborder->get_joborder_draft_count($draft_status, $this->user_id);
-        $sent_status = 2;
-        $data['joborder_sent_count'] = $this->joborder->get_joborder_draft_count($sent_status, $this->user_id);
+        $data['joborder_draft_count'] = $this->joborder->get_joborder_draft_count(1, $this->user_id);
+        $data['joborder_sent_count'] = $this->joborder->get_joborder_draft_count(2, $this->user_id);
+        $data['joborder_approved_count'] = $this->joborder->get_joborder_draft_count(4, $this->user_id);
+        $data['joborder_closed_count'] = $this->joborder->get_joborder_draft_count(6, $this->user_id);
         $data['unit_result'] = $this->units->get_units($this->user_id);
         $data['settings'] = $this->login->get_settings($this->user_id);
         $data['joborder_id'] = $this->joborder->get_last_joborder_number($this->user_id);
@@ -517,10 +587,10 @@ class JobOrderController extends MY_Controller {
         $status = $this->uri->segment(3);
         $data['joborders'] = $this->joborder->get_joborder_data_by_status($status, $this->user_id);
         $data['joborder_count'] = $this->joborder->get_joborder_count($this->user_id);
-        $draft_status = 1;
-        $data['joborder_draft_count'] = $this->joborder->get_joborder_draft_count($draft_status, $this->user_id);
-        $sent_status = 2;
-        $data['joborder_sent_count'] = $this->joborder->get_joborder_draft_count($sent_status, $this->user_id);
+        $data['joborder_draft_count'] = $this->joborder->get_joborder_draft_count(1, $this->user_id);
+        $data['joborder_sent_count'] = $this->joborder->get_joborder_draft_count(2, $this->user_id);
+        $data['joborder_approved_count'] = $this->joborder->get_joborder_draft_count(4, $this->user_id);
+        $data['joborder_closed_count'] = $this->joborder->get_joborder_draft_count(6, $this->user_id);
         
         $session_data_head = $this->session->userdata('session_data_head');
         $this->load->view('admin/header_side_bar', $session_data_head);
