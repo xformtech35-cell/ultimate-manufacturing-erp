@@ -295,14 +295,47 @@ class DeleteApprovalController extends MY_Controller
             return;
         }
 
-        // Set status to approved, reset user_notified so requester sees it
-        $this->db->where('id', $id)->update('item_delete_requests', [
-            'status'        => 'approved',
-            'reviewed_by'   => $reviewer_id,
-            'user_notified' => 0
-        ]);
+        // Execute deletion
+        $deleted = false;
+        if ($req['module'] === 'inventory') {
+            try {
+                $result = $this->inventory->delete_inventory_by_id($req['item_id']);
+                if ($result === 'CONSTRAIN_ERROR') {
+                    $this->session->set_flashdata('ERRORMSG', "Cannot delete item <strong>{$req['item_code']}</strong>: it is referenced in material issues or active transaction records.");
+                    redirect('DeleteApprovalController/panel');
+                    return;
+                }
+                $deleted = ($result === true);
+            } catch (Exception $e) {
+                $deleted = false;
+            }
+        } elseif ($req['module'] === 'item_code_master') {
+            $result = $this->master->delete_product_by_id($req['item_id']);
+            $deleted = ($result == true);
+        } else {
+            $deleted = true;
+        }
 
-        $this->session->set_flashdata('SUCCESSMSG', "Deletion request for item <strong>{$req['item_code']}</strong> has been approved. The user will be notified to perform actual deletion.");
+        if ($deleted) {
+            $this->db->where('id', $id)->update('item_delete_requests', [
+                'status'        => 'approved',
+                'reviewed_by'   => $reviewer_id,
+                'user_notified' => 1
+            ]);
+
+            // Sync with inventory_approval_requests if table exists
+            if ($this->db->table_exists('inventory_approval_requests')) {
+                $this->db->where('inventory_id', $req['item_id'])->where('request_type', 'delete')->update('inventory_approval_requests', [
+                    'status'      => 'approved',
+                    'reviewed_by' => $reviewer_id
+                ]);
+            }
+
+            $this->session->set_flashdata('SUCCESSMSG', "Deletion request for item <strong>{$req['item_code']}</strong> has been approved and deleted successfully.");
+        } else {
+            $this->session->set_flashdata('ERRORMSG', "Failed to delete item <strong>{$req['item_code']}</strong>.");
+        }
+
         redirect('DeleteApprovalController/panel');
     }
 
@@ -338,6 +371,14 @@ class DeleteApprovalController extends MY_Controller
             'review_remarks' => $remarks,
             'user_notified'  => 0
         ]);
+
+        if ($this->db->table_exists('inventory_approval_requests')) {
+            $this->db->where('inventory_id', $req['item_id'])->where('request_type', 'delete')->update('inventory_approval_requests', [
+                'status'         => 'rejected',
+                'reviewed_by'    => $reviewer_id,
+                'review_remarks' => $remarks
+            ]);
+        }
 
         $this->session->set_flashdata('INFOMSG', "Deletion request for item <strong>{$req['item_code']}</strong> was rejected.");
         redirect('DeleteApprovalController/panel');
