@@ -147,23 +147,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                         <?php foreach ($projects as $proj) { ?>
                                                             <option value="<?php echo $proj->project_id; ?>" 
                                                                 <?php echo (isset($drawing) && $drawing->project_id_fk == $proj->project_id) ? 'selected' : ''; ?>>
-                                                                <!-- <?php 
-                                                                if ($_has_project_master) {
-                                                                    $option_display = $proj->project_code . ' - ' . $proj->project_name;
-                                                                    if (!empty($proj->so_numbers)) {
-                                                                        $option_display .= ' (SO: ' . $proj->so_numbers . ')';
-                                                                    }
-                                                                } else {
-                                                                    $option_display = !empty($proj->so_numbers) ? $proj->so_numbers : $proj->project_name;
-                                                                }
-                                                                echo htmlspecialchars($option_display);
-                                                                ?> -->
-
                                                                 <?php
-$option_display = !empty($proj->so_numbers) ? $proj->so_numbers : '';
-echo htmlspecialchars($option_display);
-?>
-
+                                                                $option_display = !empty($proj->so_numbers) ? $proj->so_numbers : (!empty($proj->project_code) ? $proj->project_code : $proj->project_name);
+                                                                echo htmlspecialchars($option_display);
+                                                                ?>
                                                             </option>
                                                         <?php } ?>
                                                     <?php } ?>
