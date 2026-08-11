@@ -305,7 +305,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 
                                 <!-- Footer -->
                                 <div class="text-center" style="margin-top: 30px; font-size: 10px; color: #999;">
-                                    Generated on: <?php echo date("d-m-Y H:i:s"); ?>
+                                    Generated on: <?php echo date("d-m-Y"); ?>
                                 </div>
                             </div>
                             <?php endif; ?>

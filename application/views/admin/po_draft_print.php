@@ -454,7 +454,7 @@
         <strong>⚠️ THIS IS A DRAFT DOCUMENT FOR REVIEW ONLY ⚠️</strong><br>
         This draft purchase order is subject to change and internal approval.<br>
         A formal purchase order will be issued separately after all approvals.<br>
-        <?php echo $settings['company_name']; ?> | <?php echo $settings['address']; ?> | Draft Generated: <?php echo date('d-m-Y H:i:s'); ?>
+        <?php echo $settings['company_name']; ?> | <?php echo $settings['address']; ?> | Draft Generated: <?php echo date('d-m-Y'); ?>
     </div>
 
 </body>

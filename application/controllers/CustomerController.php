@@ -144,7 +144,7 @@ $address_json = json_encode($addresses);
 
     // ========== ADD HEADING ==========
     $heading = "CUSTOMER LIST REPORT";
-    $subheading = "Generated on: " . date('d-m-Y H:i:s');
+    $subheading = "Generated on: " . date('d-m-Y');
 
     // Insert heading at row 1
     $sheet->setCellValue('A1', $heading);

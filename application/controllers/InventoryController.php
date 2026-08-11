@@ -2565,7 +2565,7 @@ public function add_expense_data_indirect()
         $html .= '</td>';
         $html .= '<td width="38%" style="text-align:right;"><div class="section-heading">Report Details</div>';
         $html .= '<div><span class="label">Report:</span> ' . $escape($mode_label) . ' Expenditure</div>';
-        $html .= '<div><span class="label">Generated:</span> ' . date('d-m-Y h:i A') . '</div>';
+        $html .= '<div><span class="label">Generated:</span> ' . date('d-m-Y') . '</div>';
         $html .= '<div><span class="label">Records:</span> ' . count($records) . '</div>';
         if ($expense_id > 0) $html .= '<div><span class="label">Expense ID:</span> ' . (int) $expense_id . '</div>';
         $html .= '</td></tr></table>';

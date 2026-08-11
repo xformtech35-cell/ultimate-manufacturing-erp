@@ -383,7 +383,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
                                                 <div class="pull-right">
                                                     <small class="text-muted">
-                                                        <i class="fa fa-clock-o"></i> Report Generated: <?php echo date('d-m-Y H:i:s'); ?>
+                                                        <i class="fa fa-clock-o"></i> Report Generated: <?php echo date('d-m-Y'); ?>
                                                     </small>
                                                 </div>
                                             </div>

@@ -2279,7 +2279,7 @@ class MaterialIssueController extends MY_Controller
             $htmlContent .= '</tr>';
         }
         $htmlContent .= '</table>';
-        $htmlContent .= '<p style="margin-top:20px; font-size: 12px; color: #777;">Generated automatically by Ultimate Manufacturing ERP System on ' . date('d-m-Y H:i:s') . '</p>';
+        $htmlContent .= '<p style="margin-top:20px; font-size: 12px; color: #777;">Generated automatically by Ultimate Manufacturing ERP System on ' . date('d-m-Y') . '</p>';
 
         // Attempt sending via CodeIgniter Email library
         $this->load->library('email');

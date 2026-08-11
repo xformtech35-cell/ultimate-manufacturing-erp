@@ -204,7 +204,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                     </div>
                                     <div class="col-md-6 text-right">
                                         <small class="text-muted">
-                                            Generated on: <?= date('d-m-Y H:i:s') ?>
+                                            Generated on: <?= date('d-m-Y') ?>
                                         </small>
                                     </div>
                                 </div>

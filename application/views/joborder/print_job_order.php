@@ -330,7 +330,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         <!-- Footer -->
         <div class="footer">
             <p>This is a computer generated document. No signature is required.</p>
-            <p>Generated on <?php echo date('d-M-Y H:i:s'); ?></p>
+            <p>Generated on <?php echo date('d-m-Y'); ?></p>
         </div>
     </div>
 

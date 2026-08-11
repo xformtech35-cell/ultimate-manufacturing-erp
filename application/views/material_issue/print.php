@@ -293,7 +293,7 @@
                     <div><span class="label-sm">Project Code:</span> <?php echo $esc($field($issue_slip, 'project_code', 'N/A')); ?></div>
                     <?php endif; ?>
                     <div><span class="label-sm">Job Order No:</span> <?php echo $esc($field($issue_slip, 'joborder_number', 'N/A')); ?></div>
-                    <div><span class="label-sm">Generated On:</span> <?php echo date('d-m-Y h:i A'); ?></div>
+                    <div><span class="label-sm">Generated On:</span> <?php echo date('d-m-Y'); ?></div>
                 </td>
             </tr>
             <?php if (!$is_mrn && $field($issue_slip, 'purpose') !== '') { ?>

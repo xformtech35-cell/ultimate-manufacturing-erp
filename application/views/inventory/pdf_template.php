@@ -149,7 +149,7 @@
     <div class="report-header">
         <div class="report-title">Inventory Report</div>
         <div class="report-subtitle">
-            Generated on: <?php echo date('d-m-Y H:i:s'); ?><br>
+            Generated on: <?php echo date('d-m-Y'); ?><br>
             Report ID: INV-<?php echo date('Ymd-His'); ?>
         </div>
     </div>
