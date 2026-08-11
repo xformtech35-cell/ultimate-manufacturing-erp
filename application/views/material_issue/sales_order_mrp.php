@@ -126,22 +126,38 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                                         <?php echo number_format($so->total, 2); ?>
                                                     </td>
                                                     <td class="text-center">
-                                                        <?php if ($so->status == 1): ?>
-                                                            <span class="label label-warning">Draft</span>
-                                                        <?php elseif ($so->status == 2): ?>
-                                                            <span class="label label-success">Approved</span>
-                                                        <?php else: ?>
-                                                            <span class="label label-default">Closed</span>
-                                                        <?php endif; ?>
+                                                        <?php 
+                                                        switch ((int)$so->status) {
+                                                            case 1:
+                                                                echo '<span class="label label-default">Draft</span>';
+                                                                break;
+                                                            case 2:
+                                                                echo '<span class="label label-warning">Under Process</span>';
+                                                                break;
+                                                            case 3:
+                                                                echo '<span class="label label-primary">Viewed</span>';
+                                                                break;
+                                                            case 4:
+                                                            case 0:
+                                                                echo '<span class="label label-success">Approved</span>';
+                                                                break;
+                                                            case 5:
+                                                                echo '<span class="label label-danger">Hold</span>';
+                                                                break;
+                                                            case 6:
+                                                                echo '<span class="label label-danger">Canceled</span>';
+                                                                break;
+                                                            default:
+                                                                echo '<span class="label label-success">Approved</span>';
+                                                                break;
+                                                        }
+                                                        ?>
                                                     </td>
                                                      <td class="text-center">
                                                          <?php 
                                                          $btn_class = 'btn-success';
                                                          $btn_title = 'Run MRP Run';
-                                                         if ($so->status != 1 && $so->status != 2) {
-                                                             $btn_class = 'btn-default';
-                                                             $btn_title = 'Run MRP Run (Closed)';
-                                                         } elseif (isset($so->mrp_status) && $so->mrp_status === 'already_run') {
+                                                         if (isset($so->mrp_status) && $so->mrp_status === 'already_run') {
                                                              $btn_class = 'btn-warning';
                                                              $btn_title = 'Run MRP Run (Already Run)';
                                                          }
