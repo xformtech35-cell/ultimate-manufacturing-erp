@@ -1097,16 +1097,15 @@ class GrnController extends MY_Controller
     // Method to view GRN details (for approvers)
     public function view_grn_details($grn_number_encoded = null)
     {
-        if (empty($grn_number_encoded)) {
-            $grn_number_encoded = $this->getGrnNumberFromUri(3, 8);
-        }
-
-        $decoded = base64_decode(rawurldecode($grn_number_encoded), true);
+        $raw_uri = $this->getGrnNumberFromUri(3, 10);
+        $decoded = base64_decode(rawurldecode($grn_number_encoded ?? ''), true);
+        
         if ($decoded !== false && preg_match('/GRN/i', $decoded)) {
             $grn_number = $decoded;
+        } elseif (!empty($raw_uri) && preg_match('/GRN/i', $raw_uri)) {
+            $grn_number = $raw_uri;
         } else {
-            $raw_uri = $this->getGrnNumberFromUri(3, 8);
-            $grn_number = !empty($raw_uri) ? $raw_uri : str_replace('-', '/', $grn_number_encoded);
+            $grn_number = str_replace('-', '/', $grn_number_encoded ?? '');
         }
 
         $data['show_grn'] = $this->grn->get_grn_data($grn_number, $this->user_id);
@@ -1115,8 +1114,16 @@ class GrnController extends MY_Controller
         $data['settings'] = $this->login->get_settings($this->user_id);
 
         if (empty($data['grn_data_group'])) {
+            // Try matching with hyphens converted to slashes as fallback
+            $fallback_number = str_replace('-', '/', $grn_number);
+            $data['show_grn'] = $this->grn->get_grn_data($fallback_number, $this->user_id);
+            $data['grn_data_group'] = $this->grn->get_grn_data_group_by($fallback_number, $this->user_id);
+        }
+
+        if (empty($data['grn_data_group'])) {
             $this->session->set_flashdata('ERRORMSG', 'GRN not found or you do not have access to this GRN.');
             redirect('GrnController/grn_approvals');
+            return;
         }
 
         // Get user's pending approval for this GRN

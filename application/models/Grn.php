@@ -26,10 +26,14 @@ class Grn extends CI_Model
     // Get GRN data
     public function get_grn_data($grn_number, $uid)
     {
+        $grn_number_slash = str_replace('-', '/', $grn_number);
         $this->db->select('g.*, inventory.item_name, inventory.unit');
         $this->db->from('grn g');
         $this->db->join('inventory', 'g.product_name = inventory.code AND (inventory.uid = g.uid OR inventory.uid = 1)', 'left');
+        $this->db->group_start();
         $this->db->where('g.grn_number', $grn_number);
+        $this->db->or_where('g.grn_number', $grn_number_slash);
+        $this->db->group_end();
         $query = $this->db->get();
         return $query->result();
     }
@@ -37,11 +41,15 @@ class Grn extends CI_Model
     // Get GRN data grouped
     public function get_grn_data_group_by($grn_number, $uid)
     {
-        $this->db->select('g.*, s.company_name, s.fullname, s.address, s.gst, s.pancard, gt.total');
+        $grn_number_slash = str_replace('-', '/', $grn_number);
+        $this->db->select('g.*, s.company_name, s.fullname, s.address, s.gst, s.pancard, gt.total, gt.approval_status');
         $this->db->from('grn g');
         $this->db->join('supplier s', 's.supplier_id = g.supplier_id', 'left');
         $this->db->join('grn_total gt', 'gt.number_fk = g.grn_number', 'left');
+        $this->db->group_start();
         $this->db->where('g.grn_number', $grn_number);
+        $this->db->or_where('g.grn_number', $grn_number_slash);
+        $this->db->group_end();
         $this->db->group_by('g.grn_number');
         $this->db->limit(1);
         $query = $this->db->get();
