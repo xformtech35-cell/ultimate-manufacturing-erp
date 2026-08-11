@@ -470,13 +470,24 @@ class SalesReturnController extends MY_Controller {
             $this->load->view('sales_return/show_sales_return', $data);
         }
     
+    public function get_sales_return_datewise_record(){
+        $from_date = $this->input->post('from_date');
+        $to_date = $this->input->post('to_date');
+        $data['from_date'] = $from_date;
+        $data['to_date'] = $to_date;
+        $data['sales_return'] = $this->salesreturn->get_sales_return_datewise_record($from_date, $to_date, $this->user_id);
+        $session_data_head = $this->session->userdata('session_data_head');
+        $this->load->view('admin/header_side_bar', $session_data_head);
+        $this->load->view('sales_return/view_sales_return', $data);
+    }
+
     public function get_sales_return_purmonthyearwise_record(){
         $month_year = $this->input->post('month_year');
         $data['sales_return'] = $this->salesreturn->get_sales_return_purmonthyearwise_record($month_year, $this->user_id);
         $session_data_head = $this->session->userdata('session_data_head');
         $this->load->view('admin/header_side_bar', $session_data_head);
         $this->load->view('sales_return/view_sales_return', $data);
-     }
+    }
 
     public function get_sales_return_customer_contact()
     {

@@ -335,6 +335,26 @@ public function get_joborders_with_pending($uid) {
         return $this->db->update('joborder_total', array('converted_to_joborder' => 1));
     }
 
+    public function get_datewise_record($from_date, $to_date, $uid) {
+        $f_date = date('Y-m-d', strtotime($from_date));
+        $t_date = date('Y-m-d', strtotime($to_date));
+
+        $this->db->select('joborder_total.id, joborder_total.number_fk, joborder_total.date, joborder_total.status, 
+                          customer.company_name, joborder_total.project_code, joborder_total.customer_code, joborder_total.system, 
+                          joborder_total.location, joborder_total.capacity, joborder_total.project_qty, joborder_total.oc_number, joborder_total.so_reference, u.username as prepare_by, u2.username as approved_by_name, joborder_total.note');
+        $this->db->from('joborder_total');
+        $this->db->where('joborder_total.date >=', $f_date);
+        $this->db->where('joborder_total.date <=', $t_date);
+        $this->db->join('customer', 'customer.customer_id=joborder_total.customer_id_fk', 'Left Join');
+        $this->db->join('user u', 'joborder_total.uid=u.user_id', 'Left Join');
+        $this->db->join('user u2', 'joborder_total.approved_by=u2.user_id', 'Left Join');
+        $this->db->group_by('joborder_total.number_fk');
+        $this->db->order_by("joborder_total.id", "desc");
+        $query = $this->db->get();
+        
+        return $query->result();
+    }
+
     public function get_monthyearwise_record($month_year, $uid) {
         $monthyear_arr = explode('-', $month_year);
         $nmonth = date('m', strtotime($monthyear_arr[0]));
@@ -342,10 +362,12 @@ public function get_joborders_with_pending($uid) {
         
         $this->db->select('joborder_total.id, joborder_total.number_fk, joborder_total.date, joborder_total.status, 
                           customer.company_name, joborder_total.project_code, joborder_total.customer_code, joborder_total.system, 
-                          joborder_total.location, joborder_total.capacity, joborder_total.project_qty, joborder_total.oc_number, joborder_total.so_reference');
+                          joborder_total.location, joborder_total.capacity, joborder_total.project_qty, joborder_total.oc_number, joborder_total.so_reference, u.username as prepare_by, u2.username as approved_by_name, joborder_total.note');
         $this->db->from('joborder_total');
         $this->db->like('joborder_total.date', $newmonthyear_str, 'both');
         $this->db->join('customer', 'customer.customer_id=joborder_total.customer_id_fk', 'Left Join');
+        $this->db->join('user u', 'joborder_total.uid=u.user_id', 'Left Join');
+        $this->db->join('user u2', 'joborder_total.approved_by=u2.user_id', 'Left Join');
         $this->db->group_by('joborder_total.number_fk');
         $this->db->order_by("joborder_total.id", "desc");
         $query = $this->db->get();

@@ -39,14 +39,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                     </h3>
                                 </div>
                                 <div style="float: right !important; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px;">
-                                    <form action="<?php echo base_url(); ?>SupplierController/get_purchase_bill_purmonthyearwise_record" method="post" class="form-inline" style="margin: 0; display: inline-block;">
-                                        <div class="input-group input-group-sm" style="width: 220px; display: table;">
-                                            <span class="input-group-addon" style="height: 30px; padding: 5px 10px; border-radius: 4px 0 0 4px !important;"><i class="fa fa-calendar"></i></span>
-                                            <input type="text" class="form-control onlymonth input-sm" name="month_year" id="month_year" onkeydown="return false;" autocomplete="off" required placeholder="Select Month/Year" style="height: 30px; border-radius: 0 !important;">
-                                            <span class="input-group-btn" style="width: 1%;">
-                                                <button class="btn btn-primary btn-sm btn-flat" name="submit" value="" type="submit" style="height: 30px; padding: 5px 15px; border-radius: 0 4px 4px 0 !important; font-weight: 600; border: none;">Filter</button>
-                                            </span>
+                                    <form action="<?php echo base_url(); ?>SupplierController/get_purchase_bill_datewise_record" method="post" class="form-inline" style="margin: 0; display: inline-flex; align-items: center; gap: 8px;">
+                                        <div class="input-group input-group-sm" style="width: 170px;">
+                                            <span class="input-group-addon" style="height: 30px; padding: 5px 8px;"><i class="fa fa-calendar"></i> From</span>
+                                            <input type="text" class="form-control backdate input-sm" name="from_date" id="from_date" value="<?php echo isset($from_date) ? htmlspecialchars($from_date) : ''; ?>" onkeydown="return false;" autocomplete="off" required placeholder="From Date" style="height: 30px;">
                                         </div>
+                                        <div class="input-group input-group-sm" style="width: 170px;">
+                                            <span class="input-group-addon" style="height: 30px; padding: 5px 8px;"><i class="fa fa-calendar"></i> To</span>
+                                            <input type="text" class="form-control backdate input-sm" name="to_date" id="to_date" value="<?php echo isset($to_date) ? htmlspecialchars($to_date) : ''; ?>" onkeydown="return false;" autocomplete="off" required placeholder="To Date" style="height: 30px;">
+                                        </div>
+                                        <button class="btn btn-primary btn-sm" name="submit" value="" type="submit" style="height: 30px; padding: 5px 12px; font-weight: 600; border: none; border-radius: 4px;"><i class="fa fa-filter"></i> Filter</button>
                                     </form>
                                     <a href="<?php echo base_url(); ?>SupplierController/view_purchase_bill?str=All" class="btn btn-success btn-sm" style="height: 30px; line-height: 20px; font-weight: 600; padding: 5px 15px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; border: none; background-color: #2e7d32 !important;">
                                         <i class="fa fa-list"></i> Show All

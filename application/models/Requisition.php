@@ -1308,6 +1308,24 @@ class Requisition extends CI_Model
     /**
      * Get month-year wise requisition records
      */
+    public function get_datewise_record($from_date, $to_date, $user_id = null)
+    {
+        $f_date = date('Y-m-d', strtotime($from_date));
+        $t_date = date('Y-m-d', strtotime($to_date));
+
+        $this->db->select('pri.*, pr.*, d.department_name, l.location_name, u.username as requested_by_name');
+        $this->db->from('purchase_requisition_items pri');
+        $this->db->join('purchase_requisition pr', 'pri.pr_id = pr.pr_id', 'left');
+        $this->db->join('department_master d', 'pr.department_id_fk = d.department_id', 'left');
+        $this->db->join('location_master l', 'pr.location_id_fk = l.location_id', 'left');
+        $this->db->join('user u', 'pr.requested_by = u.user_id', 'left');
+        $this->db->where('pr.pr_date >=', $f_date);
+        $this->db->where('pr.pr_date <=', $t_date);
+        $this->db->order_by('pr.pr_id', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
     public function get_monthyearwise_record($month_year, $user_id = null)
     {
 

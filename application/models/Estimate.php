@@ -681,6 +681,23 @@ class Estimate extends CI_Model
         return $query->num_rows();
     }
 
+    public function get_datewise_record($from_date, $to_date, $uid)
+    {
+        $f_date = date('Y-m-d', strtotime($from_date));
+        $t_date = date('Y-m-d', strtotime($to_date));
+
+        $this->db->select('quotation_total.id,quotation_id, gst_type,number, date, fullname, company_name, basic_total, total,status, customer.customer_id');
+        $this->db->from('quotation');
+        $this->db->where('quotation.date >=', $f_date);
+        $this->db->where('quotation.date <=', $t_date);
+        $this->db->join('customer', 'customer.customer_id=quotation.customer_id', 'Left Join');
+        $this->db->join('quotation_total', 'quotation_total.number_fk=quotation.number', 'Left Join');
+        $this->db->group_by('quotation.number');
+        $this->db->order_by("quotation_total.id", "desc");
+        $query = $this->db->get();
+        return $query->result();
+    }
+
     public function get_monthyearwise_record($month_year, $uid)
     {
 

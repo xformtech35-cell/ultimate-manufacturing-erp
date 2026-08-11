@@ -70,6 +70,23 @@ class Salesreturn extends CI_Model
         return $query->result();
     }
 
+    public function get_sales_return_datewise_record($from_date, $to_date, $uid)
+    {
+        $f_date = date('Y-m-d', strtotime($from_date));
+        $t_date = date('Y-m-d', strtotime($to_date));
+
+        $this->db->select('sr_return_id, number, date, fullname, company_name, gst_type, status, total');
+        $this->db->from('sales_return');
+        $this->db->where('sales_return.date >=', $f_date);
+        $this->db->where('sales_return.date <=', $t_date);
+        $this->db->join('customer', 'customer.customer_id=sales_return.customer_id_fk', 'Left Join');
+        $this->db->join('sales_return_total', 'sales_return_total.number_fk=sales_return.number', 'Left Join');
+        $this->db->group_by('sales_return.number');
+        $this->db->order_by("sales_return.sr_return_id", "desc");
+        $query = $this->db->get();
+        return $query->result();
+    }
+
     public function get_sales_return_purmonthyearwise_record($month_year, $uid)
     {
 

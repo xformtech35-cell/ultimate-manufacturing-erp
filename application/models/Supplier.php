@@ -565,6 +565,24 @@ class Supplier extends CI_Model
         return $query->result();
     }
 
+    public function get_purchase_bill_datewise_record($from_date, $to_date, $uid)
+    {
+        $f_date = date('Y-m-d', strtotime($from_date));
+        $t_date = date('Y-m-d', strtotime($to_date));
+
+        $this->db->select('* , SUM(purchase_pay_amount) as total_balance_amount');
+        $this->db->from('purchase_bill');
+        $this->db->where('purchase_bill.date >=', $f_date);
+        $this->db->where('purchase_bill.date <=', $t_date);
+        $this->db->join('supplier', 'supplier.supplier_id=purchase_bill.supplier_id_fk', 'Left Join');
+        $this->db->join('purchase_bill_total', 'purchase_bill_total.number_fk=purchase_bill.number', 'Left Join');
+        $this->db->join('purchase_payment_gst', 'purchase_payment_gst.purchase_number_fk=purchase_bill_total.number_fk', 'Left');
+        $this->db->group_by('purchase_bill.number');
+        $this->db->order_by("purchase_bill.po_bill_id", "desc");
+        $query = $this->db->get();
+        return $query->result();
+    }
+
     public function get_purchase_bill_purmonthyearwise_record($month_year, $uid)
     {
 
@@ -723,6 +741,23 @@ class Supplier extends CI_Model
         $this->db->from('purchase_return');
         // $this->db->where('purchase_order.uid', $uid);
         // $this->db->where('po_total.uid', $uid);
+        $this->db->join('supplier', 'supplier.supplier_id=purchase_return.supplier_id_fk', 'Left Join');
+        $this->db->join('purchase_return_total', 'purchase_return_total.number_fk=purchase_return.number', 'Left Join');
+        $this->db->group_by('purchase_return.number');
+        $this->db->order_by("purchase_return.po_return_id", "desc");
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    public function get_purchase_return_datewise_record($from_date, $to_date, $uid)
+    {
+        $f_date = date('Y-m-d', strtotime($from_date));
+        $t_date = date('Y-m-d', strtotime($to_date));
+
+        $this->db->select('po_return_id, number, date, fullname, supplier.s_code, gst_type, status, total');
+        $this->db->from('purchase_return');
+        $this->db->where('purchase_return.date >=', $f_date);
+        $this->db->where('purchase_return.date <=', $t_date);
         $this->db->join('supplier', 'supplier.supplier_id=purchase_return.supplier_id_fk', 'Left Join');
         $this->db->join('purchase_return_total', 'purchase_return_total.number_fk=purchase_return.number', 'Left Join');
         $this->db->group_by('purchase_return.number');

@@ -286,6 +286,27 @@ Class Bom extends CI_Model {
         return $query->num_rows();
     }
 
+    public function get_datewise_record($from_date, $to_date, $uid) {
+        $f_date = date('Y-m-d', strtotime($from_date));
+        $t_date = date('Y-m-d', strtotime($to_date));
+
+        $this->db->select('bom_total.id as bom_total_id, bom_total.number_fk as number, bom_total.date, bom_total.status, 
+                          bom_total.note, bom_total.project_code, bom_total.customer_code, bom_total.system, 
+                          bom_total.location, bom_total.capacity, bom_total.project_qty, bom_total.oc_number,
+                          bom_total.send_to_mrp,
+                          customer.company_name, customer.fullname, u.username as prepare_by, u2.username as approved_by_name');
+        $this->db->from('bom_total');
+        $this->db->where('bom_total.date >=', $f_date);
+        $this->db->where('bom_total.date <=', $t_date);
+        $this->db->join('customer', 'customer.customer_id = bom_total.customer_id_fk', 'left');
+        $this->db->join('user u', 'bom_total.uid = u.user_id', 'left');
+        $this->db->join('user u2', 'bom_total.approved_by = u2.user_id', 'left');
+        $this->db->order_by("bom_total.id", "desc");
+        $query = $this->db->get();
+        
+        return $query->result();
+    }
+
     public function get_monthyearwise_record($month_year, $uid) {
         $monthyear_arr = explode('-', $month_year);
         $nmonth = date('m', strtotime($monthyear_arr[0]));

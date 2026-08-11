@@ -795,7 +795,24 @@ Class Proformainvoice extends CI_Model {
         $query = $this->db->get();
         return $query->result();
     }
-   public function get_monthyearwise_record($month_year, $uid) {
+    public function get_datewise_record($from_date, $to_date, $uid) {
+        $f_date = date('Y-m-d', strtotime($from_date));
+        $t_date = date('Y-m-d', strtotime($to_date));
+
+        $this->db->select('* , SUM(invocie_pay_amount) as total_balance_amount');
+        $this->db->from('proforma_invoice');
+        $this->db->where('proforma_invoice.invoice_date >=', $f_date);
+        $this->db->where('proforma_invoice.invoice_date <=', $t_date);
+        $this->db->join('customer', 'customer.customer_id=proforma_invoice.customer_id', 'Left Join');
+        $this->db->join('proforma_invoice_total', 'proforma_invoice_total.number_fk=proforma_invoice.invoice_number', 'Right Join');
+        $this->db->join('proforma_payment_gst', 'proforma_payment_gst.invoice_number_fk=proforma_invoice_total.number_fk', 'Left');
+        $this->db->group_by('proforma_invoice.invoice_number');
+        $this->db->order_by("id", "desc");
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    public function get_monthyearwise_record($month_year, $uid) {
 
         $monthyear_arr = explode('-', $month_year);
         $nmonth = date('m', strtotime($monthyear_arr[0]));

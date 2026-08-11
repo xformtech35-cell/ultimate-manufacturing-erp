@@ -42,9 +42,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
                                     <h3 class="box-title" style="margin:0;">BOM Details</h3>
                                     <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                        <form action="<?php echo base_url(); ?>BomController/get_monthyearwise_record" method="post" style="margin:0; display:flex; gap:4px; align-items:center;">
-                                            <input type="text" class="form-control onlymonth input-sm pull-right" name="month_year" id="month_year" onkeydown="return false;" autocomplete="off" required="" placeholder="Select Month/Year" style="width:160px;">
-                                            <button class="btn btn-primary btn-sm" name="submit" value="">Submit</button>
+                                        <form action="<?php echo base_url(); ?>BomController/get_datewise_record" method="post" style="margin:0; display:flex; gap:6px; align-items:center;">
+                                            <div class="input-group input-group-sm" style="width: 160px;">
+                                                <span class="input-group-addon" style="height: 30px; padding: 5px 6px;"><i class="fa fa-calendar"></i> From</span>
+                                                <input type="text" class="form-control backdate input-sm" name="from_date" id="from_date" value="<?php echo isset($from_date) ? htmlspecialchars($from_date) : ''; ?>" onkeydown="return false;" autocomplete="off" required placeholder="From Date" style="height: 30px;">
+                                            </div>
+                                            <div class="input-group input-group-sm" style="width: 160px;">
+                                                <span class="input-group-addon" style="height: 30px; padding: 5px 6px;"><i class="fa fa-calendar"></i> To</span>
+                                                <input type="text" class="form-control backdate input-sm" name="to_date" id="to_date" value="<?php echo isset($to_date) ? htmlspecialchars($to_date) : ''; ?>" onkeydown="return false;" autocomplete="off" required placeholder="To Date" style="height: 30px;">
+                                            </div>
+                                            <button class="btn btn-primary btn-sm" name="submit" value="" type="submit" style="height: 30px; padding: 5px 12px; font-weight: 600; border: none; border-radius: 4px;"><i class="fa fa-filter"></i> Filter</button>
                                         </form>
                                         <a href="<?php echo base_url(); ?>AiController/bom_triage" class="btn btn-primary btn-sm"><i class="fa fa-magic"></i> AI Draft Triage</a>
                                         <a href="<?php echo base_url(); ?>BomController/index?str=All" class="btn btn-info btn-sm"><i class="fa fa-list"></i> Show All</a>

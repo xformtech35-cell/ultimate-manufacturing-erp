@@ -1477,6 +1477,25 @@ class Material_issue_model extends CI_Model
     /**
      * Get material issue slips by month and year
      */
+    public function get_datewise_record($from_date, $to_date, $uid = null)
+    {
+        $f_date = date('Y-m-d', strtotime($from_date));
+        $t_date = date('Y-m-d', strtotime($to_date));
+
+        $this->db->select('mis.*, u.username as issued_by_name');
+        $this->db->from($this->issue_slip_table . ' mis');
+        $this->db->join($this->users_table . ' u', 'u.user_id = mis.uid', 'left');
+        $this->db->where('mis.issue_date >=', $f_date);
+        $this->db->where('mis.issue_date <=', $t_date);
+        if ($uid !== null) {
+            $this->db->where('mis.uid', $uid);
+        }
+        $this->db->order_by('mis.issue_date', 'DESC');
+        $this->db->order_by('mis.issue_id', 'DESC');
+
+        return $this->db->get()->result_array();
+    }
+
     public function get_monthyearwise_record($month_year, $uid = null)
     {
         // Parse month_year string (format: "MonthName-YYYY" or "MM-YYYY")

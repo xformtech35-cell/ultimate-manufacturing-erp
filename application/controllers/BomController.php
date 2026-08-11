@@ -852,6 +852,24 @@ if (count($date_parts) == 3) {
         $this->load->view('bom/view_bom', $data);
     }
 
+    public function get_datewise_record() {
+        $from_date = $this->input->post('from_date');
+        $to_date = $this->input->post('to_date');
+        $data['from_date'] = $from_date;
+        $data['to_date'] = $to_date;
+        $data['bom_count'] = $this->bom->get_bom_count($this->user_id);
+        $data['bom_draft_count'] = $this->bom->get_bom_draft_count(1, $this->user_id);
+        $data['bom_sent_count'] = $this->bom->get_bom_draft_count(2, $this->user_id);
+        $data['unit_result'] = $this->units->get_units($this->user_id);
+        $data['settings'] = $this->login->get_settings($this->user_id);
+        $data['bom_id'] = $this->bom->get_last_bom_number($this->user_id);
+        $data['boms'] = $this->bom->get_datewise_record($from_date, $to_date, $this->user_id);
+        
+        $session_data_head = $this->session->userdata('session_data_head');
+        $this->load->view('admin/header_side_bar', $session_data_head);
+        $this->load->view('bom/view_bom', $data);
+    }
+
     public function get_monthyearwise_record() {
         $month_year = $this->input->post('month_year');
         $data['bom_count'] = $this->bom->get_bom_count($this->user_id);

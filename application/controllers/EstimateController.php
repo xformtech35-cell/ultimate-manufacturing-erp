@@ -2082,6 +2082,21 @@ class EstimateController extends MY_Controller
     $this->session->set_flashdata('SUCCESSMSG', "GST type converted successfully!");
     redirect('EstimateController/index');
 }
+    public function get_datewise_record()
+    {
+        $from_date = $this->input->post('from_date');
+        $to_date = $this->input->post('to_date');
+        $data['from_date'] = $from_date;
+        $data['to_date'] = $to_date;
+        $data['quo_count'] = $this->estimate->get_quo_count($this->user_id);
+        $data['quo_draft_count'] = $this->estimate->get_quo_draft_count(1, $this->user_id);
+        $data['quo_sent_count'] = $this->estimate->get_quo_draft_count(2, $this->user_id);
+        $data['estimates'] = $this->estimate->get_datewise_record($from_date, $to_date, $this->user_id);
+        $session_data_head = $this->session->userdata('session_data_head');
+        $this->load->view('admin/header_side_bar', $session_data_head);
+        $this->load->view('estimate/view_estimate', $data);
+    }
+
     public function get_monthyearwise_record()
     {
         $month_year = $this->input->post('month_year');

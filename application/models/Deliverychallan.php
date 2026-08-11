@@ -695,7 +695,24 @@ Class Deliverychallan extends CI_Model {
         $query = $this->db->get();
         return $query->result();
     }
-   public function get_monthyearwise_record($month_year, $uid) {
+    public function get_datewise_record($from_date, $to_date, $uid) {
+        $f_date = date('Y-m-d', strtotime($from_date));
+        $t_date = date('Y-m-d', strtotime($to_date));
+
+        $this->db->select('* , SUM(invocie_pay_amount) as total_balance_amount');
+        $this->db->from('delivery_challan');
+        $this->db->where('delivery_challan.invoice_date >=', $f_date);
+        $this->db->where('delivery_challan.invoice_date <=', $t_date);
+        $this->db->join('customer', 'customer.customer_id=delivery_challan.customer_id', 'Left Join');
+        $this->db->join('delivery_challan_total', 'delivery_challan_total.number_fk=delivery_challan.invoice_number', 'Right Join');
+        $this->db->join('delivery_challan_payment_gst', 'delivery_challan_payment_gst.invoice_number_fk=delivery_challan_total.number_fk', 'Left');
+        $this->db->group_by('delivery_challan.invoice_number');
+        $this->db->order_by("id", "desc");
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    public function get_monthyearwise_record($month_year, $uid) {
 
         $monthyear_arr = explode('-', $month_year);
         $nmonth = date('m', strtotime($monthyear_arr[0]));

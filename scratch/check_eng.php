@@ -1,0 +1,8 @@
+<?php
+$conn = new mysqli('localhost', 'root', '', 'ultimate-manufacturing-erp');
+if ($conn->connect_error) { die("Conn error"); }
+
+$res = $conn->query("SELECT id, parent_id, title, permission FROM sameepaccounting_sidebar_menu WHERE title LIKE '%Engineering%' OR permission LIKE '%Engineering%'");
+while($row = $res->fetch_assoc()) {
+    echo "ID: " . $row['id'] . " | Parent: '" . $row['parent_id'] . "' | Title: " . $row['title'] . " | Perm: " . $row['permission'] . "\n";
+}

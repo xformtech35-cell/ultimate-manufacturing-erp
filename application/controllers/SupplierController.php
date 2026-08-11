@@ -2406,6 +2406,18 @@ class SupplierController extends MY_Controller
     }
 
 
+    public function get_purchase_bill_datewise_record()
+    {
+        $from_date = $this->input->post('from_date');
+        $to_date = $this->input->post('to_date');
+        $data['from_date'] = $from_date;
+        $data['to_date'] = $to_date;
+        $data['purchase_bill'] = $this->supplier->get_purchase_bill_datewise_record($from_date, $to_date, $this->user_id);
+        $session_data_head = $this->session->userdata('session_data_head');
+        $this->load->view('admin/header_side_bar', $session_data_head);
+        $this->load->view('supplier/view_purchase_bill', $data);
+    }
+
     public function get_purchase_bill_purmonthyearwise_record()
     {
         $month_year = $this->input->post('month_year');
@@ -2908,6 +2920,18 @@ class SupplierController extends MY_Controller
         $this->load->view('supplier/show_purchase_return', $data);
     }
 
+
+    public function get_purchase_return_datewise_record()
+    {
+        $from_date = $this->input->post('from_date');
+        $to_date = $this->input->post('to_date');
+        $data['from_date'] = $from_date;
+        $data['to_date'] = $to_date;
+        $data['purchase_return'] = $this->supplier->get_purchase_return_datewise_record($from_date, $to_date, $this->user_id);
+        $session_data_head = $this->session->userdata('session_data_head');
+        $this->load->view('admin/header_side_bar', $session_data_head);
+        $this->load->view('supplier/view_purchase_return', $data);
+    }
 
     public function get_purchase_return_purmonthyearwise_record()
     {

@@ -566,6 +566,26 @@ class JobOrderController extends MY_Controller {
         $this->load->view('joborder/view_joborder', $data);
     }
 
+    public function get_datewise_record() {
+        $from_date = $this->input->post('from_date');
+        $to_date = $this->input->post('to_date');
+        $data['from_date'] = $from_date;
+        $data['to_date'] = $to_date;
+        $data['joborder_count'] = $this->joborder->get_joborder_count($this->user_id);
+        $data['joborder_draft_count'] = $this->joborder->get_joborder_draft_count(1, $this->user_id);
+        $data['joborder_sent_count'] = $this->joborder->get_joborder_draft_count(2, $this->user_id);
+        $data['joborder_approved_count'] = $this->joborder->get_joborder_draft_count(4, $this->user_id);
+        $data['joborder_closed_count'] = $this->joborder->get_joborder_draft_count(6, $this->user_id);
+        $data['unit_result'] = $this->units->get_units($this->user_id);
+        $data['settings'] = $this->login->get_settings($this->user_id);
+        $data['joborder_id'] = $this->joborder->get_last_joborder_number($this->user_id);
+        $data['joborders'] = $this->joborder->get_datewise_record($from_date, $to_date, $this->user_id);
+        
+        $session_data_head = $this->session->userdata('session_data_head');
+        $this->load->view('admin/header_side_bar', $session_data_head);
+        $this->load->view('joborder/view_joborder', $data);
+    }
+
     public function get_monthyearwise_record() {
         $month_year = $this->input->post('month_year');
         $data['joborder_count'] = $this->joborder->get_joborder_count($this->user_id);

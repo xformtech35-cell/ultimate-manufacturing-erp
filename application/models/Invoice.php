@@ -965,6 +965,24 @@ class Invoice extends CI_Model
         $this->db->update('barcode_master');
     }
 
+    public function get_datewise_record($from_date, $to_date, $uid)
+    {
+        $f_date = date('Y-m-d', strtotime($from_date));
+        $t_date = date('Y-m-d', strtotime($to_date));
+
+        $this->db->select('*, invoice_total.number_fk as invoice_number, invoice_total.id as id, invoice.invoice_date as invoice_date, SUM(invocie_pay_amount) as total_balance_amount');
+        $this->db->from('invoice');
+        $this->db->where('invoice.invoice_date >=', $f_date);
+        $this->db->where('invoice.invoice_date <=', $t_date);
+        $this->db->join('customer', 'customer.customer_id=invoice.customer_id', 'Left Join');
+        $this->db->join('invoice_total', 'invoice_total.number_fk=invoice.invoice_number', 'Right Join');
+        $this->db->join('invocie_payment_gst', 'invocie_payment_gst.invoice_number_fk=invoice_total.number_fk', 'Left');
+        $this->db->group_by('invoice_total.number_fk');
+        $this->db->order_by("invoice_total.id", "desc");
+        $query = $this->db->get();
+        return $query->result();
+    }
+
     public function get_monthyearwise_record($month_year, $uid)
     {
         // print_r($month_year);die();

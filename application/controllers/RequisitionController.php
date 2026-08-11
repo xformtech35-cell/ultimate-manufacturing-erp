@@ -435,8 +435,16 @@ class RequisitionController extends MY_Controller
 
     public function view_requisition_order()
     {
-        // Check if month filter is submitted via POST
-        if ($this->input->post('month_year')) {
+        // Check if date range filter is submitted via POST
+        if ($this->input->post('from_date') && $this->input->post('to_date')) {
+            $from_date = $this->input->post('from_date');
+            $to_date = $this->input->post('to_date');
+            $data['purchase_requisition'] = $this->requisition->get_datewise_record($from_date, $to_date, $this->user_id);
+            $data['from_date'] = $from_date;
+            $data['to_date'] = $to_date;
+        }
+        // Legacy fallback: check if month filter is submitted via POST
+        elseif ($this->input->post('month_year')) {
             $month_year = $this->input->post('month_year');
             $data['purchase_requisition'] = $this->requisition->get_monthyearwise_record($month_year, $this->user_id);
             $data['selected_month'] = $month_year; // To show selected month in view

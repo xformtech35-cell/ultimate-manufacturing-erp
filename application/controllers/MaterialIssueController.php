@@ -83,6 +83,27 @@ class MaterialIssueController extends MY_Controller
     /**
      * Get material issue slips by month and year
      */
+    public function get_datewise_record()
+    {
+        $this->load->model('login');
+        $from_date = $this->input->post('from_date');
+        $to_date = $this->input->post('to_date');
+        
+        $data = array();
+        $data['from_date'] = $from_date;
+        $data['to_date'] = $to_date;
+        $data['settings'] = $this->login->get_settings($this->uid);
+        $data['departments'] = $this->model->get_unique_departments();
+        $data['projects'] = $this->Project_model->get_all_projects();
+        $data['users'] = $this->model->get_unique_issued_to();
+        $data['issue_slips'] = $this->model->get_datewise_record($from_date, $to_date, $this->uid);
+        $data['filters'] = array();
+
+        $session_data_head = $this->session->userdata('session_data_head');
+        $this->load->view('admin/header_side_bar', is_array($session_data_head) ? $session_data_head : array());
+        $this->load->view('material_issue/list', $data);
+    }
+
     public function get_monthyearwise_record()
     {
         // Load required models
