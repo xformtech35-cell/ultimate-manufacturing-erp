@@ -94,36 +94,23 @@ class SupplierController extends MY_Controller
     public function view_purchase_order()
     {
         $str = $this->input->get('str');
-        $month_year_post = $this->input->post('month_year');
+        $from_date = $this->input->post('from_date');
+        $to_date = $this->input->post('to_date');
 
-        // Debug: Check what's being received
-        // echo "POST month_year: " . $month_year_post . "<br>";
-        // echo "GET str: " . $str . "<br>";
-        // die();
-
-        // Check if form was submitted with month_year
-        if (!empty($month_year_post)) {
-            // Format from MM-YYYY to YYYY-MM for database
-            // Input: 06-2026 (MM-YYYY)
-            // Output: 2026-06 (YYYY-MM)
-            $month_year_formatted = date('Y-m', strtotime('01-' . $month_year_post));
-
-            // Debug: Check the conversion
-            // echo "Converted month_year: " . $month_year_formatted . "<br>";
-            // die();
-
-            $data['purchase_order'] = $this->supplier->get_monthyearwise_record($month_year_formatted, $this->user_id);
-            $data['selected_month_year'] = $month_year_post; // For display in form
+        if (!empty($from_date) && !empty($to_date)) {
+            $data['purchase_order'] = $this->supplier->get_po_datewise_record($from_date, $to_date, $this->user_id);
+            $data['from_date'] = $from_date;
+            $data['to_date'] = $to_date;
         }
-        // Check if "Show All" was clicked
         elseif ($str == "All") {
             $data['purchase_order'] = $this->supplier->get_purchase_order($this->user_id);
-            $data['selected_month_year'] = '';
+            $data['from_date'] = '';
+            $data['to_date'] = '';
         }
-        // Default: show all records on load
         else {
             $data['purchase_order'] = $this->supplier->get_purchase_order($this->user_id);
-            $data['selected_month_year'] = '';
+            $data['from_date'] = '';
+            $data['to_date'] = '';
         }
 
         $data['settings'] = $this->login->get_settings($this->user_id);

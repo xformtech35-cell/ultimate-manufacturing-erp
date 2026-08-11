@@ -225,6 +225,24 @@ class Supplier extends CI_Model
         return $query->result();
     }
 
+    public function get_po_datewise_record($from_date, $to_date, $uid)
+    {
+        $f_date = date('Y-m-d', strtotime($from_date));
+        $t_date = date('Y-m-d', strtotime($to_date));
+
+        $this->db->select('* ,number, SUM(purchase_pay_amount) as total_balance_amount');
+        $this->db->from('purchase_order');
+        $this->db->join('supplier', 'supplier.supplier_id=purchase_order.supplier_id', 'Left Join');
+        $this->db->join('po_total', 'po_total.number_fk=purchase_order.number', 'Right Join');
+        $this->db->join('purchase_payment_gst', 'purchase_payment_gst.purchase_number_fk=po_total.number_fk', 'Left');
+        $this->db->where('po_total.date >=', $f_date);
+        $this->db->where('po_total.date <=', $t_date);
+        $this->db->group_by('purchase_order.number');
+        $this->db->order_by("purchase_order.po_id", "desc");
+        $query = $this->db->get();
+        return $query->result();
+    }
+
     public function get_supplier_name()
     {
         $this->db->select('*');
