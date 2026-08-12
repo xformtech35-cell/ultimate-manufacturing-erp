@@ -640,7 +640,7 @@ public function add_bom_bom() {
     $capacity = $this->input->post('capacity') ?? '';
     $oc_number = strtoupper(trim($this->input->post('oc_number') ?? ''));
 
-    $note = $this->input->post('note');
+    $note = $this->input->post('note') ?? '';
 
     // Item fields - MATCHING YOUR EXACT DATABASE COLUMN NAMES
     $product_name = $this->input->post('product_name'); // This maps to 'product_name' column in DB
@@ -734,19 +734,19 @@ if (count($date_parts) == 3) {
     
     // Prepare header data for bom_total
     $data_total = array(
-        'customer_id_fk' => $customer_id, 
-        'number_fk' => $number, 
+        'customer_id_fk' => $customer_id ?? 0, 
+        'number_fk' => $number ?? '', 
         'date' => $date_formatted,
-        'status' => $status_main, 
-        'uid' => $logged_in_uid,
-        'note' => $note,
-        'project_code' => $project_code,
-        'customer_code' => $customer_code,
-        'system' => $system,
-        'location' => $location,
-        'capacity' => $capacity,
-        'project_qty' => $project_qty,
-        'oc_number' => $oc_number,
+        'status' => $status_main ?? 1, 
+        'uid' => $logged_in_uid ?? 0,
+        'note' => $note ?? '',
+        'project_code' => $project_code ?? '',
+        'customer_code' => $customer_code ?? '',
+        'system' => $system ?? '',
+        'location' => $location ?? '',
+        'capacity' => $capacity ?? '',
+        'project_qty' => $project_qty ?? '',
+        'oc_number' => $oc_number ?? '',
         // Set default values for required fields
         'basic_total' => 0,
         'total' => 0,
