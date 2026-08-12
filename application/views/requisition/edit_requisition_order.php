@@ -145,7 +145,7 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                             <div class="form-group row">
                                                 <label class="col-sm-4 control-label">Location<span style="color:red;">*</span></label>
                                                 <div class="col-sm-8">
-                                                    <select class="form-control input-sm location_search_name" name="location_id_fk" required>
+                                                    <select class="form-control input-sm location_search_name" name="location_id_fk">
                                                         <option value="">Select Location</option>
                                                         <?php if (!empty($location_result)): ?>
                                                             <?php foreach ($location_result as $loc): ?>

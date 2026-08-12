@@ -516,15 +516,12 @@ class RequisitionController extends MY_Controller
         $so_no = $this->input->post('so_no');
         $oc_no = $this->input->post('oc_no');
 
-        // Table data
-        $items = $this->input->post('item_code');
-        $descriptions = $this->input->post('description');
-        $hsn_codes = $this->input->post('hsn');
-        $quantities = $this->input->post('quantity');
-        $units = $this->input->post('unit');
-        $estimated_costs = $this->input->post('estimated_cost');
-        $specifications = $this->input->post('specification');
-        $location_id = $this->input->post('location_id_fk'); // Add this line
+        // Sanitize location_id_fk and department_id_fk
+        $raw_loc = $this->input->post('location_id_fk');
+        $location_id = (!empty($raw_loc) && (int)$raw_loc > 0) ? (int)$raw_loc : NULL;
+
+        $raw_dept = $this->input->post('department_id_fk');
+        $department_id = (!empty($raw_dept) && (int)$raw_dept > 0) ? (int)$raw_dept : NULL;
 
         // If oc_no was not submitted but so_no was, look it up
         if (empty($oc_no) && !empty($so_no)) {
@@ -537,9 +534,6 @@ class RequisitionController extends MY_Controller
             }
         }
 
-        // var_dump($estimated_costs);
-        // die();
-
         // Insert master requisition with workflow status
         $master_data = [
             'department_id_fk' => $department_id,
@@ -548,7 +542,6 @@ class RequisitionController extends MY_Controller
             'pr_date' => $pr_date,
             'required_date' => $required_date,
             'approval_status' => $approval_status,
-            // 'workflow_status' => 'Draft',
             'submitted_for_approval' => date("Y-m-d H:i:s"),
             'current_approver_role' => 'Purchase Manager',
             'workflow_status' => 'L1_Pending',
@@ -556,59 +549,49 @@ class RequisitionController extends MY_Controller
             'project_code' => $project_code,
             'so_no' => $so_no,
             'oc_no' => $oc_no,
-            'location_id_fk' => $location_id, // Add this line
+            'location_id_fk' => $location_id,
             'created_by' => $this->user_id,
             'created_at' => date("Y-m-d H:i:s"),
-
         ];
-
-
-
-
-
-
-        // die();
 
         $pr_id = $this->requisition->insert_requisition($master_data);
 
         if ($pr_id) {
-            // Get last PR number and determine financial year
-            $last_pr_no = $this->requisition->get_last_pr_number($this->user_id);
+            $items = $this->input->post('item_code');
+            $descriptions = $this->input->post('description');
+            $hsn_codes = $this->input->post('hsn');
+            $quantities = $this->input->post('quantity');
+            $units = $this->input->post('unit');
+            $estimated_costs = $this->input->post('estimated_cost');
+            $specifications = $this->input->post('specification');
 
+            $last_pr_no = $this->requisition->get_last_pr_number($this->user_id);
             if (date('m') <= 3) {
                 $financial_year = (date('y') - 1) . '-' . date('y');
             } else {
                 $financial_year = date('y') . '-' . (date('y') + 1);
             }
 
-            // Prepare item data for batch insert
             $item_data = [];
-            for ($i = 0; $i < count($items); $i++) {
-                if (!empty($items[$i])) {
-                    $last_pr_no++;
-                    $pr_no = "PR/" . $financial_year . "/" . sprintf("%04d", $last_pr_no);
+            if (!empty($items)) {
+                for ($i = 0; $i < count($items); $i++) {
+                    if (!empty($items[$i])) {
+                        $last_pr_no++;
+                        $pr_no = "PR/" . $financial_year . "/" . sprintf("%04d", $last_pr_no);
 
-                    $item_data[] = [
-                        'pr_id' => $pr_id,
-                        'item_code' => $items[$i],
-                        'description' => $descriptions[$i],
-                        'hsn' => $hsn_codes[$i],
-                        'quantity' => $quantities[$i],
-                        'unit' => $units[$i],
-                        'estimated_cost' => $estimated_costs[$i],
-                        'specification' => $specifications[$i],
-                        'pr_no' => $pr_no,
-                        'created_by' => $this->user_id
-                    ];
-
-                    // echo $specifications[$i];
-                    $data_purchase_requisition = array('total_value' => $estimated_costs[$i]);
-
-                    // var_dump($data_purchase_requisition);
-                    //                     die();
-
-                    $this->db->where('pr_id', $pr_id);
-                    $this->db->update('purchase_requisition',  $data_purchase_requisition);
+                        $item_data[] = [
+                            'pr_id' => $pr_id,
+                            'item_code' => $items[$i],
+                            'description' => $descriptions[$i] ?? '',
+                            'hsn' => $hsn_codes[$i] ?? '',
+                            'quantity' => $quantities[$i] ?? 0,
+                            'unit' => $units[$i] ?? '',
+                            'estimated_cost' => $estimated_costs[$i] ?? 0,
+                            'specification' => $specifications[$i] ?? '',
+                            'pr_no' => $pr_no,
+                            'created_by' => $this->user_id
+                        ];
+                    }
                 }
             }
 
@@ -617,13 +600,7 @@ class RequisitionController extends MY_Controller
             }
 
             $this->session->set_flashdata('SUCCESSMSG', "Purchase Requisition added successfully!");
-
-            // Auto-submit for approval if needed
-            if ($this->input->post('submit_for_approval') == 'yes') {
-                $this->submit_for_approval($pr_id);
-            } else {
-                redirect('RequisitionController/view_requisition_order');
-            }
+            redirect('RequisitionController/view_requisition_order');
         } else {
             $this->session->set_flashdata('ERRORMSG', "Requisition not added successfully!");
             redirect('RequisitionController/create_purchase_requisition');
@@ -632,12 +609,6 @@ class RequisitionController extends MY_Controller
 
     public function edit_requisition($pr_id)
     {
-        // Check if requisition can be edited
-        // if (!$this->requisition->can_edit_requisition($pr_id, $this->user_id)) {
-        //     $this->session->set_flashdata('ERRORMSG', 'You cannot edit this requisition');
-        //     redirect('RequisitionController/view_requisition_order');
-        // }
-
         $data['requisition'] = $this->requisition->get_requisition_by_id($pr_id);
         $data['requisition_items'] = $this->requisition->get_requisition_items($pr_id);
         $data['location_result'] = $this->LocationModel->get_locations();
@@ -658,17 +629,6 @@ class RequisitionController extends MY_Controller
     public function update_requisition()
     {
         $pr_id = $this->input->post('pr_id');
-
-
-        // echo $this->input->post('pr_no');
-        // die();
-
-        // Check if requisition can be edited
-        // if (!$this->requisition->can_edit_requisition($pr_id, $this->user_id)) {
-        //     $this->session->set_flashdata('ERRORMSG', 'You cannot edit this requisition');
-        //     redirect('RequisitionController/view_requisition_order');
-        // }
-
         $project_code = $this->input->post('project_code') ?? '';
         $so_no = $this->input->post('so_no');
         $oc_no = $this->input->post('oc_no');
@@ -683,10 +643,17 @@ class RequisitionController extends MY_Controller
             }
         }
 
+        // Sanitize location_id_fk and department_id_fk
+        $raw_loc = $this->input->post('location_id_fk');
+        $location_id = (!empty($raw_loc) && (int)$raw_loc > 0) ? (int)$raw_loc : NULL;
+
+        $raw_dept = $this->input->post('department_id_fk');
+        $department_id = (!empty($raw_dept) && (int)$raw_dept > 0) ? (int)$raw_dept : NULL;
+
         // Master data
         $master_data = [
-            'department_id_fk' => $this->input->post('department_id_fk'),
-            'location_id_fk' => $this->input->post('location_id_fk'),
+            'department_id_fk' => $department_id,
+            'location_id_fk' => $location_id,
             'requested_by' => $this->input->post('requested_by'),
             'urgency_level' => $this->input->post('urgency_level'),
             'pr_date' => date("Y-m-d", strtotime($this->input->post('pr_date'))),
@@ -714,22 +681,23 @@ class RequisitionController extends MY_Controller
         $specifications = $this->input->post('specification');
         $pr_no  = $this->input->post('pr_no');
 
-
         $item_data = [];
-        for ($i = 0; $i < count($items); $i++) {
-            if (!empty($items[$i])) {
-                $item_data[] = [
-                    'pr_id' => $pr_id,
-                    'item_code' => $items[$i],
-                    'description' => $descriptions[$i],
-                    'hsn' => $hsn_codes[$i],
-                    'quantity' => $quantities[$i],
-                    'unit' => $units[$i],
-                    'pr_no' => $pr_no,
-                    'estimated_cost' => $estimated_costs[$i],
-                    'specification' => $specifications[$i],
-                    'created_by' => $this->user_id
-                ];
+        if (!empty($items)) {
+            for ($i = 0; $i < count($items); $i++) {
+                if (!empty($items[$i])) {
+                    $item_data[] = [
+                        'pr_id' => $pr_id,
+                        'item_code' => $items[$i],
+                        'description' => $descriptions[$i] ?? '',
+                        'hsn' => $hsn_codes[$i] ?? '',
+                        'quantity' => $quantities[$i] ?? 0,
+                        'unit' => $units[$i] ?? '',
+                        'pr_no' => $pr_no,
+                        'estimated_cost' => $estimated_costs[$i] ?? 0,
+                        'specification' => $specifications[$i] ?? '',
+                        'created_by' => $this->user_id
+                    ];
+                }
             }
         }
 

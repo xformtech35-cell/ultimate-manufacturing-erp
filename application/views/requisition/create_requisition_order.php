@@ -236,13 +236,15 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                                         <input type="hidden" name="location_id_fk" value="<?php echo $loc_id; ?>">
                                                     <?php else: ?>
                                                         <!-- Show all locations -->
-                                                        <select class="form-control" name="location_id_fk" required>
+                                                        <select class="form-control" name="location_id_fk">
                                                             <option value="">Select Location</option>
-                                                            <?php foreach ($location_result as $loc): ?>
-                                                                <option value="<?php echo $loc->location_id; ?>">
-                                                                    <?php echo $loc->location_name; ?>
-                                                                </option>
-                                                            <?php endforeach; ?>
+                                                            <?php if (!empty($location_result)): ?>
+                                                                <?php foreach ($location_result as $loc): ?>
+                                                                    <option value="<?php echo $loc->location_id; ?>">
+                                                                        <?php echo $loc->location_name; ?>
+                                                                    </option>
+                                                                <?php endforeach; ?>
+                                                            <?php endif; ?>
                                                         </select>
                                                     <?php endif; ?>
                                                 </div>
