@@ -137,13 +137,21 @@ class SupplierController extends MY_Controller
         $data['po_id'] = (int)$this->supplier->get_last_po_number($this->user_id); // ensure integer
 
         $pr_id = $this->input->get('pr_id');
+        $data['pr_id'] = $pr_id;
         if ($pr_id) {
-            $pr_record = $this->db->where('pr_id', $pr_id)->get('purchase_requisition')->row_array();
-            if ($pr_record) {
+            $pr_obj = $this->requisition->get_requisition_by_id($pr_id);
+            if ($pr_obj) {
+                $pr_record = (array)$pr_obj;
                 $data['pr_info'] = $pr_record;
-                $data['pr_no'] = $pr_record['pr_no'];
+                $data['pr_no'] = !empty($pr_record['pr_no']) ? $pr_record['pr_no'] : ('PR/' . date('y') . '-' . (date('y')+1) . '/' . sprintf('%04d', $pr_id));
                 $data['so_no'] = $pr_record['so_no'] ?? '';
+            } else {
+                $data['pr_no'] = '';
+                $data['so_no'] = '';
             }
+        } else {
+            $data['pr_no'] = '';
+            $data['so_no'] = '';
         }
 
         $data['result'] = $this->supplier->get_supplier($this->user_id);
@@ -169,13 +177,21 @@ class SupplierController extends MY_Controller
         $data['po_id'] = $this->supplier->get_last_po_number($this->user_id);
 
         $pr_id = $this->input->get('pr_id');
+        $data['pr_id'] = $pr_id;
         if ($pr_id) {
-            $pr_record = $this->db->where('pr_id', $pr_id)->get('purchase_requisition')->row_array();
-            if ($pr_record) {
+            $pr_obj = $this->requisition->get_requisition_by_id($pr_id);
+            if ($pr_obj) {
+                $pr_record = (array)$pr_obj;
                 $data['pr_info'] = $pr_record;
-                $data['pr_no'] = $pr_record['pr_no'];
+                $data['pr_no'] = !empty($pr_record['pr_no']) ? $pr_record['pr_no'] : ('PR/' . date('y') . '-' . (date('y')+1) . '/' . sprintf('%04d', $pr_id));
                 $data['so_no'] = $pr_record['so_no'] ?? '';
+            } else {
+                $data['pr_no'] = '';
+                $data['so_no'] = '';
             }
+        } else {
+            $data['pr_no'] = '';
+            $data['so_no'] = '';
         }
 
         $data['result'] = $this->supplier->get_supplier($this->user_id);
