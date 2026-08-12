@@ -105,14 +105,14 @@
         </div>
 
         <!-- History Box -->
-        <div class="box box-default collapsed-box">
+        <div class="box box-default">
             <div class="box-header with-border" style="cursor:pointer;" data-widget="collapse">
                 <h3 class="box-title">
                     <i class="fa fa-history text-muted"></i> Request History
                     <small class="text-muted"><?php echo count($history); ?> Records</small>
                 </h3>
                 <div class="box-tools pull-right">
-                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
                 </div>
             </div>
             <div class="box-body table-responsive">
@@ -121,10 +121,10 @@
                         <tr style="background:#f4f4f4;">
                             <th style="width:40px;">#</th>
                             <th>Item Code / Name</th>
-                            <th>Module</th>
+                            <th>Module / Type</th>
                             <th>Requested By</th>
                             <th>Status</th>
-                            <th>Reviewed At</th>
+                            <th>Reviewed By & Date</th>
                             <th>Remarks</th>
                         </tr>
                     </thead>
@@ -137,18 +137,38 @@
                             <?php foreach ($history as $idx => $row): ?>
                                 <tr>
                                     <td><?php echo $idx + 1; ?></td>
-                                    <td><strong><?php echo htmlspecialchars($row['item_code']); ?></strong></td>
-                                    <td><?php echo $row['module'] === 'inventory' ? 'Inventory' : 'Item Code Master'; ?></td>
-                                    <td><?php echo htmlspecialchars($row['requested_by_name']); ?></td>
                                     <td>
-                                        <?php if ($row['status'] === 'approved'): ?>
+                                        <strong><?php echo htmlspecialchars($row['item_code'] ?: 'N/A'); ?></strong>
+                                        <?php if (!empty($row['item_name']) && $row['item_name'] !== $row['item_code']): ?>
+                                            <br><small class="text-muted"><?php echo htmlspecialchars($row['item_name']); ?></small>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <span class="label label-default">
+                                            <?php echo htmlspecialchars($row['module_label'] ?? ($row['module'] === 'inventory' ? 'Inventory Management' : 'Item Code Master')); ?>
+                                        </span>
+                                        <?php if (!empty($row['request_type_label'])): ?>
+                                            <br><small class="text-info"><strong><?php echo htmlspecialchars($row['request_type_label']); ?></strong></small>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?php echo htmlspecialchars($row['requested_by_name'] ?: 'User #' . ($row['requested_by'] ?? '')); ?></td>
+                                    <td>
+                                        <?php if ($row['status'] === 'approved' || $row['status'] === 'deleted'): ?>
                                             <span class="label label-success"><i class="fa fa-check"></i> Approved</span>
                                         <?php else: ?>
                                             <span class="label label-danger"><i class="fa fa-times"></i> Rejected</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?php echo !empty($row['updated_at']) ? date('d M Y, h:i A', strtotime($row['updated_at'])) : '—'; ?></td>
-                                    <td><?php echo !empty($row['review_remarks']) ? htmlspecialchars($row['review_remarks']) : '—'; ?></td>
+                                    <td>
+                                        <?php echo htmlspecialchars($row['reviewed_by_name'] ?: 'Admin'); ?>
+                                        <br><small class="text-muted"><?php echo !empty($row['updated_at']) ? date('d M Y, h:i A', strtotime($row['updated_at'])) : date('d M Y, h:i A', strtotime($row['created_at'])); ?></small>
+                                    </td>
+                                    <td>
+                                        <?php 
+                                        $remarks = $row['review_remarks'] ?? $row['reason'] ?? '';
+                                        echo !empty($remarks) ? htmlspecialchars($remarks) : '<span class="text-muted">—</span>'; 
+                                        ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>

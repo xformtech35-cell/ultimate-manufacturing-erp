@@ -482,14 +482,95 @@ class DeleteApprovalController extends MY_Controller
         $user_id      = (int)($res['user_id'] ?? 0);
         $is_admin     = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
 
-        if ($is_admin) {
-            $data['pending']  = $this->db->where('status', 'pending')->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
-            $data['history']  = $this->db->where_in('status', ['approved','rejected','deleted'])->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
-        } else {
-            $data['pending']  = $this->db->where('status', 'pending')->where('requested_by', $user_id)->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
-            $data['history']  = $this->db->where_in('status', ['approved','rejected','deleted'])->where('requested_by', $user_id)->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+        $pending_list = [];
+        $history_list = [];
+        $seen_keys    = [];
+
+        // 1. Fetch from inventory_approval_requests
+        if ($this->db->table_exists('inventory_approval_requests')) {
+            if ($is_admin) {
+                $inv_p = $this->db->where('status', 'pending')->order_by('created_at', 'DESC')->get('inventory_approval_requests')->result_array();
+                $inv_h = $this->db->where_in('status', ['approved', 'rejected'])->order_by('created_at', 'DESC')->get('inventory_approval_requests')->result_array();
+            } else {
+                $inv_p = $this->db->where('status', 'pending')->where('requested_by', $user_id)->order_by('created_at', 'DESC')->get('inventory_approval_requests')->result_array();
+                $inv_h = $this->db->where_in('status', ['approved', 'rejected'])->where('requested_by', $user_id)->order_by('created_at', 'DESC')->get('inventory_approval_requests')->result_array();
+            }
+
+            foreach ($inv_p as $row) {
+                $key = 'inv_p_' . $row['id'];
+                $seen_keys[$key] = true;
+                $row['request_type_label'] = ($row['request_type'] === 'delete') ? 'Delete Request' : 'Edit / Update';
+                $row['module_label']       = 'Inventory Management';
+                $row['is_inventory_table'] = true;
+                $pending_list[] = $row;
+            }
+
+            foreach ($inv_h as $row) {
+                $key = 'inv_h_' . $row['id'];
+                $seen_keys[$key] = true;
+                $row['request_type_label'] = ($row['request_type'] === 'delete') ? 'Delete Request' : 'Edit / Update';
+                $row['module_label']       = 'Inventory Management';
+                $row['is_inventory_table'] = true;
+                $history_list[] = $row;
+            }
         }
 
+        // 2. Fetch from item_delete_requests (legacy delete table)
+        if ($this->db->table_exists('item_delete_requests')) {
+            if ($is_admin) {
+                $del_p = $this->db->where('status', 'pending')->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+                $del_h = $this->db->where_in('status', ['approved', 'rejected', 'deleted'])->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+            } else {
+                $del_p = $this->db->where('status', 'pending')->where('requested_by', $user_id)->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+                $del_h = $this->db->where_in('status', ['approved', 'rejected', 'deleted'])->where('requested_by', $user_id)->order_by('created_at', 'DESC')->get('item_delete_requests')->result_array();
+            }
+
+            foreach ($del_p as $row) {
+                // Avoid duplicating if already present in inventory_approval_requests
+                $dup = false;
+                foreach ($pending_list as $existing) {
+                    if (($existing['item_code'] ?? '') === ($row['item_code'] ?? '') && ($existing['request_type'] ?? '') === 'delete') {
+                        $dup = true;
+                        break;
+                    }
+                }
+                if (!$dup) {
+                    $row['request_type_label'] = 'Delete Request';
+                    $row['module_label']       = $row['module'] === 'inventory' ? 'Inventory Management' : 'Item Code Master';
+                    $row['is_inventory_table'] = false;
+                    $pending_list[] = $row;
+                }
+            }
+
+            foreach ($del_h as $row) {
+                $dup = false;
+                foreach ($history_list as $existing) {
+                    if (($existing['item_code'] ?? '') === ($row['item_code'] ?? '') && ($existing['request_type'] ?? '') === 'delete') {
+                        $dup = true;
+                        break;
+                    }
+                }
+                if (!$dup) {
+                    $row['request_type_label'] = 'Delete Request';
+                    $row['module_label']       = $row['module'] === 'inventory' ? 'Inventory Management' : 'Item Code Master';
+                    $row['is_inventory_table'] = false;
+                    $history_list[] = $row;
+                }
+            }
+        }
+
+        // Sort both by created_at DESC
+        usort($pending_list, function ($a, $b) {
+            return strtotime($b['created_at'] ?? 0) - strtotime($a['created_at'] ?? 0);
+        });
+        usort($history_list, function ($a, $b) {
+            $tA = strtotime($a['updated_at'] ?? $a['created_at'] ?? 0);
+            $tB = strtotime($b['updated_at'] ?? $b['created_at'] ?? 0);
+            return $tB - $tA;
+        });
+
+        $data['pending']  = $pending_list;
+        $data['history']  = $history_list;
         $data['is_admin'] = $is_admin;
         $data['user_id']  = $user_id;
 
