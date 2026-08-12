@@ -345,6 +345,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+
                         <!-- TAB 4: ALL HISTORY -->
                         <div class="tab-pane" id="tab_all_history">
                             <div class="table-responsive">
@@ -400,3 +402,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         </div>
     </section>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof jQuery !== 'undefined') {
+        jQuery(document).on('click', '.nav-tabs-custom .nav-tabs a', function(e) {
+            e.preventDefault();
+            jQuery(this).tab('show');
+        });
+        jQuery('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+            if (jQuery.fn.DataTable) {
+                jQuery.fn.DataTable.tables({ visible: true, api: true }).columns.adjust();
+            }
+        });
+    }
+});
+</script>
