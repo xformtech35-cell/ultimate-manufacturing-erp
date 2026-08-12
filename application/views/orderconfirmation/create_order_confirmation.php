@@ -208,24 +208,22 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                             <table class="table table-bordered" id="ocTable">
                                                 <thead>
                                                     <tr>
-                                                        <th width="25%">Description</th>
-                                                        <th width="10%">HSN Code</th>
+                                                        <th width="35%">Description / Item Name</th>
                                                         <th width="10%">Quantity</th>
-                                                        <th width="8%">Unit</th>
-                                                        <th width="12%">Unit Price</th>
-                                                        <th width="8%">Tax Rate %</th>
+                                                        <th width="10%">Unit</th>
+                                                        <th width="15%">Unit Price</th>
+                                                        <th width="10%">Tax Rate %</th>
                                                         <th width="12%">Amount</th>
-                                                        <th width="10%">Action</th>
+                                                        <th width="8%">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <tr class="oc-item">
-                                                        <td><input type="text" class="form-control description" name="description[]" placeholder="Item description"></td>
-                                                        <td><input type="text" class="form-control hsn_code" name="hsn_code[]" placeholder="HSN"></td>
+                                                        <td><input type="text" class="form-control description" name="description[]" placeholder="e.g., Dosing System"></td>
                                                         <td><input type="number" class="form-control quantity" name="quantity[]" placeholder="Qty" step="0.01"></td>
                                                         <td><input type="text" class="form-control unit" name="unit[]" placeholder="Unit"></td>
                                                         <td><input type="number" class="form-control unit_price" name="unit_price[]" placeholder="Price" step="0.01"></td>
-                                                        <td><input type="number" class="form-control tax_rate" name="tax_rate[]" placeholder="%" step="0.01" value="0"></td>
+                                                        <td><input type="number" class="form-control tax_rate" name="tax_rate[]" placeholder="%" step="0.01" value="18"></td>
                                                         <td><input type="number" class="form-control amount" name="amount[]" placeholder="Amount" readonly></td>
                                                         <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-trash"></i></button></td>
                                                     </tr>
@@ -304,11 +302,10 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
             $('#addRowBtn').click(function() {
                 var newRow = '<tr class="oc-item">' +
                     '<td><input type="text" class="form-control description" name="description[]" placeholder="Item description"></td>' +
-                    '<td><input type="text" class="form-control hsn_code" name="hsn_code[]" placeholder="HSN"></td>' +
                     '<td><input type="number" class="form-control quantity" name="quantity[]" placeholder="Qty" step="0.01"></td>' +
                     '<td><input type="text" class="form-control unit" name="unit[]" placeholder="Unit"></td>' +
                     '<td><input type="number" class="form-control unit_price" name="unit_price[]" placeholder="Price" step="0.01"></td>' +
-                    '<td><input type="number" class="form-control tax_rate" name="tax_rate[]" placeholder="%" step="0.01" value="0"></td>' +
+                    '<td><input type="number" class="form-control tax_rate" name="tax_rate[]" placeholder="%" step="0.01" value="18"></td>' +
                     '<td><input type="number" class="form-control amount" name="amount[]" placeholder="Amount" readonly></td>' +
                     '<td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-trash"></i></button></td>' +
                     '</tr>';

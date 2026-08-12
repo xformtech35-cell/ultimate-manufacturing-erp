@@ -209,60 +209,58 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                         <h4>OC Items</h4>
                                         <div class="table-responsive">
                                             <table class="table table-bordered table-striped">
-                                                <thead>
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>Description</th>
-                                                        <th>HSN Code</th>
-                                                        <th>Quantity</th>
-                                                        <th>Unit</th>
-                                                        <th>Unit Price</th>
-                                                        <th>Tax Rate</th>
-                                                        <th>Tax Amount</th>
-                                                        <th>Amount</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php 
-                                                    if(isset($oc_detail) && !empty($oc_detail)) {
-                                                        $i = 1;
-                                                        foreach($oc_detail as $detail) {
-                                                    ?>
-                                                        <tr>
-                                                            <td><?php echo $i; ?></td>
-                                                            <td><?php echo $detail['description']; ?></td>
-                                                            <td><?php echo $detail['hsn_code'] ? $detail['hsn_code'] : '-'; ?></td>
-                                                            <td><?php echo number_format($detail['quantity'], 2); ?></td>
-                                                            <td><?php echo $detail['unit'] ? $detail['unit'] : '-'; ?></td>
-                                                            <td><?php echo number_format($detail['unit_price'], 2); ?></td>
-                                                            <td><?php echo number_format($detail['tax_rate'], 2); ?></td>
-                                                            <td><?php echo number_format($detail['tax_amount'], 2); ?></td>
-                                                            <td><?php echo number_format($detail['amount'], 2); ?></td>
-                                                        </tr>
-                                                    <?php 
-                                                            $i++;
-                                                        }
-                                                    } else {
-                                                    ?>
-                                                        <tr>
-                                                            <td colspan="9" class="text-center">No items found.</td>
-                                                        </tr>
-                                                    <?php } ?>
-                                                </tbody>
-                                                <tfoot>
-                                                    <tr>
-                                                        <th colspan="8" class="text-right">Sub Total</th>
-                                                        <th><?php echo number_format($oc['sub_total'], 2); ?></th>
-                                                    </tr>
-                                                    <tr>
-                                                        <th colspan="8" class="text-right">Tax Amount</th>
-                                                        <th><?php echo number_format($oc['tax_amount'], 2); ?></th>
-                                                    </tr>
-                                                    <tr>
-                                                        <th colspan="8" class="text-right">Total Amount</th>
-                                                        <th><?php echo number_format($oc['total'], 2); ?></th>
-                                                    </tr>
-                                                </tfoot>
+                                                 <thead>
+                                                     <tr>
+                                                         <th>#</th>
+                                                         <th>Description / Item Name</th>
+                                                         <th>Quantity</th>
+                                                         <th>Unit</th>
+                                                         <th>Unit Price</th>
+                                                         <th>Tax Rate %</th>
+                                                         <th>Tax Amount</th>
+                                                         <th>Amount</th>
+                                                     </tr>
+                                                 </thead>
+                                                 <tbody>
+                                                     <?php 
+                                                     if(isset($oc_detail) && !empty($oc_detail)) {
+                                                         $i = 1;
+                                                         foreach($oc_detail as $detail) {
+                                                     ?>
+                                                         <tr>
+                                                             <td><?php echo $i; ?></td>
+                                                             <td><?php echo $detail['description']; ?></td>
+                                                             <td><?php echo number_format($detail['quantity'], 2); ?></td>
+                                                             <td><?php echo $detail['unit'] ? $detail['unit'] : '-'; ?></td>
+                                                             <td><?php echo number_format($detail['unit_price'], 2); ?></td>
+                                                             <td><?php echo number_format($detail['tax_rate'], 2); ?>%</td>
+                                                             <td><?php echo number_format($detail['tax_amount'], 2); ?></td>
+                                                             <td><?php echo number_format($detail['amount'], 2); ?></td>
+                                                         </tr>
+                                                     <?php 
+                                                             $i++;
+                                                         }
+                                                     } else {
+                                                     ?>
+                                                         <tr>
+                                                             <td colspan="8" class="text-center">No items found.</td>
+                                                         </tr>
+                                                     <?php } ?>
+                                                 </tbody>
+                                                 <tfoot>
+                                                     <tr>
+                                                         <th colspan="7" class="text-right">Sub Total</th>
+                                                         <th><?php echo number_format($oc['sub_total'], 2); ?></th>
+                                                     </tr>
+                                                     <tr>
+                                                         <th colspan="7" class="text-right">Tax Amount</th>
+                                                         <th><?php echo number_format($oc['tax_amount'], 2); ?></th>
+                                                     </tr>
+                                                     <tr>
+                                                         <th colspan="7" class="text-right">Total Amount</th>
+                                                         <th><?php echo number_format($oc['total'], 2); ?></th>
+                                                     </tr>
+                                                 </tfoot>
                                             </table>
                                         </div>
                                     </div>
