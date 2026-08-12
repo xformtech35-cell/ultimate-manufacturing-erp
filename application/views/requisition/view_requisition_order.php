@@ -642,7 +642,7 @@ if ($_has_project_master) {
                                                     }
                                                 ?>
                                                     <!-- Parent Header Row (PR Summary) -->
-                                                    <tr id="pr-row-<?php echo $pr_id; ?>" class="pr-parent-row <?php echo $rowClass; ?>" data-prid="<?php echo $pr_id; ?>" style="font-weight: 500;">
+                                                    <tr id="pr-row-<?php echo $pr_id; ?>" class="pr-parent-row <?php echo $rowClass; ?>" data-prid="<?php echo $pr_id; ?>" data-status="<?php echo htmlspecialchars($status); ?>" style="font-weight: 500;">
                                                         <td>
                                                             <?php if ($approved_items_count > 0): ?>
                                                                 <input type="checkbox" class="parent-pr-checkbox" data-prid="<?php echo $pr_id; ?>" title="Select/Deselect all approved items in this PR" />
@@ -1079,29 +1079,47 @@ if ($_has_project_master) {
                 this.submit();
             });
 
+            // Custom DataTables search filter for status buttons
+            var currentStatusFilter = 'all';
+            if ($.fn.DataTable) {
+                $.fn.dataTable.ext.search.push(
+                    function(settings, data, dataIndex) {
+                        if (settings.nTable.id !== 'example3view_requisition_order') {
+                            return true;
+                        }
+                        if (currentStatusFilter === 'all') {
+                            return true;
+                        }
+                        var rowNode = settings.aoData[dataIndex].nTr;
+                        var rowStatus = $(rowNode).attr('data-status') || '';
+                        return rowStatus.toLowerCase() === currentStatusFilter.toLowerCase();
+                    }
+                );
+            }
+
             // Status filter buttons
             $('.filter-btn').click(function() {
                 var filter = $(this).data('filter');
+                currentStatusFilter = filter;
 
                 $('.filter-btn').removeClass('active');
                 $(this).addClass('active');
 
-                if (filter === 'all') {
-                    $('.pr-parent-row').show();
-                    $('.pr-child-row').hide();
-                    $('.pr-parent-row .fa-minus-circle').removeClass('fa-minus-circle text-danger').addClass('fa-plus-circle text-primary');
+                if (typeof table !== 'undefined' && table && table.draw) {
+                    table.draw();
                 } else {
-                    $('.pr-parent-row').hide();
-                    $('.pr-child-row').hide();
-
-                    $('.pr-parent-row').each(function() {
-                        var prid = $(this).data('prid');
-                        var statusText = $(this).find('td:nth-child(5)').text().trim();
-
-                        if (statusText.includes(filter)) {
-                            $(this).show();
-                        }
-                    });
+                    if (filter === 'all') {
+                        $('.pr-parent-row').show();
+                    } else {
+                        $('.pr-parent-row').each(function() {
+                            var status = $(this).attr('data-status') || $(this).data('status') || '';
+                            if (status.toLowerCase() === filter.toLowerCase()) {
+                                $(this).show();
+                            } else {
+                                $(this).hide();
+                            }
+                        });
+                    }
                 }
             });
 
