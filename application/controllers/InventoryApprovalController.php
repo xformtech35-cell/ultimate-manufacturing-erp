@@ -128,6 +128,7 @@ class InventoryApprovalController extends MY_Controller
         $session_data_head = $this->session->userdata('session_data_head');
         $this->load->view('admin/header_side_bar', $session_data_head);
         $this->load->view('inventory_approval/index', $data);
+        $this->load->view('admin/footer');
     }
 
     /**

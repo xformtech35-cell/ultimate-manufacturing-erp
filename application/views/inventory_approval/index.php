@@ -6,16 +6,12 @@ if (!isset($session_data_head1)) {
 defined('BASEPATH') OR exit('No direct script access allowed');
 ?>
 <style>
-    body, p, h1, h2, h3, h4, h5, h6, span, div, input, select, textarea, button, table, th, td, label, .control-label, .form-control, .btn, .breadcrumb, .box-title, .alert {
-        font-size: 12px !important;
-    }
     .table-responsive {
         overflow-x: auto !important;
     }
     .diff-table th {
         background-color: #f8fafc;
         font-weight: 600;
-        font-size: 11px;
     }
     .diff-changed {
         background-color: #ecfdf5;
@@ -180,97 +176,100 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                         <?php } ?>
                                                     </td>
                                                 </tr>
-
-                                                <!-- Modal: View Field Diff -->
-                                                <?php if ($req['request_type'] === 'update') { 
-                                                    $old_data = json_decode($req['old_data'], true) ?: [];
-                                                    $new_data = json_decode($req['new_data'], true) ?: [];
-                                                ?>
-                                                    <div class="modal fade" id="modal-diff-<?= $req['id']; ?>" tabindex="-1" role="dialog">
-                                                        <div class="modal-dialog modal-lg" role="document">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header" style="background-color: #3b82f6; color: white;">
-                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white;"><span aria-hidden="true">&times;</span></button>
-                                                                    <h4 class="modal-title"><i class="fa fa-edit"></i> Requested Field Changes: <?= htmlspecialchars($req['item_name']); ?> (<?= htmlspecialchars($req['item_code']); ?>)</h4>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <div class="row" style="margin-bottom: 10px;">
-                                                                        <div class="col-sm-6">
-                                                                            <strong>Requested By:</strong> <?= htmlspecialchars($req['requested_by_name']); ?>
-                                                                        </div>
-                                                                        <div class="col-sm-6 text-right">
-                                                                            <strong>Date:</strong> <?= date('d-m-Y H:i:s', strtotime($req['created_at'])); ?>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <table class="table table-bordered diff-table">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th width="30%">Field Name</th>
-                                                                                <th width="35%">Old Value</th>
-                                                                                <th width="35%">New Requested Value</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            <?php 
-                                                                            $fields = ['item_name' => 'Item Name', 'code' => 'Item Code', 'prod_description' => 'Description', 'hsn' => 'HSN/SAC', 'unit' => 'Unit', 'item_type' => 'Type', 'gst_per' => 'GST %', 'stock' => 'Stock Quantity', 'cost_price' => 'Cost Price (₹)', 'sell_price' => 'Sell Price (₹)'];
-                                                                            foreach ($fields as $key => $label) {
-                                                                                $old_val = $old_data[$key] ?? '';
-                                                                                $new_val = $new_data[$key] ?? '';
-                                                                                $is_changed = (string)$old_val !== (string)$new_val;
-                                                                            ?>
-                                                                                <tr class="<?= $is_changed ? 'diff-changed' : ''; ?>">
-                                                                                    <td><strong><?= $label; ?></strong></td>
-                                                                                    <td class="<?= $is_changed ? 'diff-old' : ''; ?>"><?= htmlspecialchars((string)$old_val !== '' ? $old_val : 'N/A'); ?></td>
-                                                                                    <td>
-                                                                                        <?= htmlspecialchars((string)$new_val !== '' ? $new_val : 'N/A'); ?>
-                                                                                        <?php if ($is_changed) { ?>
-                                                                                            <span class="label label-success pull-right"><i class="fa fa-pencil"></i> Modified</span>
-                                                                                        <?php } ?>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            <?php } ?>
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <a href="<?= base_url('InventoryApprovalController/approve/' . $req['id']); ?>" class="btn btn-success" onclick="return confirm('Approve these inventory changes?');"><i class="fa fa-check"></i> Approve Changes</a>
-                                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                <?php } ?>
-
-                                                <!-- Modal: Reject Remarks -->
-                                                <div class="modal fade" id="modal-reject-<?= $req['id']; ?>" tabindex="-1" role="dialog">
-                                                    <div class="modal-dialog" role="document">
-                                                        <form method="post" action="<?= base_url('InventoryApprovalController/reject/' . $req['id']); ?>">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header" style="background-color: #ef4444; color: white;">
-                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white;"><span aria-hidden="true">&times;</span></button>
-                                                                    <h4 class="modal-title"><i class="fa fa-times-circle"></i> Reject Inventory Request</h4>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <p>Are you sure you want to reject the <strong><?= $req['request_type']; ?></strong> request for item <strong><?= htmlspecialchars($req['item_name']); ?></strong>?</p>
-                                                                    <div class="form-group">
-                                                                        <label>Rejection Reason / Remarks:</label>
-                                                                        <textarea name="remarks" class="form-control" rows="3" placeholder="Enter reason for rejection..." required></textarea>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="submit" class="btn btn-danger"><i class="fa fa-times"></i> Reject Request</button>
-                                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                                                                </div>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
-
                                             <?php } ?>
                                         </tbody>
                                     </table>
                                 </div>
+
+                                <!-- Modals placed cleanly outside table DOM hierarchy -->
+                                <?php foreach ($pending_requests as $req) { ?>
+                                    <!-- Modal: View Field Diff -->
+                                    <?php if ($req['request_type'] === 'update') { 
+                                        $old_data = json_decode($req['old_data'], true) ?: [];
+                                        $new_data = json_decode($req['new_data'], true) ?: [];
+                                    ?>
+                                        <div class="modal fade" id="modal-diff-<?= $req['id']; ?>" tabindex="-1" role="dialog">
+                                            <div class="modal-dialog modal-lg" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header" style="background-color: #3b82f6; color: white;">
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white;"><span aria-hidden="true">&times;</span></button>
+                                                        <h4 class="modal-title"><i class="fa fa-edit"></i> Requested Field Changes: <?= htmlspecialchars($req['item_name']); ?> (<?= htmlspecialchars($req['item_code']); ?>)</h4>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="row" style="margin-bottom: 10px;">
+                                                            <div class="col-sm-6">
+                                                                <strong>Requested By:</strong> <?= htmlspecialchars($req['requested_by_name']); ?>
+                                                            </div>
+                                                            <div class="col-sm-6 text-right">
+                                                                <strong>Date:</strong> <?= date('d-m-Y H:i:s', strtotime($req['created_at'])); ?>
+                                                            </div>
+                                                        </div>
+
+                                                        <table class="table table-bordered diff-table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th width="30%">Field Name</th>
+                                                                    <th width="35%">Old Value</th>
+                                                                    <th width="35%">New Requested Value</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <?php 
+                                                                $fields = ['item_name' => 'Item Name', 'code' => 'Item Code', 'prod_description' => 'Description', 'hsn' => 'HSN/SAC', 'unit' => 'Unit', 'item_type' => 'Type', 'gst_per' => 'GST %', 'stock' => 'Stock Quantity', 'cost_price' => 'Cost Price (₹)', 'sell_price' => 'Sell Price (₹)'];
+                                                                foreach ($fields as $key => $label) {
+                                                                    $old_val = $old_data[$key] ?? '';
+                                                                    $new_val = $new_data[$key] ?? '';
+                                                                    $is_changed = (string)$old_val !== (string)$new_val;
+                                                                ?>
+                                                                    <tr class="<?= $is_changed ? 'diff-changed' : ''; ?>">
+                                                                        <td><strong><?= $label; ?></strong></td>
+                                                                        <td class="<?= $is_changed ? 'diff-old' : ''; ?>"><?= htmlspecialchars((string)$old_val !== '' ? $old_val : 'N/A'); ?></td>
+                                                                        <td>
+                                                                            <?= htmlspecialchars((string)$new_val !== '' ? $new_val : 'N/A'); ?>
+                                                                            <?php if ($is_changed) { ?>
+                                                                                <span class="label label-success pull-right"><i class="fa fa-pencil"></i> Modified</span>
+                                                                            <?php } ?>
+                                                                        </td>
+                                                                    </tr>
+                                                                <?php } ?>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <a href="<?= base_url('InventoryApprovalController/approve/' . $req['id']); ?>" class="btn btn-success" onclick="return confirm('Approve these inventory changes?');"><i class="fa fa-check"></i> Approve Changes</a>
+                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php } ?>
+
+                                    <!-- Modal: Reject Remarks -->
+                                    <div class="modal fade" id="modal-reject-<?= $req['id']; ?>" tabindex="-1" role="dialog">
+                                        <div class="modal-dialog" role="document">
+                                            <form method="post" action="<?= base_url('InventoryApprovalController/reject/' . $req['id']); ?>">
+                                                <div class="modal-content">
+                                                    <div class="modal-header" style="background-color: #ef4444; color: white;">
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white;"><span aria-hidden="true">&times;</span></button>
+                                                        <h4 class="modal-title"><i class="fa fa-times-circle"></i> Reject Inventory Request</h4>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>Are you sure you want to reject the <strong><?= $req['request_type']; ?></strong> request for item <strong><?= htmlspecialchars($req['item_name']); ?></strong>?</p>
+                                                        <div class="form-group">
+                                                            <label>Rejection Reason / Remarks:</label>
+                                                            <textarea name="remarks" class="form-control" rows="3" placeholder="Enter reason for rejection..." required></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="submit" class="btn btn-danger"><i class="fa fa-times"></i> Reject Request</button>
+                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                <?php } ?>
+
                             <?php } ?>
                         </div>
 
