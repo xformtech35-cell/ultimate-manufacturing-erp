@@ -10,68 +10,68 @@ $user_role = $session_data_head['result']['role'];
 defined('BASEPATH') or exit('No direct script access allowed');
 require_once(APPPATH . '/third_party/amount_convert.php');
 ?>
-<style>
-    /* Disable responsive layout */
-    @media (max-width: 992px) {
-        .fixed-col {
-            width: 25% !important;
-            float: left !important;
-        }
-    }
-    
-    @media (max-width: 768px) {
-        .fixed-col {
-            width: 25% !important;
-            float: left !important;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .fixed-col {
-            width: 25% !important;
-            float: left !important;
-        }
+    .fixed-col-row {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: stretch !important;
+        margin-left: -5px;
+        margin-right: -5px;
     }
 
     .fixed-col {
-        width: 25%;
-        float: left;
-        padding: 10px;
-        box-sizing: border-box;
+        width: 25% !important;
+        padding: 6px !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
+        float: none !important;
     }
 
     .fixed-col .small-box {
-        margin-bottom: 0;
+        margin-bottom: 0 !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        border-radius: 4px;
+        overflow: hidden;
     }
 
     .small-box .inner {
-        min-height: 80px;
+        flex: 1 1 auto;
         padding: 10px;
     }
 
     .small-box .inner p {
         margin: 0;
-        font-size: 13px;
-        line-height: 1.4;
+        font-size: 12px;
+        line-height: 1.3;
         word-wrap: break-word;
         overflow-wrap: break-word;
     }
 
     .small-box .inner h3 {
-        font-size: 32px;
+        font-size: 28px;
         font-weight: bold;
-        margin: 5px 0;
+        margin: 2px 0 6px 0;
     }
 
-    .row {
-        display: block !important;
-        width: 100% !important;
+    @media (max-width: 992px) {
+        .fixed-col {
+            width: 33.33% !important;
+        }
     }
-
-    .row::after {
-        content: '';
-        display: table;
-        clear: both;
+    
+    @media (max-width: 768px) {
+        .fixed-col {
+            width: 50% !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .fixed-col {
+            width: 100% !important;
+        }
     }
 </style>
 
@@ -279,7 +279,7 @@ require_once(APPPATH . '/third_party/amount_convert.php');
                                 <div class="box-body no-padding">
 
 
-                                    <div class="row">
+                                    <div class="row fixed-col-row">
 
                                         <div class="fixed-col">
                                             <!-- small box -->
