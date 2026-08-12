@@ -823,10 +823,6 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
     <!-- Month-Year Picker Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
     <style>
-        .ui-datepicker-calendar {
-            display: none;
-        }
-
         .month-year-picker {
             background-color: white !important;
             cursor: pointer !important;
@@ -1219,7 +1215,7 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
             width: 300px;
         }
 
-        .ui-datepicker-calendar {
+        #ui-datepicker-div.month-only-picker .ui-datepicker-calendar {
             display: none !important;
         }
 

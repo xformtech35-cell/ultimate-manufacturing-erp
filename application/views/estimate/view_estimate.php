@@ -11,8 +11,8 @@ $set_cc_email = $session_data_head2['cc_email'];
 defined('BASEPATH') or exit('No direct script access allowed');
 ?>
 <style>
-    .ui-datepicker-calendar {
-        display: none;
+    #ui-datepicker-div.month-only-picker .ui-datepicker-calendar {
+        display: none !important;
     }
     .dataTables_processing {
         display: none !important;
