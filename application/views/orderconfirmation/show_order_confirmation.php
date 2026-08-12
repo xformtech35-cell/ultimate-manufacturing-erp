@@ -64,11 +64,11 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                 <?php } ?>
 
                                 <!-- Status Update Buttons -->
-                                <div class="row" style="margin-bottom: 15px;">
+                                <div class="row" style="margin-bottom: 20px;">
                                     <div class="col-md-12">
                                         <div class="btn-group">
                                             <?php 
-                                            $status = $oc['status'];
+                                            $status = isset($oc['status']) ? $oc['status'] : 1;
                                             $status_badge = '';
                                             $status_class = '';
                                             switch($status) {
@@ -110,62 +110,96 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                     </div>
                                 </div>
 
-                                <!-- Header Information -->
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <table class="table table-bordered">
-                                            <tr>
-                                                <th width="40%">OC Number</th>
-                                                <td><?php echo $oc['number_fk']; ?></td>
-                                            </tr>
-                                            <tr>
-                                                <th>Date</th>
-                                                <td><?php echo date('d-M-Y', strtotime($oc['date'])); ?></td>
-                                            </tr>
-                                            <tr>
-                                                <th>Supplier</th>
-                                                <td><?php echo isset($oc['company_name']) ? $oc['company_name'] : '-'; ?></td>
-                                            </tr>
-                                            <tr>
-                                                <th>PO Reference</th>
-                                                <td><?php echo $oc['po_reference'] ? $oc['po_reference'] : '-'; ?></td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <table class="table table-bordered">
-                                            <tr>
-                                                <th width="40%">Expected Delivery Date</th>
-                                                <td><?php echo $oc['delivery_date'] ? date('d-M-Y', strtotime($oc['delivery_date'])) : '-'; ?></td>
-                                            </tr>
-                                            <tr>
-                                                <th>Payment Terms</th>
-                                                <td><?php echo $oc['payment_terms'] ? $oc['payment_terms'] : '-'; ?></td>
-                                            </tr>
-                                             <?php if ($_has_project_master): ?>
-                                             <tr>
-                                                 <th>Project Code</th>
-                                                 <td><?php echo $oc['project_code'] ? $oc['project_code'] : '-'; ?></td>
-                                             </tr>
-                                             <?php endif; ?>
-                                            <tr>
-                                                <th>Status</th>
-                                                <td><span class="label <?php echo $status_class; ?>"><?php echo $status_badge; ?></span></td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                </div>
+                                <!-- Formatted Order Acceptance Letter Document Preview -->
+                                <?php
+                                    $comp_name = !empty($settings['company_name']) ? $settings['company_name'] : 'UWS ENVIRO-TECH PVT LTD';
+                                    $comp_tagline = !empty($settings['tagline']) ? $settings['tagline'] : 'Ultimate Technologies for Fluid Automation';
+                                    $logo_path = !empty($settings['company_logo']) ? base_url() . $settings['company_logo'] : (!empty($settings['logo']) ? base_url() . $settings['logo'] : base_url() . 'uploads/xform-logo.jpg');
+                                    $stamp_path = !empty($settings['company_stamp']) ? base_url() . $settings['company_stamp'] : (!empty($settings['stamp_signature']) ? base_url() . $settings['stamp_signature'] : '');
+                                    $address = !empty($settings['address']) ? $settings['address'] : (!empty($settings['company_address']) ? $settings['company_address'] : 'Plot No. 19/C, D-1 Block, Shop No. 342, 3rd Floor, HEUU Industrial Spaces, MIDC Chinchwad, Pune-411019.');
+                                    $email = !empty($settings['email']) ? $settings['email'] : (!empty($settings['company_email']) ? $settings['company_email'] : 'projects@ultimatewater.in');
+                                    $website = !empty($settings['website']) ? $settings['website'] : 'www.ultimatewater.in';
+                                    $phone = !empty($settings['mobile']) ? $settings['mobile'] : (!empty($settings['company_mobile']) ? $settings['company_mobile'] : '020 29528571');
 
-                                <?php if($oc['remarks']) { ?>
-                                <div class="row">
+                                    $sub_total_num = isset($oc['sub_total']) ? (float)$oc['sub_total'] : 0;
+                                    $tax_num = isset($oc['tax_amount']) ? (float)$oc['tax_amount'] : 0;
+                                    $gst_per = ($sub_total_num > 0 && $tax_num > 0) ? round(($tax_num / $sub_total_num) * 100) : 18;
+                                ?>
+
+                                <div class="row" style="margin-bottom: 25px;">
                                     <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label>Remarks</label>
-                                            <p><?php echo $oc['remarks']; ?></p>
+                                        <div style="background: #fff; border: 4px double #000; padding: 35px 45px; max-width: 900px; margin: 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); font-family: Calibri, 'Segoe UI', Arial, sans-serif;">
+                                            
+                                            <!-- Letterhead Header -->
+                                            <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+                                                <tr>
+                                                    <td style="width:85px; vertical-align:middle;">
+                                                        <img src="<?php echo $logo_path; ?>" style="max-width:80px; height:auto;" onerror="this.style.display='none';">
+                                                    </td>
+                                                    <td style="padding-left:15px;">
+                                                        <div style="font-size:20pt; font-weight:bold; color:#0d2b5c; font-family:Calibri, Arial, sans-serif;"><?php echo strtoupper($comp_name); ?></div>
+                                                        <div style="font-size:11pt; color:#c00000; font-style:italic; font-weight:bold; font-family:Calibri, Arial, sans-serif;"><?php echo $comp_tagline; ?></div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+
+                                            <div style="text-align:center; font-size:14pt; font-weight:bold; text-decoration:underline; margin:20px 0 25px 0;">
+                                                Order Acceptance Letter
+                                            </div>
+
+                                            <table style="width:100%; margin-bottom:20px; font-size:11pt;">
+                                                <tr>
+                                                    <td align="left"><strong>Ref. No.</strong> <?php echo isset($oc['number_fk']) ? $oc['number_fk'] : ''; ?></td>
+                                                    <td align="right"><strong>Date:</strong> <?php echo isset($oc['date']) ? date('d.m.Y', strtotime($oc['date'])) : date('d.m.Y'); ?></td>
+                                                </tr>
+                                            </table>
+
+                                            <div style="font-size:11pt; margin-bottom:20px; line-height:1.5;">
+                                                <strong>Subject:</strong> Order Acceptance Letter against <?php echo !empty($oc['subject']) ? $oc['subject'] : 'DOSING SYSTEM'; ?>.
+                                            </div>
+
+                                            <div style="margin-bottom:12px; font-size:11pt;">Dear Sir,</div>
+                                            <div style="margin-bottom:12px; font-size:11pt;">We thank you for valuable opportunity provided to us.</div>
+                                            <div style="margin-bottom:12px; font-size:11pt;">
+                                                We acknowledge with thanks for the receipt of valuable PO No: <strong><?php echo !empty($oc['po_reference']) ? $oc['po_reference'] : '-'; ?></strong> DT: <strong><?php echo !empty($oc['po_date']) ? date('d.m.Y', strtotime($oc['po_date'])) : '-'; ?></strong>.
+                                            </div>
+                                            <div style="margin-bottom:16px; font-size:11pt; text-align:justify;">
+                                                We hereby acknowledge receipt of PO & accept with basic amount of <strong>Rs. <?php echo number_format($sub_total_num, 2); ?> /-</strong> <strong>+<?php echo $gst_per; ?>% GST extra</strong> payable at actual on basic with following standard terms & conditions.
+                                            </div>
+
+                                            <ol style="margin:18px 0; padding-left:20px; font-size:11pt; line-height:1.6; list-style-type:none;">
+                                                <li style="margin-bottom:10px;"><strong>1) Price Basis:</strong> <?php echo !empty($oc['price_basis']) ? $oc['price_basis'] : 'Ex-works Talwade, Pune.'; ?></li>
+                                                <li style="margin-bottom:10px;"><strong>2) Payment Terms:</strong> <?php echo !empty($oc['payment_terms']) ? $oc['payment_terms'] : 'Standard terms.'; ?></li>
+                                                <li style="margin-bottom:10px;"><strong>3) Transportation Charges:</strong> <?php echo !empty($oc['transportation_charges']) ? $oc['transportation_charges'] : 'Extra at actuals.'; ?></li>
+                                                <li style="margin-bottom:10px;"><strong>4) Dispatch Date:</strong> On or before <?php echo !empty($oc['delivery_date']) ? date('d.m.Y', strtotime($oc['delivery_date'])) : '-'; ?>.</li>
+                                                <li style="margin-bottom:10px;"><strong>5) Service Charges:</strong> <?php echo !empty($oc['service_charges']) ? $oc['service_charges'] : 'Extra as applicable.'; ?></li>
+                                                <li style="margin-bottom:10px;"><strong>6) Warranty:</strong> <?php echo !empty($oc['warranty']) ? $oc['warranty'] : '12 months against manufacturing defects.'; ?></li>
+                                            </ol>
+
+                                            <div style="margin-bottom:12px; font-size:11pt;">We will start further proceedings on priority basis.</div>
+                                            <div style="margin-bottom:25px; font-size:11pt;">Thanking you.</div>
+
+                                            <div style="margin-top:30px; font-size:11pt;">
+                                                <div>For <strong><?php echo $comp_name; ?></strong></div>
+                                                <div style="width:120px; min-height:65px; margin:8px 0;">
+                                                    <?php if(!empty($stamp_path)): ?>
+                                                        <img src="<?php echo $stamp_path; ?>" style="max-width:120px; max-height:65px;">
+                                                    <?php else: ?>
+                                                        <div style="border:1px dashed #007bff; color:#007bff; padding:8px; font-size:10px; text-align:center;">[Stamp & Signature]</div>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <div><strong>Authorized Signatory</strong></div>
+                                            </div>
+
+                                            <div style="margin-top:40px; border-top:1px solid #ddd; padding-top:15px; text-align:center; font-size:10pt; line-height:1.4;">
+                                                <div style="font-weight:bold; font-size:12pt; color:#3b1660;"><?php echo $comp_name; ?></div>
+                                                <div style="font-weight:bold; color:#000;"><?php echo $address; ?></div>
+                                                <div style="margin-top:2px;">E-mail: <span style="color:#0000ff; text-decoration:underline;"><?php echo $email; ?></span> &nbsp; Website: <span style="color:#0000ff; text-decoration:underline;"><?php echo $website; ?></span></div>
+                                                <div style="font-weight:bold; margin-top:2px;">Phone: <?php echo $phone; ?></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <?php } ?>
 
                                 <hr>
 
