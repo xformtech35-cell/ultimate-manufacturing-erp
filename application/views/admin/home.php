@@ -10,68 +10,72 @@ $user_role = $session_data_head['result']['role'];
 defined('BASEPATH') or exit('No direct script access allowed');
 require_once(APPPATH . '/third_party/amount_convert.php');
 ?>
-    .fixed-col-row {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        align-items: stretch !important;
-        margin-left: -5px;
-        margin-right: -5px;
-    }
-
-    .fixed-col {
-        width: 25% !important;
-        padding: 6px !important;
-        box-sizing: border-box !important;
-        display: flex !important;
-        flex-direction: column !important;
-        float: none !important;
-    }
-
-    .fixed-col .small-box {
-        margin-bottom: 0 !important;
-        height: 100% !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: space-between !important;
-        border-radius: 4px;
-        overflow: hidden;
-    }
-
-    .small-box .inner {
-        flex: 1 1 auto;
-        padding: 10px;
-    }
-
-    .small-box .inner p {
-        margin: 0;
-        font-size: 12px;
-        line-height: 1.3;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-    }
-
-    .small-box .inner h3 {
-        font-size: 28px;
-        font-weight: bold;
-        margin: 2px 0 6px 0;
-    }
-
+<style>
+    /* Disable responsive layout */
     @media (max-width: 992px) {
         .fixed-col {
-            width: 33.33% !important;
+            width: 25% !important;
+            float: left !important;
         }
     }
     
     @media (max-width: 768px) {
         .fixed-col {
-            width: 50% !important;
+            width: 25% !important;
+            float: left !important;
         }
     }
     
     @media (max-width: 480px) {
         .fixed-col {
-            width: 100% !important;
+            width: 25% !important;
+            float: left !important;
         }
+    }
+
+    .fixed-col {
+        width: 25%;
+        float: left;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    .fixed-col:nth-child(4n+1) {
+        clear: left !important;
+    }
+
+    .fixed-col .small-box {
+        margin-bottom: 0;
+    }
+
+    .small-box .inner {
+        min-height: 80px;
+        padding: 10px;
+    }
+
+    .small-box .inner p {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.4;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .small-box .inner h3 {
+        font-size: 32px;
+        font-weight: bold;
+        margin: 5px 0;
+    }
+
+    .row {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    .row::after {
+        content: '';
+        display: table;
+        clear: both;
     }
 </style>
 
@@ -279,7 +283,7 @@ require_once(APPPATH . '/third_party/amount_convert.php');
                                 <div class="box-body no-padding">
 
 
-                                    <div class="row fixed-col-row">
+                                    <div class="row">
 
                                         <div class="fixed-col">
                                             <!-- small box -->
