@@ -136,7 +136,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                 <th width="20%">Item Name</th>
                                                 <th width="15%">Requested By</th>
                                                 <th width="13%">Date</th>
-                                                <th width="20%">Actions / Comparison</th>
+                                                <th width="22%" style="min-width: 220px;">Actions / Comparison</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -156,30 +156,32 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                         <i class="fa fa-user text-muted"></i> <?= htmlspecialchars($req['requested_by_name'] ?: 'User #' . $req['requested_by']); ?>
                                                     </td>
                                                     <td><?= date('d-m-Y H:i', strtotime($req['created_at'])); ?></td>
-                                                    <td>
-                                                        <?php if ($req['request_type'] === 'update') { ?>
-                                                            <button type="button" class="btn btn-xs btn-default" data-toggle="modal" data-target="#modal-diff-<?= $req['id']; ?>">
-                                                                <i class="fa fa-eye text-primary"></i> View Changes
-                                                            </button>
-                                                        <?php } else { ?>
-                                                            <span class="text-danger" style="font-size: 11px;">
-                                                                <i class="fa fa-info-circle"></i> <?= htmlspecialchars($req['reason'] ?: 'Item Deletion Request'); ?>
-                                                            </span>
-                                                        <?php } ?>
+                                                    <td style="white-space: nowrap; min-width: 220px;">
+                                                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                                            <?php if ($req['request_type'] === 'update') { ?>
+                                                                <button type="button" class="btn btn-xs btn-default" data-toggle="modal" data-target="#modal-diff-<?= $req['id']; ?>">
+                                                                    <i class="fa fa-eye text-primary"></i> View Changes
+                                                                </button>
+                                                            <?php } else { ?>
+                                                                <span class="text-danger" style="font-size: 11px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle;" title="<?= htmlspecialchars($req['reason'] ?: 'Item Deletion Request'); ?>">
+                                                                    <i class="fa fa-info-circle"></i> <?= htmlspecialchars($req['reason'] ?: 'Item Deletion Request'); ?>
+                                                                </span>
+                                                            <?php } ?>
 
-                                                        <?php if (!empty($is_admin)) { ?>
-                                                            <a href="<?= base_url('InventoryApprovalController/approve/' . $req['id']); ?>" 
-                                                               class="btn btn-xs btn-success" style="margin-left: 5px;"
-                                                               onclick="return confirm('Are you sure you want to APPROVE this inventory request?');">
-                                                                <i class="fa fa-check"></i> Approve
-                                                            </a>
+                                                            <?php if (!empty($is_admin)) { ?>
+                                                                <a href="<?= base_url('InventoryApprovalController/approve/' . $req['id']); ?>" 
+                                                                   class="btn btn-xs btn-success"
+                                                                   onclick="return confirm('Are you sure you want to APPROVE this inventory request?');">
+                                                                    <i class="fa fa-check"></i> Approve
+                                                                </a>
 
-                                                            <button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target="#modal-reject-<?= $req['id']; ?>">
-                                                                <i class="fa fa-times"></i> Reject
-                                                            </button>
-                                                        <?php } else { ?>
-                                                            <span class="label label-warning" style="margin-left: 5px;"><i class="fa fa-clock-o"></i> Pending Admin Approval</span>
-                                                        <?php } ?>
+                                                                <button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target="#modal-reject-<?= $req['id']; ?>">
+                                                                    <i class="fa fa-times"></i> Reject
+                                                                </button>
+                                                            <?php } else { ?>
+                                                                <span class="label label-warning"><i class="fa fa-clock-o"></i> Pending Admin Approval</span>
+                                                            <?php } ?>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             <?php } ?>
