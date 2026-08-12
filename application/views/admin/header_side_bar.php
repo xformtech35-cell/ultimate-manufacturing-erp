@@ -638,9 +638,8 @@ $password = $session_data_head['password_str'] ?? '';
                                 <li style="text-align:center;padding:15px;color:#999;"><i class="fa fa-spinner fa-spin"></i> Loading...</li>
                             </ul>
                         </li>
-                        <li class="footer" style="background:#f9f9f9;padding:8px;border-top:1px solid #eee;display:flex;justify-content:space-around;">
-                            <a href="<?php echo base_url('InventoryApprovalController/index'); ?>" style="color:#3c8dbc;font-weight:600;font-size:12px;"><i class="fa fa-cubes"></i> Inventory Approvals</a>
-                            <a href="<?php echo base_url('DeleteApprovalController/panel'); ?>" style="color:#d9534f;font-weight:600;font-size:12px;"><i class="fa fa-trash"></i> Delete Approvals</a>
+                        <li class="footer" style="background:#f9f9f9;padding:8px;border-top:1px solid #eee;text-align:center;">
+                            <a href="<?php echo base_url('InventoryApprovalController/index'); ?>" style="color:#3c8dbc;font-weight:600;font-size:12px;"><i class="fa fa-check-square-o"></i> View Inventory Approvals Dashboard</a>
                         </li>
                     </ul>
                 </li>
@@ -1096,22 +1095,8 @@ if ($currentPage == 'InventoryController') {
                 // Ensure GRN Quality Approvals title is updated in sidebar_menu DB table
                 $ci->db->where('url', 'GrnController/grn_approvals')->update('sidebar_menu', ['title' => 'GRN Quality Approvals']);
 
-                // Ensure "Item Deletion Requests" menu item exists under Store / Inventory (parent_id = 19)
-                $has_del_requests = $ci->db->where('url', 'DeleteApprovalController/panel')->get('sidebar_menu')->row();
-                if (!$has_del_requests) {
-                    $ci->db->insert('sidebar_menu', [
-                        'parent_id'   => 19,
-                        'title'       => 'Deletion Requests',
-                        'icon'        => 'fa fa-trash',
-                        'url'         => 'DeleteApprovalController/panel',
-                        'permission'  => NULL, // accessible to everyone who has Store / Inventory access
-                        'sort_order'  => 50,
-                        'active_cond' => json_encode([
-                            'controllers' => ['DeleteApprovalController'],
-                            'pages'       => ['panel']
-                        ])
-                    ]);
-                }
+                // Remove legacy Deletion Requests menu item from sidebar_menu DB table so only Inventory Approvals remains
+                $ci->db->where('url', 'DeleteApprovalController/panel')->delete('sidebar_menu');
 
                 // Auto-assign permissions to Admin role (role_id 1)
                 if ($ci->db->table_exists('permission')) {

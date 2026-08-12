@@ -109,6 +109,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 <span class="label label-default" style="margin-left: 5px;"><?= count($rejected_requests); ?></span>
                             </a>
                         </li>
+                        <li>
+                            <a href="#tab_all_history" data-toggle="tab">
+                                <i class="fa fa-history text-primary"></i> All History
+                                <span class="label label-info" style="margin-left: 5px;"><?= count($all_history_requests); ?></span>
+                            </a>
+                        </li>
                     </ul>
 
                     <div class="tab-content" style="padding: 15px;">
@@ -334,6 +340,53 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                 <td><?= htmlspecialchars($req['requested_by_name'] ?: 'N/A'); ?></td>
                                                 <td><?= htmlspecialchars($req['reviewed_by_name'] ?: 'Admin'); ?></td>
                                                 <td><?= htmlspecialchars($req['review_remarks'] ?: 'No remarks'); ?></td>
+                                            </tr>
+                                        <?php } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <!-- TAB 4: ALL HISTORY -->
+                        <div class="tab-pane" id="tab_all_history">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped datatable-approval">
+                                    <thead>
+                                        <tr style="background-color: #f8fafc;">
+                                            <th width="5%">#</th>
+                                            <th width="12%">Request Type</th>
+                                            <th width="15%">Item Code</th>
+                                            <th width="20%">Item Name</th>
+                                            <th width="15%">Requested By</th>
+                                            <th width="12%">Status</th>
+                                            <th width="13%">Reviewed By</th>
+                                            <th width="18%">Remarks / Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php $i = 1; foreach ($all_history_requests as $req) { ?>
+                                            <tr>
+                                                <td><?= $i++; ?></td>
+                                                <td>
+                                                    <?php if ($req['request_type'] === 'update') { ?>
+                                                        <span class="label label-info"><i class="fa fa-edit"></i> EDIT</span>
+                                                    <?php } else { ?>
+                                                        <span class="label label-danger"><i class="fa fa-trash"></i> DELETE</span>
+                                                    <?php } ?>
+                                                </td>
+                                                <td><strong><?= htmlspecialchars($req['item_code'] ?: 'N/A'); ?></strong></td>
+                                                <td><?= htmlspecialchars($req['item_name'] ?: 'N/A'); ?></td>
+                                                <td><?= htmlspecialchars($req['requested_by_name'] ?: 'N/A'); ?></td>
+                                                <td>
+                                                    <?php if ($req['status'] === 'approved') { ?>
+                                                        <span class="label label-success"><i class="fa fa-check"></i> APPROVED</span>
+                                                    <?php } else { ?>
+                                                        <span class="label label-danger"><i class="fa fa-times"></i> REJECTED</span>
+                                                    <?php } ?>
+                                                </td>
+                                                <td><?= htmlspecialchars($req['reviewed_by_name'] ?: 'Admin'); ?></td>
+                                                <td>
+                                                    <?= htmlspecialchars($req['review_remarks'] ?: $req['reason'] ?: 'No remarks'); ?>
+                                                    <br><small class="text-muted"><?= date('d-m-Y H:i', strtotime($req['updated_at'] ?: $req['created_at'])); ?></small>
+                                                </td>
                                             </tr>
                                         <?php } ?>
                                     </tbody>

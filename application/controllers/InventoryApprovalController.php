@@ -153,6 +153,15 @@ class InventoryApprovalController extends MY_Controller
             $data['rejected_requests'] = $this->db->order_by('id', 'DESC')->get_where('inventory_approval_requests', ['requested_by' => $user_id, 'status' => 'rejected'])->result_array();
         }
 
+        // Combine all historical requests (approved + rejected) sorted by date DESC
+        $all_hist = array_merge($data['approved_requests'], $data['rejected_requests']);
+        usort($all_hist, function ($a, $b) {
+            $tA = strtotime($a['updated_at'] ?: $a['created_at']);
+            $tB = strtotime($b['updated_at'] ?: $b['created_at']);
+            return $tB - $tA;
+        });
+        $data['all_history_requests'] = $all_hist;
+
         $session_data_head = $this->session->userdata('session_data_head');
         $this->load->view('admin/header_side_bar', $session_data_head);
         $this->load->view('inventory_approval/index', $data);
