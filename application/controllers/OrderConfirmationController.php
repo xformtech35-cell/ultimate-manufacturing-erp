@@ -81,9 +81,15 @@ class OrderConfirmationController extends MY_Controller {
     }
 
     public function show_order_confirmation() {
-        $number = $this->uri->segment(3);
+        $segments = $this->uri->segment_array();
+        $number = implode('/', array_slice($segments, 2));
         
         $data['oc'] = $this->orderconfirmation->get_orderconfirmation_by_number($number, $this->user_id);
+        if (empty($data['oc'])) {
+            $this->session->set_flashdata('INFOMSG', 'Order Acceptance record not found.');
+            redirect('OrderConfirmationController/index');
+            return;
+        }
         $data['oc_detail'] = $this->orderconfirmation->get_orderconfirmation_detail($number, $this->user_id);
         $data['settings'] = $this->login->get_settings($this->user_id);
         
@@ -93,9 +99,15 @@ class OrderConfirmationController extends MY_Controller {
     }
 
     public function edit_order_confirmation_details() {
-        $number = $this->uri->segment(3);
+        $segments = $this->uri->segment_array();
+        $number = implode('/', array_slice($segments, 2));
         
         $data['oc'] = $this->orderconfirmation->get_orderconfirmation_by_number($number, $this->user_id);
+        if (empty($data['oc'])) {
+            $this->session->set_flashdata('INFOMSG', 'Order Acceptance record not found.');
+            redirect('OrderConfirmationController/index');
+            return;
+        }
         $data['oc_detail'] = $this->orderconfirmation->get_orderconfirmation_detail($number, $this->user_id);
         $data['supplier_result'] = $this->orderconfirmation->get_supplier($this->user_id);
         $data['customer_result'] = $this->orderconfirmation->get_customers($this->user_id);
@@ -278,7 +290,8 @@ class OrderConfirmationController extends MY_Controller {
     }
 
     public function delete_order_confirmation() {
-        $number = $this->uri->segment(3);
+        $segments = $this->uri->segment_array();
+        $number = implode('/', array_slice($segments, 2));
         
         if($this->orderconfirmation->delete_orderconfirmation_by_number($number, $this->user_id)) {
             $this->session->set_flashdata('SUCCESSMSG', 'Order Acceptance Deleted Successfully');
@@ -289,8 +302,9 @@ class OrderConfirmationController extends MY_Controller {
     }
 
     public function update_status() {
-        $number = $this->uri->segment(3);
-        $status = $this->uri->segment(4);
+        $segments = array_values($this->uri->segment_array());
+        $status = array_pop($segments);
+        $number = implode('/', array_slice($segments, 2));
         
         if($this->orderconfirmation->update_status($number, $status, $this->user_id)) {
             $this->session->set_flashdata('SUCCESSMSG', 'Status Updated Successfully');
@@ -301,7 +315,8 @@ class OrderConfirmationController extends MY_Controller {
     }
 
     public function print_order_confirmation() {
-        $number = $this->uri->segment(3);
+        $segments = $this->uri->segment_array();
+        $number = implode('/', array_slice($segments, 2));
         
         $data['oc'] = $this->orderconfirmation->get_orderconfirmation_by_number($number, $this->user_id);
         $data['oc_detail'] = $this->orderconfirmation->get_orderconfirmation_detail($number, $this->user_id);
@@ -311,7 +326,8 @@ class OrderConfirmationController extends MY_Controller {
     }
 
     public function print_oa_letter() {
-        $number = $this->uri->segment(3);
+        $segments = $this->uri->segment_array();
+        $number = implode('/', array_slice($segments, 2));
         
         $data['oc'] = $this->orderconfirmation->get_orderconfirmation_by_number($number, $this->user_id);
         $data['oc_detail'] = $this->orderconfirmation->get_orderconfirmation_detail($number, $this->user_id);
@@ -321,7 +337,8 @@ class OrderConfirmationController extends MY_Controller {
     }
 
     public function create_from_so() {
-        $so_number = $this->uri->segment(3);
+        $segments = $this->uri->segment_array();
+        $so_number = implode('/', array_slice($segments, 2));
         $this->load->model('salesorder');
         
         $so_header = $this->salesorder->get_salesorder_by_number($so_number, $this->user_id);
