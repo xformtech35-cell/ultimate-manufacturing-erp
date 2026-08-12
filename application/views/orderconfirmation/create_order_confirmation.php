@@ -91,34 +91,21 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                                      } ?>
                                                  </select>
                                                  <div id="customer_info_box" style="display:none; margin-top: 6px; padding: 8px 12px; background: #f8f9fa; border-left: 3px solid #007bff; border-radius: 3px; font-size: 12px;"></div>
+                                                 <div id="oa_action_box" style="display:none; margin-top: 8px;">
+                                                     <button type="button" class="btn btn-sm btn-info btn-flat" data-toggle="modal" data-target="#modal_oa_preview" onclick="updateOALetterPreview()">
+                                                         <i class="fa fa-file-text-o"></i> Preview & Download Order Acceptance Letter
+                                                     </button>
+                                                 </div>
                                              </div>
                                          </div>
                                          <div class="col-md-6">
                                              <div class="form-group">
                                                  <label for="supplier_id">Supplier / Issued By (Company Settings)</label>
+                                                 <?php $setting_comp_name = !empty($settings['company_name']) ? $settings['company_name'] : 'Xformtech'; ?>
                                                  <select class="form-control" id="supplier_id" name="supplier_id">
-                                                     <?php 
-                                                     $setting_comp_name = isset($settings['company_name']) ? $settings['company_name'] : '';
-                                                     $setting_comp_lower = strtolower(trim($setting_comp_name));
-                                                     $supplier_found = false;
-
-                                                     if(isset($supplier_result) && !empty($supplier_result)) {
-                                                         foreach($supplier_result as $supplier) {
-                                                             $supp_name_lower = strtolower(trim($supplier->company_name));
-                                                             $selected = '';
-                                                             if ($setting_comp_lower && (strpos($supp_name_lower, $setting_comp_lower) !== false || strpos($setting_comp_lower, $supp_name_lower) !== false)) {
-                                                                 $selected = 'selected';
-                                                                 $supplier_found = true;
-                                                             }
-                                                             echo '<option value="'.$supplier->supplier_id.'" '.$selected.'>'.$supplier->company_name . ($supplier->s_code ? " - " . $supplier->s_code : '').'</option>';
-                                                         }
-                                                     }
-                                                     if (!$supplier_found && !empty($setting_comp_name)) {
-                                                         echo '<option value="0" selected>'.$setting_comp_name.' (Company Settings)</option>';
-                                                     }
-                                                     ?>
+                                                     <option value="0" selected><?= htmlspecialchars($setting_comp_name); ?></option>
                                                  </select>
-                                                 <small class="help-block" style="margin-bottom:0;">Automatically defaulted to <strong><?php echo !empty($setting_comp_name) ? $setting_comp_name : 'Our Company Settings'; ?></strong></small>
+                                                 <small class="help-block" style="margin-bottom:0; color: #007bff;"><i class="fa fa-building"></i> Company Name from Settings: <strong><?= htmlspecialchars($setting_comp_name); ?></strong></small>
                                              </div>
                                          </div>
                                      </div>
@@ -374,12 +361,14 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                 $('#tax_amount').val(total_tax.toFixed(2));
                 $('#total_amount').val(grand_total.toFixed(2));
             }
-            // Customer Selection Info Display
+            // Customer Selection Info Display & OA Letter Trigger
             $('#customer_id').on('change', function() {
                 var selected = $(this).find(':selected');
                 var address = selected.data('address');
                 var gstin = selected.data('gstin');
                 var mobile = selected.data('mobile');
+                var val = $(this).val();
+
                 if (address || gstin || mobile) {
                     var html = '';
                     if (address) html += '<div style="margin-bottom:2px;"><i class="fa fa-map-marker" style="color:#007bff;"></i> <strong>Address:</strong> ' + address + '</div>';
@@ -389,9 +378,156 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                 } else {
                     $('#customer_info_box').slideUp();
                 }
+
+                if (val) {
+                    $('#oa_action_box').slideDown();
+                    updateOALetterPreview();
+                    $('#modal_oa_preview').modal('show');
+                } else {
+                    $('#oa_action_box').slideUp();
+                }
             }).trigger('change');
         });
+
+        function updateOALetterPreview() {
+            var companyName = "<?php echo !empty($settings['company_name']) ? addslashes($settings['company_name']) : 'UWS ENVIRO-TECH PVT LTD'; ?>";
+            var companyTagline = "<?php echo !empty($settings['tagline']) ? addslashes($settings['tagline']) : 'Ultimate Technologies for Fluid Automation'; ?>";
+            var logoUrl = "<?php echo !empty($settings['company_logo']) ? base_url() . $settings['company_logo'] : (!empty($settings['logo']) ? base_url() . $settings['logo'] : base_url() . 'uploads/xform-logo.jpg'); ?>";
+            var stampUrl = "<?php echo !empty($settings['company_stamp']) ? base_url() . $settings['company_stamp'] : (!empty($settings['stamp_signature']) ? base_url() . $settings['stamp_signature'] : ''); ?>";
+            var address = "<?php echo !empty($settings['address']) ? addslashes($settings['address']) : (!empty($settings['company_address']) ? addslashes($settings['company_address']) : 'Plot No. 19/C, D-1 Block, Shop No. 342, 3rd Floor, HEUU Industrial Spaces, MIDC Chinchwad, Pune-411019.'); ?>";
+            var email = "<?php echo !empty($settings['email']) ? addslashes($settings['email']) : (!empty($settings['company_email']) ? addslashes($settings['company_email']) : 'projects@ultimatewater.in'); ?>";
+            var website = "<?php echo !empty($settings['website']) ? addslashes($settings['website']) : 'www.ultimatewater.in'; ?>";
+            var phone = "<?php echo !empty($settings['mobile']) ? addslashes($settings['mobile']) : (!empty($settings['company_mobile']) ? addslashes($settings['company_mobile']) : '020 29528571'); ?>";
+
+            var number = $('#number').val() || 'OC-001/26-27';
+            var dateInput = $('#date').val();
+            var dateVal = dateInput ? new Date(dateInput).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB');
+            var poRef = $('#po_reference').val() || '4520232398';
+            var poDateInput = $('#po_date').val();
+            var poDateVal = poDateInput ? new Date(poDateInput).toLocaleDateString('en-GB') : '31.12.2025';
+            var subject = $('#subject').val() || 'DOSING SYSTEM for WTP Plant (Hindalco) (W-26004)';
+            var delDateInput = $('#delivery_date').val();
+            var deliveryDateVal = delDateInput ? new Date(delDateInput).toLocaleDateString('en-GB') : '10.03.2026';
+            var paymentTerms = $('#payment_terms').val() || '90% with full tax in 45 Days & 10% against submission of PBG valid for warranty period.';
+            var priceBasis = $('#price_basis').val() || 'Ex-works Talwade, Pune.';
+            var transportCharges = $('#transportation_charges').val() || 'Extra to PRAJ scope.';
+            var serviceCharges = $('#service_charges').val() || 'Rs.5000/- will be charged extra per day per Engineer basis.';
+            var warranty = $('#warranty').val() || '30 months from date of dispatch or 24 months from date of commissioning whichever is earlier against any manufacturing defect.';
+            
+            var subTotalVal = $('#sub_total').val() || '31,75,000';
+            var taxAmountVal = parseFloat($('#tax_amount').val()) || 0;
+            var subTotalNum = parseFloat(subTotalVal.replace(/,/g, '')) || 3175000;
+            var gstPer = (subTotalNum > 0 && taxAmountVal > 0) ? Math.round((taxAmountVal / subTotalNum) * 100) : 18;
+
+            var selectedCustText = $('#customer_id option:selected').text();
+            if (!selectedCustText || selectedCustText.indexOf('-- Select') !== -1) {
+                selectedCustText = 'Valued Customer';
+            }
+
+            var html = `
+                <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+                    <tr>
+                        <td style="width:85px; vertical-align:middle;">
+                            <img src="${logoUrl}" style="max-width:80px; height:auto;" onerror="this.style.display='none';">
+                        </td>
+                        <td style="padding-left:15px;">
+                            <div style="font-size:20pt; font-weight:bold; color:#0d2b5c; font-family:Calibri, Arial, sans-serif;">${companyName.toUpperCase()}</div>
+                            <div style="font-size:11pt; color:#c00000; font-style:italic; font-weight:bold; font-family:Calibri, Arial, sans-serif;">${companyTagline}</div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div style="text-align:center; font-size:14pt; font-weight:bold; text-decoration:underline; margin:20px 0 25px 0;">
+                    Order Acceptance Letter
+                </div>
+
+                <table style="width:100%; margin-bottom:20px; font-size:11pt;">
+                    <tr>
+                        <td align="left"><strong>Ref. No.</strong> ${number}</td>
+                        <td align="right"><strong>Date:</strong> ${dateVal}</td>
+                    </tr>
+                </table>
+
+                <div style="font-size:11pt; margin-bottom:20px; line-height:1.5;">
+                    <strong>Subject:</strong> Order Acceptance Letter against ${subject}.
+                </div>
+
+                <div style="margin-bottom:12px; font-size:11pt;">Dear Sir,</div>
+                <div style="margin-bottom:12px; font-size:11pt;">We thank you for valuable opportunity provided to us.</div>
+                <div style="margin-bottom:12px; font-size:11pt;">
+                    We acknowledge with thanks for the receipt of valuable PO No: <strong>${poRef}</strong> DT: <strong>${poDateVal}</strong>.
+                </div>
+                <div style="margin-bottom:16px; font-size:11pt; text-align:justify;">
+                    We hereby acknowledge receipt of PO & accept with basic amount of <strong>Rs. ${subTotalVal} /-</strong> <strong>+${gstPer}% GST extra</strong> payable at actual on basic with following standard terms & conditions.
+                </div>
+
+                <ol style="margin:18px 0; padding-left:20px; font-size:11pt; line-height:1.6; list-style-type:none;">
+                    <li style="margin-bottom:10px;"><strong>1) Price Basis:</strong> ${priceBasis}</li>
+                    <li style="margin-bottom:10px;"><strong>2) Payment Terms:</strong> ${paymentTerms}</li>
+                    <li style="margin-bottom:10px;"><strong>3) Transportation Charges:</strong> ${transportCharges}</li>
+                    <li style="margin-bottom:10px;"><strong>4) Dispatch Date:</strong> On or before ${deliveryDateVal}.</li>
+                    <li style="margin-bottom:10px;"><strong>5) Service Charges:</strong> ${serviceCharges}</li>
+                    <li style="margin-bottom:10px;"><strong>6) Warranty:</strong> ${warranty}</li>
+                </ol>
+
+                <div style="margin-bottom:12px; font-size:11pt;">We will start further proceedings on priority basis.</div>
+                <div style="margin-bottom:25px; font-size:11pt;">Thanking you.</div>
+
+                <div style="margin-top:30px; font-size:11pt;">
+                    <div>For <strong>${companyName}</strong></div>
+                    <div style="width:120px; min-height:65px; margin:8px 0;">
+                        ${stampUrl ? `<img src="${stampUrl}" style="max-width:120px; max-height:65px;">` : `<div style="border:1px dashed #007bff; color:#007bff; padding:8px; font-size:10px; text-align:center;">[Stamp & Signature]</div>`}
+                    </div>
+                    <div><strong>Authorized Signatory</strong></div>
+                </div>
+
+                <div style="margin-top:40px; border-top:1px solid #ddd; padding-top:15px; text-align:center; font-size:10pt; line-height:1.4;">
+                    <div style="font-weight:bold; font-size:12pt; color:#3b1660;">${companyName}</div>
+                    <div style="font-weight:bold; color:#000;">${address}</div>
+                    <div style="margin-top:2px;">E-mail: <span style="color:#0000ff; text-decoration:underline;">${email}</span> &nbsp; Website: <span style="color:#0000ff; text-decoration:underline;">${website}</span></div>
+                    <div style="font-weight:bold; margin-top:2px;">Phone: ${phone}</div>
+                </div>
+            `;
+
+            $('#oa_letter_preview_container').html(html);
+        }
+
+        function printOAPreviewModal() {
+            var printContents = document.getElementById('oa_letter_preview_container').innerHTML;
+            var printWindow = window.open('', '_blank');
+            printWindow.document.write('<html><head><title>Order Acceptance Letter</title>');
+            printWindow.document.write('<style>body{font-family:Calibri, Arial, sans-serif; padding:20px;} @page{margin:10mm;}</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write(printContents);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(function() {
+                printWindow.print();
+            }, 500);
+        }
     </script>
+
+    <!-- Modal: Order Acceptance Live Preview & Download -->
+    <div class="modal fade" id="modal_oa_preview" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document" style="width: 90%; max-width: 900px;">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #0d2b5c; color: white;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white;"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title"><i class="fa fa-file-text-o"></i> Order Acceptance Letter Preview</h4>
+                </div>
+                <div class="modal-body" style="background-color: #f4f6f9; padding: 20px;">
+                    <div id="oa_letter_preview_container" style="background: white; border: 4px double #000; padding: 30px 40px; min-height: 750px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-family: Calibri, 'Segoe UI', Arial, sans-serif;">
+                        <!-- Dynamically filled by updateOALetterPreview() -->
+                    </div>
+                </div>
+                <div class="modal-footer" style="background: #e9ecef;">
+                    <button type="button" class="btn btn-primary" onclick="printOAPreviewModal()"><i class="fa fa-print"></i> Print / Download PDF</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 

@@ -259,15 +259,18 @@
         <div class="signature-section">
             <div>For <strong><?php echo !empty($settings['company_name']) ? $settings['company_name'] : 'UWS Enviro-Tech Pvt Ltd'; ?></strong></div>
             <div class="stamp-box">
-                <?php if (!empty($settings['stamp_signature'])): ?>
-                    <img src="<?php echo base_url() . $settings['stamp_signature']; ?>" alt="Stamp & Signature">
+                <?php 
+                    $stamp = !empty($settings['company_stamp']) ? $settings['company_stamp'] : (!empty($settings['stamp_signature']) ? $settings['stamp_signature'] : '');
+                ?>
+                <?php if (!empty($stamp)): ?>
+                    <img src="<?php echo base_url() . $stamp; ?>" alt="Stamp & Signature">
                 <?php else: ?>
                     <svg width="100" height="75" viewBox="0 0 100 75">
                         <circle cx="45" cy="38" r="30" stroke="#1d4ed8" stroke-width="1.5" fill="none" stroke-dasharray="3,1" />
                         <circle cx="45" cy="38" r="24" stroke="#1d4ed8" stroke-width="1" fill="none" />
                         <path id="stampArc" d="M 22,38 A 22,22 0 1,1 68,38" fill="none" />
                         <text font-size="4.5" font-family="sans-serif" font-weight="bold" fill="#1d4ed8">
-                            <textPath href="#stampArc" startOffset="50%" text-anchor="middle">UWS ENVIRO-TECH PVT LTD</textPath>
+                            <textPath href="#stampArc" startOffset="50%" text-anchor="middle"><?php echo !empty($settings['company_name']) ? strtoupper($settings['company_name']) : 'UWS ENVIRO-TECH PVT LTD'; ?></textPath>
                         </text>
                         <text x="45" y="41" font-size="7.5" font-family="cursive" font-weight="bold" fill="#1d4ed8" text-anchor="middle">Signed</text>
                         <text x="45" y="52" font-size="4.5" font-family="sans-serif" fill="#1d4ed8" text-anchor="middle">PUNE</text>
@@ -283,15 +286,18 @@
                 <?php echo !empty($settings['company_name']) ? $settings['company_name'] : 'UWS Enviro-Tech Pvt. Ltd'; ?>
             </div>
             <div style="font-weight: bold; color: #000;">
-                <?php echo !empty($settings['company_address']) ? $settings['company_address'] : 'Plot No. 19/C, D-1 Block, Shop No. 342, 3<sup>rd</sup> Floor, HEUU Industrial Spaces, MIDC Chinchwad, Pune-411019.'; ?>
+                <?php 
+                    $addr = !empty($settings['address']) ? $settings['address'] : (!empty($settings['company_address']) ? $settings['company_address'] : 'Plot No. 19/C, D-1 Block, Shop No. 342, 3<sup>rd</sup> Floor, HEUU Industrial Spaces, MIDC Chinchwad, Pune-411019.');
+                    echo $addr;
+                ?>
             </div>
             <div style="margin-top: 2px;">
-                E-mail: <span style="color: #0000ff; text-decoration: underline;"><?php echo !empty($settings['company_email']) ? $settings['company_email'] : 'projects@ultimatewater.in'; ?></span>
+                E-mail: <span style="color: #0000ff; text-decoration: underline;"><?php echo !empty($settings['email']) ? $settings['email'] : (!empty($settings['company_email']) ? $settings['company_email'] : 'projects@ultimatewater.in'); ?></span>
                 &nbsp;
                 Website: <span style="color: #0000ff; text-decoration: underline;"><?php echo !empty($settings['website']) ? $settings['website'] : 'www.ultimatewater.in'; ?></span>
             </div>
             <div style="font-weight: bold; margin-top: 2px;">
-                Phone: <?php echo !empty($settings['company_mobile']) ? $settings['company_mobile'] : '020 29528571'; ?>
+                Phone: <?php echo !empty($settings['mobile']) ? $settings['mobile'] : (!empty($settings['company_mobile']) ? $settings['company_mobile'] : '020 29528571'); ?>
             </div>
         </div>
     </div>
