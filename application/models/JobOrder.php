@@ -336,8 +336,19 @@ public function get_joborders_with_pending($uid) {
     }
 
     public function get_datewise_record($from_date, $to_date, $uid) {
-        $f_date = date('Y-m-d', strtotime($from_date));
-        $t_date = date('Y-m-d', strtotime($to_date));
+        $parse_date = function($d) {
+            if (empty($d)) return date('Y-m-d');
+            $d = trim($d);
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)) return $d;
+            if (preg_match('/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/', $d, $m)) {
+                return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
+            }
+            $ts = strtotime($d);
+            return $ts ? date('Y-m-d', $ts) : date('Y-m-d');
+        };
+
+        $f_date = $parse_date($from_date);
+        $t_date = $parse_date($to_date);
 
         $this->db->select('joborder_total.id, joborder_total.number_fk, joborder_total.date, joborder_total.status, 
                           customer.company_name, joborder_total.project_code, joborder_total.customer_code, joborder_total.system, 
@@ -345,7 +356,7 @@ public function get_joborders_with_pending($uid) {
         $this->db->from('joborder_total');
         $this->db->where('joborder_total.date >=', $f_date);
         $this->db->where('joborder_total.date <=', $t_date);
-        $this->db->join('customer', 'customer.customer_id=joborder_total.customer_id_fk', 'Left Join');
+        $this->db->join('customer', 'customer.customer_id_fk=joborder_total.customer_id_fk', 'Left Join');
         $this->db->join('user u', 'joborder_total.uid=u.user_id', 'Left Join');
         $this->db->join('user u2', 'joborder_total.approved_by=u2.user_id', 'Left Join');
         $this->db->group_by('joborder_total.number_fk');

@@ -1126,6 +1126,13 @@ if ($_has_project_master) {
             // Initialize button state
             updateConvertButton();
 
+            // Initialize backdate datepicker
+            $('.backdate').datepicker({
+                dateFormat: 'dd-mm-yy',
+                changeMonth: true,
+                changeYear: true
+            });
+
             // Tooltip
             $('[title]').tooltip();
         });

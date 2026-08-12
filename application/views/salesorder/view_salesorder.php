@@ -564,6 +564,11 @@ defined('BASEPATH') or exit('No direct script access allowed');
                 }
                 window.open('https://wa.me/' + mobile + '?text=' + encodeURIComponent(message), '_blank', 'noopener');
             });
+            $('.backdate').datepicker({
+                dateFormat: 'dd-mm-yy',
+                changeMonth: true,
+                changeYear: true
+            });
         });
 
         function addSoCustomCcEmail() {

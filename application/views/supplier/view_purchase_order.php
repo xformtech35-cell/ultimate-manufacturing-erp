@@ -15,6 +15,7 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
 ?>
 
 <style>
+    #ui-datepicker-div.month-only-picker .ui-datepicker-calendar { display: none !important; }
     /* Fix Vertical Scrolling & Force Full Width Fluid Layout */
     html, body {
         height: auto !important;
@@ -899,9 +900,9 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
 
             // Initialize datepicker for regular dates
             $('.backdate').datepicker({
-                format: 'dd-mm-yyyy',
-                autoclose: true,
-                todayHighlight: true
+                dateFormat: 'dd-mm-yy',
+                changeMonth: true,
+                changeYear: true
             });
 
             // Initialize Month-Year picker
@@ -914,15 +915,11 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
                     var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
                     var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
                     $(this).datepicker('setDate', new Date(year, month, 1));
+                    $("#ui-datepicker-div").removeClass('month-only-picker');
                 }
             }).focus(function() {
-                $(".ui-datepicker-calendar").hide();
-                $(".ui-datepicker-current").hide();
-                $(".ui-datepicker-buttonpane").find('button').each(function() {
-                    if ($(this).text() === 'Today') {
-                        $(this).hide();
-                    }
-                });
+                $("#ui-datepicker-div").addClass('month-only-picker');
+            });
             });
 
             // Alternative Month-Year picker if above doesn't work

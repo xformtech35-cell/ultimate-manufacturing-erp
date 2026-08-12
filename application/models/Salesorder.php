@@ -481,8 +481,19 @@ public function get_project_code($uid)
 
     public function get_datewise_record($from_date, $to_date, $uid)
     {
-        $f_date = date('Y-m-d', strtotime($from_date));
-        $t_date = date('Y-m-d', strtotime($to_date));
+        $parse_date = function($d) {
+            if (empty($d)) return date('Y-m-d');
+            $d = trim($d);
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)) return $d;
+            if (preg_match('/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/', $d, $m)) {
+                return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
+            }
+            $ts = strtotime($d);
+            return $ts ? date('Y-m-d', $ts) : date('Y-m-d');
+        };
+
+        $f_date = $parse_date($from_date);
+        $t_date = $parse_date($to_date);
 
         $this->db->select('salesorder_total.id, salesorder_total.project_code, customer.company_name as customer_name, customer.fullname, salesorder_id, gst_type, number, date, basic_total, total, status, u.username as created_by_name, u2.username as approved_by_name, salesorder_total.remarks');
         $this->db->from('salesorder');

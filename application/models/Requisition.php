@@ -1310,8 +1310,19 @@ class Requisition extends CI_Model
      */
     public function get_datewise_record($from_date, $to_date, $user_id = null)
     {
-        $f_date = date('Y-m-d', strtotime($from_date));
-        $t_date = date('Y-m-d', strtotime($to_date));
+        $parse_date = function($d) {
+            if (empty($d)) return date('Y-m-d');
+            $d = trim($d);
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)) return $d;
+            if (preg_match('/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/', $d, $m)) {
+                return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
+            }
+            $ts = strtotime($d);
+            return $ts ? date('Y-m-d', $ts) : date('Y-m-d');
+        };
+
+        $f_date = $parse_date($from_date);
+        $t_date = $parse_date($to_date);
 
         $this->db->select('pri.*, pr.*, d.department_name, l.location_name, u.username as requested_by_name');
         $this->db->from('purchase_requisition_items pri');
@@ -1323,7 +1334,7 @@ class Requisition extends CI_Model
         $this->db->where('pr.pr_date <=', $t_date);
         $this->db->order_by('pr.pr_id', 'DESC');
         $query = $this->db->get();
-        return $query->result_array();
+        return $query->result();
     }
 
     public function get_monthyearwise_record($month_year, $user_id = null)

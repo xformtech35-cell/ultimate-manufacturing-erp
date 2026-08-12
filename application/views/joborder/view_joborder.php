@@ -400,7 +400,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             $('#jo_status_remarks').val(note);
             $('#joStatusModal').modal('show');
         });
-    });
+            $('.backdate').datepicker({
+                dateFormat: 'dd-mm-yy',
+                changeMonth: true,
+                changeYear: true
+            });
+        });
     </script>
 
     <!-- Change Job Order Status Modal -->
