@@ -781,17 +781,9 @@ class Requisition extends CI_Model
     {
         $stats = [];
 
-        // Get user roles
-        $user_roles = $this->get_user_roles($user_id);
-
-        // Pending PRs for approval (where user has one of the current approver roles)
-        if (!empty($user_roles)) {
-            $this->db->where_in('current_approver_role', $user_roles);
-            $this->db->where('approval_status', 'Pending');
-            $stats['pending_approvals'] = $this->db->count_all_results('purchase_requisition');
-        } else {
-            $stats['pending_approvals'] = 0;
-        }
+        // Pending PRs for approval (where user has one of the current approver roles or user is Admin)
+        $pending_approvals_records = $this->get_pending_approvals($user_id);
+        $stats['pending_approvals'] = count($pending_approvals_records);
 
         // User's pending PRs
         $this->db->where('created_by', $user_id);
