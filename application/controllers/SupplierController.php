@@ -208,6 +208,33 @@ class SupplierController extends MY_Controller
         $this->load->view('supplier/create_central_gst_purchase', $data);
     }
 
+    public function get_pr_items_for_po()
+    {
+        $pr_id = $this->input->get('pr_id');
+        if (empty($pr_id)) {
+            echo json_encode(['success' => false, 'items' => [], 'message' => 'Invalid PR ID']);
+            return;
+        }
+
+        $items = $this->requisition->get_requisition_items($pr_id);
+        $formatted = [];
+
+        if (!empty($items)) {
+            foreach ($items as $item) {
+                $code = !empty($item->item_code) ? $item->item_code : (!empty($item->item_code_fk) ? $item->item_code_fk : '');
+                $formatted[] = [
+                    'item_code'      => $code,
+                    'description'    => $item->description ?? '',
+                    'quantity'       => $item->quantity ?? 1,
+                    'unit'           => $item->unit ?? '',
+                    'estimated_cost' => $item->estimated_cost ?? 0
+                ];
+            }
+        }
+
+        echo json_encode(['success' => true, 'items' => $formatted]);
+    }
+
 
 
     public function purchase_stock()
