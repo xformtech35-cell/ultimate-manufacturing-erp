@@ -138,7 +138,10 @@ class OrderConfirmation extends CI_Model {
 
     public function get_orderconfirmation_by_number($number, $uid) {
         $client_col = $this->db->field_exists('client_name', 'customer') ? 'c.client_name' : 'c.company_name as client_name';
-        $this->db->select("oct.*, s.company_name as supplier_company_name, c.company_name as customer_company_name, {$client_col}, c.address as customer_address, c.gstin as customer_gstin, c.mobile_number as customer_mobile");
+        $gst_col    = $this->db->field_exists('gstin', 'customer') ? 'c.gstin as customer_gstin' : ($this->db->field_exists('gst', 'customer') ? 'c.gst as customer_gstin' : "'' as customer_gstin");
+        $mobile_col = $this->db->field_exists('mobile_number', 'customer') ? 'c.mobile_number as customer_mobile' : ($this->db->field_exists('mobile', 'customer') ? 'c.mobile as customer_mobile' : "'' as customer_mobile");
+
+        $this->db->select("oct.*, s.company_name as supplier_company_name, c.company_name as customer_company_name, {$client_col}, c.address as customer_address, {$gst_col}, {$mobile_col}");
         $this->db->from('orderconfirmation_total as oct');
         $this->db->join('supplier as s', 'oct.supplier_id = s.supplier_id', 'left');
         $this->db->join('customer as c', 'oct.customer_id = c.customer_id', 'left');
