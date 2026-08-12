@@ -42,7 +42,35 @@ class InventoryApprovalController extends MY_Controller
             ");
         }
 
-        // 2. Ensure sidebar menu item exists in DB table sidebar_menu
+        // 2. Ensure user_notifications table exists
+        if (!$this->db->table_exists('user_notifications')) {
+            $table_notif = $this->db->dbprefix('user_notifications');
+            $this->db->query("
+                CREATE TABLE IF NOT EXISTS `$table_notif` (
+                    `id`         INT(11)      NOT NULL AUTO_INCREMENT,
+                    `user_id`    INT(11)      NOT NULL,
+                    `title`      VARCHAR(255) NOT NULL,
+                    `message`    TEXT         NOT NULL,
+                    `type`       ENUM('success','info','warning','error') DEFAULT 'info',
+                    `module`     VARCHAR(100) DEFAULT NULL,
+                    `ref_id`     INT(11)      DEFAULT NULL,
+                    `is_read`    TINYINT(1)   DEFAULT 0,
+                    `created_at` DATETIME     DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (`id`),
+                    KEY `idx_user_read` (`user_id`, `is_read`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            ");
+        }
+
+        // 3. Ensure user_notified column exists in item_delete_requests if table present
+        if ($this->db->table_exists('item_delete_requests')) {
+            if (!$this->db->field_exists('user_notified', 'item_delete_requests')) {
+                $table_del = $this->db->dbprefix('item_delete_requests');
+                $this->db->query("ALTER TABLE `$table_del` ADD COLUMN `user_notified` TINYINT(1) NOT NULL DEFAULT 0 AFTER `review_remarks`");
+            }
+        }
+
+        // 4. Ensure sidebar menu item exists in DB table sidebar_menu
         $has_menu = $this->db->where('url', 'InventoryApprovalController/index')->get('sidebar_menu')->row();
         if (!$has_menu) {
             $this->db->insert('sidebar_menu', [
@@ -59,7 +87,7 @@ class InventoryApprovalController extends MY_Controller
             ]);
         }
 
-        // 3. Auto-grant Inventory_Approval permission to Admin role (Role ID 1) if not set
+        // 5. Auto-grant Inventory_Approval permission to Admin role (Role ID 1) if not set
         if ($this->db->table_exists('permission')) {
             $admin_perm = $this->db->where('role_id_fk', 1)->where('grp_perm', 'Inventory_Approval')->get('permission')->row();
             if (!$admin_perm) {
@@ -133,7 +161,7 @@ class InventoryApprovalController extends MY_Controller
 
     /**
      * Sync legacy delete requests from item_delete_requests to inventory_approval_requests
-     */
+    */
     private function _sync_delete_requests()
     {
         if ($this->db->table_exists('item_delete_requests')) {
@@ -351,7 +379,13 @@ class InventoryApprovalController extends MY_Controller
                 $count += $this->db->where('requested_by', $user_id)->where('status', 'pending')->count_all_results('inventory_approval_requests');
             }
             if ($this->db->table_exists('item_delete_requests')) {
-                $count += $this->db->where('requested_by', $user_id)->where('user_notified', 0)->count_all_results('item_delete_requests');
+                $this->db->where('requested_by', $user_id);
+                if ($this->db->field_exists('user_notified', 'item_delete_requests')) {
+                    $this->db->where('user_notified', 0);
+                } else {
+                    $this->db->where('status', 'pending');
+                }
+                $count += $this->db->count_all_results('item_delete_requests');
             }
         }
 
