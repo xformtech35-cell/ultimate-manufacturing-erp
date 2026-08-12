@@ -135,66 +135,71 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         </thead>
                                         <tbody>
                                             <?php if(isset($orderconfirmations) && !empty($orderconfirmations)) { 
-                                                foreach($orderconfirmations as $oc) {
-                                                    // Get supplier name
-                                                    $supplier_name = '';
-                                                    foreach($supplier_result as $supplier) {
-                                                        if($supplier->supplier_id == $oc->supplier_id) {
-                                                            $supplier_name = $supplier->company_name;
-                                                            break;
-                                                        }
-                                                    }
-                                                    
-                                                    // Status badge
-                                                    $status_badge = '';
-                                                    $status_class = '';
-                                                    switch($oc->status) {
-                                                        case 1:
-                                                            $status_badge = 'Draft';
-                                                            $status_class = 'label label-warning';
-                                                            break;
-                                                        case 2:
-                                                            $status_badge = 'Sent/Confirmed';
-                                                            $status_class = 'label label-info';
-                                                            break;
-                                                        case 3:
-                                                            $status_badge = 'Accepted';
-                                                            $status_class = 'label label-success';
-                                                            break;
-                                                        case 4:
-                                                            $status_badge = 'Rejected';
-                                                            $status_class = 'label label-danger';
-                                                            break;
-                                                        case 5:
-                                                            $status_badge = 'Cancelled';
-                                                            $status_class = 'label label-default';
-                                                            break;
-                                                    }
-                                            ?>
-                                                <tr>
-                                                    <td><?php echo $oc->number_fk; ?></td>
-                                                    <td><?php echo date('d-M-Y', strtotime($oc->date)); ?></td>
-                                                    <td><?php echo $supplier_name; ?></td>
-                                                    <td><?php echo $oc->po_reference; ?></td>
-                                                    <td><?php echo $oc->delivery_date ? date('d-M-Y', strtotime($oc->delivery_date)) : '-'; ?></td>
-                                                    <td><?php echo number_format($oc->total, 2); ?></td>
-                                                    <td><span class="<?php echo $status_class; ?>"><?php echo $status_badge; ?></span></td>
-                                                    <td>
-                                                        <a href="<?php echo base_url(); ?>OrderConfirmationController/show_order_confirmation/<?php echo $oc->number_fk; ?>" class="btn btn-xs btn-primary" title="View">
-                                                            <i class="fa fa-eye"></i>
-                                                        </a>
-                                                        <a href="<?php echo base_url(); ?>OrderConfirmationController/edit_order_confirmation_details/<?php echo $oc->number_fk; ?>" class="btn btn-xs btn-warning" title="Edit">
-                                                            <i class="fa fa-edit"></i>
-                                                        </a>
-                                                        <a href="<?php echo base_url(); ?>OrderConfirmationController/print_order_confirmation/<?php echo $oc->number_fk; ?>" class="btn btn-xs btn-info" title="Print" target="_blank">
-                                                            <i class="fa fa-print"></i>
-                                                        </a>
-                                                        <a href="<?php echo base_url(); ?>OrderConfirmationController/delete_order_confirmation/<?php echo $oc->number_fk; ?>" class="btn btn-xs btn-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this Order Confirmation?');">
-                                                            <i class="fa fa-trash"></i>
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            <?php } } else { ?>
+                                                 foreach($orderconfirmations as $oc) {
+                                                     // Get supplier name with setting fallback
+                                                     $supplier_name = !empty($oc->supplier_company_name) ? $oc->supplier_company_name : '';
+                                                     if (empty($supplier_name) && isset($supplier_result)) {
+                                                         foreach($supplier_result as $supplier) {
+                                                             if($supplier->supplier_id == $oc->supplier_id) {
+                                                                 $supplier_name = $supplier->company_name;
+                                                                 break;
+                                                             }
+                                                         }
+                                                     }
+                                                     if (empty($supplier_name)) {
+                                                         $supplier_name = !empty($settings['company_name']) ? $settings['company_name'] : 'Xformtech';
+                                                     }
+                                                     
+                                                     // Status badge
+                                                     $status_badge = '';
+                                                     $status_class = '';
+                                                     switch($oc->status) {
+                                                         case 1:
+                                                             $status_badge = 'Draft';
+                                                             $status_class = 'label label-warning';
+                                                             break;
+                                                         case 2:
+                                                             $status_badge = 'Sent/Confirmed';
+                                                             $status_class = 'label label-info';
+                                                             break;
+                                                         case 3:
+                                                             $status_badge = 'Accepted';
+                                                             $status_class = 'label label-success';
+                                                             break;
+                                                         case 4:
+                                                             $status_badge = 'Rejected';
+                                                             $status_class = 'label label-danger';
+                                                             break;
+                                                         case 5:
+                                                             $status_badge = 'Cancelled';
+                                                             $status_class = 'label label-default';
+                                                             break;
+                                                     }
+                                             ?>
+                                                 <tr>
+                                                     <td><strong><?php echo $oc->number_fk; ?></strong></td>
+                                                     <td><?php echo date('d-M-Y', strtotime($oc->date)); ?></td>
+                                                     <td><?php echo $supplier_name; ?></td>
+                                                     <td><?php echo $oc->po_reference ? $oc->po_reference : '-'; ?></td>
+                                                     <td><?php echo $oc->delivery_date ? date('d-M-Y', strtotime($oc->delivery_date)) : '-'; ?></td>
+                                                     <td><strong><?php echo number_format($oc->total, 2); ?></strong></td>
+                                                     <td><span class="<?php echo $status_class; ?>"><?php echo $status_badge; ?></span></td>
+                                                     <td style="white-space: nowrap;">
+                                                         <a href="<?php echo base_url(); ?>OrderConfirmationController/show_order_confirmation/<?php echo $oc->number_fk; ?>" class="btn btn-xs btn-primary" title="View Order Acceptance">
+                                                             <i class="fa fa-eye"></i> View
+                                                         </a>
+                                                         <a href="<?php echo base_url(); ?>OrderConfirmationController/print_oa_letter/<?php echo $oc->number_fk; ?>" class="btn btn-xs btn-success" title="Print Order Acceptance Letter" target="_blank">
+                                                             <i class="fa fa-file-pdf-o"></i> Print OA
+                                                         </a>
+                                                         <a href="<?php echo base_url(); ?>OrderConfirmationController/edit_order_confirmation_details/<?php echo $oc->number_fk; ?>" class="btn btn-xs btn-warning" title="Edit">
+                                                             <i class="fa fa-edit"></i>
+                                                         </a>
+                                                         <a href="<?php echo base_url(); ?>OrderConfirmationController/delete_order_confirmation/<?php echo $oc->number_fk; ?>" class="btn btn-xs btn-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this Order Confirmation?');">
+                                                             <i class="fa fa-trash"></i>
+                                                         </a>
+                                                     </td>
+                                                 </tr>
+                                             <?php } } else { ?>
                                                 <tr>
                                                     <td colspan="8" class="text-center">No Order Confirmations found.</td>
                                                 </tr>

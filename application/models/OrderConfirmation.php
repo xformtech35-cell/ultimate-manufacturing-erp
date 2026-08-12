@@ -161,20 +161,31 @@ class OrderConfirmation extends CI_Model {
     }
 
     public function get_orderconfirmations($uid) {
-        $this->db->select('*');
-        $this->db->from('orderconfirmation_total');
-        $this->db->where('uid', $uid);
-        $this->db->order_by('id', 'DESC');
+        $client_col = $this->db->field_exists('client_name', 'customer') ? 'c.client_name' : 'c.company_name as client_name';
+        $this->db->select("oct.*, s.company_name as supplier_company_name, c.company_name as customer_company_name, {$client_col}");
+        $this->db->from('orderconfirmation_total as oct');
+        $this->db->join('supplier as s', 'oct.supplier_id = s.supplier_id', 'left');
+        $this->db->join('customer as c', 'oct.customer_id = c.customer_id', 'left');
+        $this->db->where('oct.uid', $uid);
+        $this->db->order_by('oct.id', 'DESC');
         $query = $this->db->get();
         return $query->result();
     }
 
     public function get_monthyearwise_record($month_year, $uid) {
-        $this->db->select('*');
-        $this->db->from('orderconfirmation_total');
-        $this->db->like('number_fk', $month_year);
-        $this->db->where('uid', $uid);
-        $this->db->order_by('id', 'DESC');
+        $client_col = $this->db->field_exists('client_name', 'customer') ? 'c.client_name' : 'c.company_name as client_name';
+        $this->db->select("oct.*, s.company_name as supplier_company_name, c.company_name as customer_company_name, {$client_col}");
+        $this->db->from('orderconfirmation_total as oct');
+        $this->db->join('supplier as s', 'oct.supplier_id = s.supplier_id', 'left');
+        $this->db->join('customer as c', 'oct.customer_id = c.customer_id', 'left');
+        $this->db->where('oct.uid', $uid);
+        if (!empty($month_year)) {
+            $this->db->group_start();
+            $this->db->like('oct.number_fk', $month_year);
+            $this->db->or_like('oct.date', $month_year);
+            $this->db->group_end();
+        }
+        $this->db->order_by('oct.id', 'DESC');
         $query = $this->db->get();
         return $query->result();
     }

@@ -38,11 +38,10 @@ class OrderConfirmationController extends MY_Controller {
     public function index() {
         $str = $this->input->get('str');
         
-        if($str == "All") {  
-            $data['orderconfirmations'] = $this->orderconfirmation->get_orderconfirmations($this->user_id);
+        if(!empty($str) && $str != "All") {  
+            $data['orderconfirmations'] = $this->orderconfirmation->get_monthyearwise_record($str, $this->user_id);
         } else {
-            $month_year = date('M-y');
-            $data['orderconfirmations'] = $this->orderconfirmation->get_monthyearwise_record($month_year, $this->user_id);
+            $data['orderconfirmations'] = $this->orderconfirmation->get_orderconfirmations($this->user_id);
         }
         
         $data['oc_count'] = $this->orderconfirmation->get_orderconfirmation_count($this->user_id);
