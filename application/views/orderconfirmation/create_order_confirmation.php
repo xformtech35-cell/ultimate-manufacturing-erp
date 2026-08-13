@@ -218,15 +218,36 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr class="oc-item">
-                                                        <td><input type="text" class="form-control description" name="description[]" placeholder="e.g., Dosing System"></td>
-                                                        <td><input type="number" class="form-control quantity" name="quantity[]" placeholder="Qty" step="0.01"></td>
-                                                        <td><input type="text" class="form-control unit" name="unit[]" placeholder="Unit"></td>
-                                                        <td><input type="number" class="form-control unit_price" name="unit_price[]" placeholder="Price" step="0.01"></td>
-                                                        <td><input type="number" class="form-control tax_rate" name="tax_rate[]" placeholder="%" step="0.01" value="18"></td>
-                                                        <td><input type="number" class="form-control amount" name="amount[]" placeholder="Amount" readonly></td>
-                                                        <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-trash"></i></button></td>
-                                                    </tr>
+                                                    <?php if (!empty($so_details) && is_array($so_details)) {
+                                                        foreach ($so_details as $item) {
+                                                            $desc = !empty($item->item_name) ? $item->item_name : ($item->product_name ?? '');
+                                                            $qty = isset($item->quantity) ? $item->quantity : ($item->qty ?? 1);
+                                                            $unit = isset($item->unit) ? $item->unit : 'Nos';
+                                                            $price = isset($item->rate) ? $item->rate : ($item->unit_price ?? 0);
+                                                            $tax = isset($item->gst) ? $item->gst : ($item->tax ?? 18);
+                                                            $amount = isset($item->total) ? $item->total : ($qty * $price);
+                                                    ?>
+                                                        <tr class="oc-item">
+                                                            <td><input type="text" class="form-control description" name="description[]" value="<?php echo htmlspecialchars($desc); ?>" placeholder="e.g., Dosing System"></td>
+                                                            <td><input type="number" class="form-control quantity" name="quantity[]" value="<?php echo $qty; ?>" placeholder="Qty" step="0.01"></td>
+                                                            <td><input type="text" class="form-control unit" name="unit[]" value="<?php echo htmlspecialchars($unit); ?>" placeholder="Unit"></td>
+                                                            <td><input type="number" class="form-control unit_price" name="unit_price[]" value="<?php echo $price; ?>" placeholder="Price" step="0.01"></td>
+                                                            <td><input type="number" class="form-control tax_rate" name="tax_rate[]" value="<?php echo $tax; ?>" placeholder="%" step="0.01"></td>
+                                                            <td><input type="number" class="form-control amount" name="amount[]" value="<?php echo $amount; ?>" placeholder="Amount" readonly></td>
+                                                            <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-trash"></i></button></td>
+                                                        </tr>
+                                                    <?php }
+                                                    } else { ?>
+                                                        <tr class="oc-item">
+                                                            <td><input type="text" class="form-control description" name="description[]" placeholder="e.g., Dosing System"></td>
+                                                            <td><input type="number" class="form-control quantity" name="quantity[]" placeholder="Qty" step="0.01"></td>
+                                                            <td><input type="text" class="form-control unit" name="unit[]" placeholder="Unit"></td>
+                                                            <td><input type="number" class="form-control unit_price" name="unit_price[]" placeholder="Price" step="0.01"></td>
+                                                            <td><input type="number" class="form-control tax_rate" name="tax_rate[]" placeholder="%" step="0.01" value="18"></td>
+                                                            <td><input type="number" class="form-control amount" name="amount[]" placeholder="Amount" readonly></td>
+                                                            <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-trash"></i></button></td>
+                                                        </tr>
+                                                    <?php } ?>
                                                 </tbody>
                                                 <tfoot>
                                                     <tr>

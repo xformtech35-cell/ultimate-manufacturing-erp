@@ -362,11 +362,30 @@ $_total_table_width = 1060;
                                                     <td style="text-align: center;">
                                                         <?php if ($slip['status'] == 'draft'): ?>
                                                             <span style="background-color: #fef7e0; color: #b06000; border: 1px solid #fbe09c; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; text-transform: uppercase; display: inline-block; line-height: 1.2;">Draft</span>
+                                                        <?php elseif ($slip['status'] == 'pending_overrun_approval'): ?>
+                                                            <span style="background-color: #fff0f0; color: #c5221f; border: 1px solid #fad2cf; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; text-transform: uppercase; display: inline-block; line-height: 1.2;">Overrun Pending</span>
                                                         <?php elseif ($slip['status'] == 'issued'): ?>
                                                             <span style="background-color: #e6f4ea; color: #137333; border: 1px solid #c2e7c9; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; text-transform: uppercase; display: inline-block; line-height: 1.2;">Issued</span>
                                                         <?php elseif ($slip['status'] == 'cancelled'): ?>
                                                             <span style="background-color: #fce8e6; color: #c5221f; border: 1px solid #fad2cf; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; text-transform: uppercase; display: inline-block; line-height: 1.2;">Cancelled</span>
                                                         <?php endif; ?>
+                                                    </td>
+                                                    <td style="text-align: center;">
+                                                        <?php
+                                                        // Show the worst overrun status across all items in this slip
+                                                        $slip_overrun = isset($slip['overrun_status']) ? $slip['overrun_status'] : 'none';
+                                                        $ov_badges = [
+                                                            'none'              => ['','label-default'],
+                                                            'within_limit'      => ['Within Limit','label-warning'],
+                                                            'approval_required' => ['&#9888; Overrun','label-danger'],
+                                                            'approved'          => ['&#10003; Approved','label-success'],
+                                                            'rejected'          => ['&#10007; Rejected','label-default'],
+                                                        ];
+                                                        if ($slip_overrun !== 'none' && isset($ov_badges[$slip_overrun])) {
+                                                            [$lbl, $cls] = $ov_badges[$slip_overrun];
+                                                            echo '<span class="label '.$cls.'" style="font-size:10px;">'.$lbl.'</span>';
+                                                        }
+                                                        ?>
                                                     </td>
                                                     <td style="text-align: center; vertical-align: middle;">
                                                         <div class="dropdown">

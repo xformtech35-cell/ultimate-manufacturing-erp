@@ -798,8 +798,10 @@ if (count($date_parts) == 3) {
     }
     
     // Insert BOM items - MATCHING YOUR EXACT DATABASE COLUMNS
+    $allowed_overrun_pcts = $this->input->post('allowed_overrun_pct');
     for ($i = 0; $i < $item_count; $i++) {
         if (!empty($product_name[$i]) && (!empty($quantity[$i]) || $product_name[$i] === '__HEADING__')) {
+            $ov_pct_val = (isset($allowed_overrun_pcts[$i]) && $allowed_overrun_pcts[$i] !== '') ? floatval($allowed_overrun_pcts[$i]) : null;
             $data = array(
                 'customer_id' => $customer_id,
                 'number' => $number,
@@ -811,6 +813,7 @@ if (count($date_parts) == 3) {
                 'scope' => isset($scope[$i]) ? $scope[$i] : '',
                 'stores_remark' => isset($stores_remark[$i]) ? $stores_remark[$i] : '',
                 'remark' => isset($remark[$i]) ? $remark[$i] : '', // This maps to remark column
+                'allowed_overrun_pct' => $ov_pct_val,
                 'status_i' => isset($status[$i]) ? $status[$i] : $status_main,
                 'uid' => $this->user_id,
                 // Set default values for required fields

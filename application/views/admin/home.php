@@ -11,37 +11,127 @@ defined('BASEPATH') or exit('No direct script access allowed');
 require_once(APPPATH . '/third_party/amount_convert.php');
 ?>
 <style>
-    /* Disable responsive layout */
+    /* Overview Box Container & Card Styling */
+    .overview-box-body {
+        padding: 15px 15px 18px 15px !important;
+        background: #ffffff;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
+
+    .overview-row {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        margin-left: -8px !important;
+        margin-right: -8px !important;
+        row-gap: 16px;
+    }
+
+    .overview-row::after {
+        content: '';
+        display: table;
+        clear: both;
+    }
+
+    .overview-row .fixed-col {
+        width: 25% !important;
+        flex: 0 0 25% !important;
+        max-width: 25% !important;
+        padding: 0 8px !important;
+        box-sizing: border-box !important;
+        float: left !important;
+    }
+
     @media (max-width: 992px) {
-        .fixed-col {
-            width: 25% !important;
-            float: left !important;
-        }
-    }
-    
-    @media (max-width: 768px) {
-        .fixed-col {
-            width: 25% !important;
-            float: left !important;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .fixed-col {
-            width: 25% !important;
-            float: left !important;
+        .overview-row .fixed-col {
+            width: 50% !important;
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
         }
     }
 
+    @media (max-width: 576px) {
+        .overview-row .fixed-col {
+            width: 100% !important;
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    .overview-row .small-box {
+        margin-bottom: 0 !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08) !important;
+        transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+        position: relative;
+    }
+
+    .overview-row .small-box:hover {
+        transform: translateY(-4px) !important;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .overview-row .small-box .inner {
+        min-height: 85px;
+        padding: 14px 14px 10px 14px !important;
+    }
+
+    .overview-row .small-box .inner p {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1.4;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        opacity: 0.95;
+    }
+
+    .overview-row .small-box .inner h3 {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 2px 0 6px 0 !important;
+        line-height: 1.1;
+    }
+
+    .overview-row .small-box .icon {
+        top: 10px;
+        right: 12px;
+        font-size: 52px;
+        opacity: 0.22;
+        transition: all 0.3s ease;
+    }
+
+    .overview-row .small-box:hover .icon {
+        font-size: 58px;
+        opacity: 0.32;
+    }
+
+    .overview-row .small-box-footer {
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        background: rgba(0, 0, 0, 0.12) !important;
+        border-bottom-left-radius: 8px !important;
+        border-bottom-right-radius: 8px !important;
+        transition: background 0.2s ease !important;
+    }
+
+    .overview-row .small-box-footer:hover {
+        background: rgba(0, 0, 0, 0.22) !important;
+        color: #fff !important;
+    }
+
+    /* Fallback for fixed-col if used elsewhere */
     .fixed-col {
         width: 25%;
         float: left;
         padding: 10px;
         box-sizing: border-box;
-    }
-
-    .fixed-col:nth-child(4n+1) {
-        clear: left !important;
     }
 
     .fixed-col .small-box {
@@ -271,19 +361,19 @@ require_once(APPPATH . '/third_party/amount_convert.php');
                     <?php if (in_array("Business_Overview", $session_data_head['permission'])) { ?>
                     <div class="row">
                         <div class="col-md-12">
-                            <div class="box box-success">
-                                <div class="box-header with-border">
-                                    <h3 class="box-title">Business Overview &mdash; <?php echo $fy_label; ?></h3>
+                            <div class="box box-success" style="border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden;">
+                                <div class="box-header with-border" style="padding: 12px 18px; border-bottom: 1px solid #f4f4f4;">
+                                    <h3 class="box-title" style="font-weight: 600; font-size: 16px;">Business Overview &mdash; <?php echo $fy_label; ?></h3>
 
                                     <div class="box-tools pull-right">
                                         <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
                                         </button>
                                     </div>
                                 </div>
-                                <div class="box-body no-padding">
+                                <div class="box-body overview-box-body">
 
 
-                                    <div class="row">
+                                    <div class="overview-row">
 
                                         <div class="fixed-col">
                                             <!-- small box -->
@@ -442,7 +532,7 @@ require_once(APPPATH . '/third_party/amount_convert.php');
 
                                         <!-- ./col -->
                                     </div>
-                                    <!-- /.row -->
+                                    <!-- /.overview-row -->
 
 
 
@@ -458,75 +548,42 @@ require_once(APPPATH . '/third_party/amount_convert.php');
                     <?php if (in_array("Monthly_Sales", $session_data_head['permission'])) { ?>
                     <div class="row">
                         <div class="col-md-12">
-                            <div class="box box-success">
-                                <div class="box-header with-border">
-                                    <h3 class="box-title">Monthly Sales &mdash; <?php echo $fy_label; ?></h3>
-
+                            <div class="box box-success" style="border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 24px;">
+                                <div class="box-header with-border" style="padding: 14px 20px; border-bottom: 1px solid #f4f4f4; background: #fff;">
+                                    <h3 class="box-title" style="font-weight: 600; font-size: 16px; color: #1e293b;">
+                                        <i class="fa fa-line-chart" style="color: #3b82f6; margin-right: 8px;"></i>Monthly Sales &mdash; <?php echo $fy_label; ?>
+                                    </h3>
                                     <div class="box-tools pull-right">
-                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                                        </button>
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
                                     </div>
                                 </div>
-                                <!--                                //.box-header -->
-                                <div class="box-body no-padding">
-                                    <div class="row">
-
-                                        <div class="col-md-11 col-sm-8">
-                                            <div class="pad">
-
-                                                <strong>
-                                                    <div id="info3" class="text-uppercase"></div>
-                                                </strong>
-
-
-                                                <div id="chart5"></div>
-                                            </div>
-                                        </div>
-
-
+                                <div class="box-body" style="padding: 20px 24px; background: #fff;">
+                                    <div style="position: relative; width: 100%; height: 350px;">
+                                        <canvas id="monthlySalesCanvas"></canvas>
                                     </div>
                                 </div>
-
-
                             </div>
                         </div>
-                    </div>.
+                    </div>
                     <?php } ?>
-
 
                     <?php if (in_array("Purchase_And_Expenses", $session_data_head['permission'])) { ?>
                     <div class="row">
                         <div class="col-md-12">
-                            <div class="box box-success">
-                                <div class="box-header with-border">
-                                    <h3 class="box-title">Purchase &amp; Expenses &mdash; <?php echo $fy_label; ?></h3>
-
+                            <div class="box box-success" style="border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 24px;">
+                                <div class="box-header with-border" style="padding: 14px 20px; border-bottom: 1px solid #f4f4f4; background: #fff;">
+                                    <h3 class="box-title" style="font-weight: 600; font-size: 16px; color: #1e293b;">
+                                        <i class="fa fa-shopping-cart" style="color: #06b6d4; margin-right: 8px;"></i>Purchase &amp; Expenses &mdash; <?php echo $fy_label; ?>
+                                    </h3>
                                     <div class="box-tools pull-right">
-                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                                        </button>
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
                                     </div>
                                 </div>
-                                <!--                                //.box-header -->
-                                <div class="box-body no-padding">
-                                    <div class="row">
-
-                                        <div class="col-md-11 col-sm-8">
-                                            <div class="pad">
-
-                                                <strong>
-                                                    <div id="info2" class="text-uppercase"></div>
-                                                </strong>
-
-
-                                                <div id="chart6"></div>
-                                            </div>
-                                        </div>
-
-
+                                <div class="box-body" style="padding: 20px 24px; background: #fff;">
+                                    <div style="position: relative; width: 100%; height: 350px;">
+                                        <canvas id="purchaseExpensesCanvas"></canvas>
                                     </div>
                                 </div>
-
-
                             </div>
                         </div>
                     </div>
@@ -1228,199 +1285,173 @@ require_once(APPPATH . '/third_party/amount_convert.php');
     </div>
     <!-- ./wrapper -->
 
-    <script type="text/javascript" src="<?php echo base_url() ?>jqplotgraph/jquery.min.js"></script>
-    <script type="text/javascript" src="<?php echo base_url() ?>jqplotgraph/jquery.jqplot.min.js"></script>
-    <script type="text/javascript" src="<?php echo base_url() ?>jqplotgraph/plugins/jqplot.barRenderer.min.js"></script>
-    <script type="text/javascript" src="<?php echo base_url() ?>jqplotgraph/plugins/jqplot.meterGaugeRenderer.min.js"></script>
-    <script type="text/javascript" src="<?php echo base_url() ?>jqplotgraph/plugins/jqplot.pieRenderer.min.js"></script>
-    <script type="text/javascript" src="<?php echo base_url() ?>jqplotgraph/plugins/jqplot.donutRenderer.min.js"></script>
-    <!--    <script type="text/javascript" src="<?php echo base_url() ?>jqplotgraph/plugins/jqplot.canvasTextRenderer.js"></script>
-    <script type="text/javascript" src="<?php echo base_url() ?>jqplotgraph/plugins/jqplot.canvasAxisTickRenderer.js"></script>-->
-    <script type="text/javascript" src="<?php echo base_url() ?>jqplotgraph/plugins/jqplot.categoryAxisRenderer.min.js"></script>
-    <script type="text/javascript" src="<?php echo base_url() ?>jqplotgraph/plugins/jqplot.pointLabels.min.js"></script>
-    <link rel="stylesheet" type="text/css" hrf="<?php echo base_url() ?>jqplotgraph/jquery.jqplot.min.css" />
-
-
-
-
-
-
-
-
-
-
-
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         $(document).ready(function() {
+            // Currency formatter helper (Indian Lakhs / Crores / INR)
+            function formatINR(val) {
+                if (val === null || val === undefined || isNaN(val)) return '₹0';
+                var num = Number(val);
+                if (Math.abs(num) >= 10000000) {
+                    return '₹' + (num / 10000000).toFixed(2) + ' Cr';
+                } else if (Math.abs(num) >= 100000) {
+                    return '₹' + (num / 100000).toFixed(2) + ' L';
+                }
+                return '₹' + num.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+            }
 
-            /* Expences saless and purchase */
+            var months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
 
-            var s5 = [<?php echo $APR5; ?>, <?php echo $MAY5; ?>, <?php echo $JUN5; ?>,
-                <?php echo $JUL5; ?>, <?php echo $AUG5; ?>, <?php echo $SEP5; ?>,
-                <?php echo $OCT5; ?>, <?php echo $NOV5; ?>, <?php echo $DEC5; ?>, <?php echo $JAN5; ?>, <?php echo $FEB5; ?>, <?php echo $MAR5; ?>
-            ];
-
-
-
-            var s8 = [<?php echo $APR8; ?>, <?php echo $MAY8; ?>, <?php echo $JUN8; ?>,
-                <?php echo $JUL8; ?>, <?php echo $AUG8; ?>, <?php echo $SEP8; ?>,
-                <?php echo $OCT8; ?>, <?php echo $NOV8; ?>, <?php echo $DEC8; ?>, <?php echo $JAN8; ?>, <?php echo $FEB8; ?>, <?php echo $MAR8; ?>
-            ];
-
-
-
-
-
-            // var ticks = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            var ticks = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
-
-            plot2 = $.jqplot('chart5', [s8, s5], {
-                seriesColors: ['#6699ff', '#85802b'],
-
-                seriesDefaults: {
-                    renderer: $.jqplot.BarRenderer,
-                    pointLabels: {
-                        show: true
-                    }
-
-                },
-                legend: {
-                    show: true,
-                    location: 'n',
-                    placement: 'outsideGrid',
-                    rendererOptions: {
-                        numberRows: 1
+            // 1. Monthly Sales Chart (Quotations vs Invoices)
+            var salesElem = document.getElementById('monthlySalesCanvas');
+            if (salesElem) {
+                var salesCtx = salesElem.getContext('2d');
+                new Chart(salesCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: [
+                            {
+                                label: 'Quotations',
+                                data: [<?php echo (float)($APR8??0); ?>, <?php echo (float)($MAY8??0); ?>, <?php echo (float)($JUN8??0); ?>, <?php echo (float)($JUL8??0); ?>, <?php echo (float)($AUG8??0); ?>, <?php echo (float)($SEP8??0); ?>, <?php echo (float)($OCT8??0); ?>, <?php echo (float)($NOV8??0); ?>, <?php echo (float)($DEC8??0); ?>, <?php echo (float)($JAN8??0); ?>, <?php echo (float)($FEB8??0); ?>, <?php echo (float)($MAR8??0); ?>],
+                                backgroundColor: 'rgba(59, 130, 246, 0.85)',
+                                borderColor: '#2563eb',
+                                borderWidth: 1,
+                                borderRadius: 6,
+                                borderSkipped: false,
+                                maxBarThickness: 30
+                            },
+                            {
+                                label: 'Invoices',
+                                data: [<?php echo (float)($APR5??0); ?>, <?php echo (float)($MAY5??0); ?>, <?php echo (float)($JUN5??0); ?>, <?php echo (float)($JUL5??0); ?>, <?php echo (float)($AUG5??0); ?>, <?php echo (float)($SEP5??0); ?>, <?php echo (float)($OCT5??0); ?>, <?php echo (float)($NOV5??0); ?>, <?php echo (float)($DEC5??0); ?>, <?php echo (float)($JAN5??0); ?>, <?php echo (float)($FEB5??0); ?>, <?php echo (float)($MAR5??0); ?>],
+                                backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                                borderColor: '#059669',
+                                borderWidth: 1,
+                                borderRadius: 6,
+                                borderSkipped: false,
+                                maxBarThickness: 30
+                            }
+                        ]
                     },
-                    marginTop: '8px',
-                    xoffset: -10
-                },
-                series: [{
-                        label: 'Quotations'
-                    },
-                    {
-                        label: 'Invoice'
-                    },
-
-
-
-                ],
-                axes: {
-                    xaxis: {
-                        renderer: $.jqplot.CategoryAxisRenderer,
-                        ticks: ticks,
-                        label: "Months",
-                        tickRenderer: $.jqplot.CanvasAxisTickRenderer,
-
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    pointStyle: 'circle',
+                                    font: { family: "'Inter', 'Segoe UI', sans-serif", size: 13, weight: '600' },
+                                    padding: 16
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#0f172a',
+                                titleFont: { size: 13, weight: 'bold' },
+                                bodyFont: { size: 13 },
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function(ctx) {
+                                        return ctx.dataset.label + ': ' + formatINR(ctx.raw);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { font: { family: "'Inter', sans-serif", size: 12, weight: '600' }, color: '#64748b' }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                                ticks: {
+                                    font: { family: "'Inter', sans-serif", size: 11 },
+                                    color: '#64748b',
+                                    callback: function(value) { return formatINR(value); }
+                                }
+                            }
+                        }
                     }
+                });
+            }
 
-
-                }
-            });
-
-            $('#chart5').bind('jqplotDataHighlight',
-                function(ev, seriesIndex, pointIndex, data) {
-                    var sales_type = ['Quotation', 'Sales'];
-                    $('#info3').html('Type: ' + sales_type[seriesIndex] + ', Month : ' + ticks[pointIndex] + ', Amount: ' + data[1]);
-                    // $('#info3').html('series: ' + seriesIndex + ', point: ' + pointIndex + ', data: ' + data[1]);
-                }
-            );
-
-            $('#chart5').bind('jqplotDataUnhighlight',
-                function(ev) {
-                    $('#info3').html('Nothing');
-                }
-            );
-
-
-        });
-    </script>
-
-
-
-
-    <script>
-        $(document).ready(function() {
-
-            /* Expences saless and purchase */
-
-
-            var s6 = [<?php echo $APR6; ?>, <?php echo $MAY6; ?>, <?php echo $JUN6; ?>,
-                <?php echo $JUL6; ?>, <?php echo $AUG6; ?>, <?php echo $SEP6; ?>,
-                <?php echo $OCT6; ?>, <?php echo $NOV6; ?>, <?php echo $DEC6; ?>, <?php echo $JAN6; ?>, <?php echo $FEB6; ?>, <?php echo $MAR6; ?>
-            ];
-
-            var s7 = [<?php echo $APR7; ?>, <?php echo $MAY7; ?>, <?php echo $JUN7; ?>,
-                <?php echo $JUL7; ?>, <?php echo $AUG7; ?>, <?php echo $SEP7; ?>,
-                <?php echo $OCT7; ?>, <?php echo $NOV7; ?>, <?php echo $DEC7; ?>, <?php echo $JAN7; ?>, <?php echo $FEB7; ?>, <?php echo $MAR7; ?>
-            ];
-
-
-
-
-
-
-            // var ticks = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            var ticks = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
-
-            plot2 = $.jqplot('chart6', [s6, s7], {
-                seriesColors: ['#00749F', '#73C774'],
-
-                seriesDefaults: {
-                    renderer: $.jqplot.BarRenderer,
-                    pointLabels: {
-                        show: true
-                    }
-
-                },
-                legend: {
-                    show: true,
-                    location: 'n',
-                    placement: 'outsideGrid',
-                    rendererOptions: {
-                        numberRows: 1
+            // 2. Purchase & Expenses Chart (Purchase vs Expense)
+            var peElem = document.getElementById('purchaseExpensesCanvas');
+            if (peElem) {
+                var peCtx = peElem.getContext('2d');
+                new Chart(peCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: [
+                            {
+                                label: 'Purchase',
+                                data: [<?php echo (float)($APR6??0); ?>, <?php echo (float)($MAY6??0); ?>, <?php echo (float)($JUN6??0); ?>, <?php echo (float)($JUL6??0); ?>, <?php echo (float)($AUG6??0); ?>, <?php echo (float)($SEP6??0); ?>, <?php echo (float)($OCT6??0); ?>, <?php echo (float)($NOV6??0); ?>, <?php echo (float)($DEC6??0); ?>, <?php echo (float)($JAN6??0); ?>, <?php echo (float)($FEB6??0); ?>, <?php echo (float)($MAR6??0); ?>],
+                                backgroundColor: 'rgba(6, 182, 212, 0.85)',
+                                borderColor: '#0891b2',
+                                borderWidth: 1,
+                                borderRadius: 6,
+                                borderSkipped: false,
+                                maxBarThickness: 30
+                            },
+                            {
+                                label: 'Expense',
+                                data: [<?php echo (float)($APR7??0); ?>, <?php echo (float)($MAY7??0); ?>, <?php echo (float)($JUN7??0); ?>, <?php echo (float)($JUL7??0); ?>, <?php echo (float)($AUG7??0); ?>, <?php echo (float)($SEP7??0); ?>, <?php echo (float)($OCT7??0); ?>, <?php echo (float)($NOV7??0); ?>, <?php echo (float)($DEC7??0); ?>, <?php echo (float)($JAN7??0); ?>, <?php echo (float)($FEB7??0); ?>, <?php echo (float)($MAR7??0); ?>],
+                                backgroundColor: 'rgba(244, 63, 94, 0.85)',
+                                borderColor: '#e11d48',
+                                borderWidth: 1,
+                                borderRadius: 6,
+                                borderSkipped: false,
+                                maxBarThickness: 30
+                            }
+                        ]
                     },
-                    marginTop: '8px',
-                    xoffset: -10
-                },
-                series: [
-
-                    {
-                        label: 'Purchase'
-                    },
-                    {
-                        label: 'Expense'
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    pointStyle: 'circle',
+                                    font: { family: "'Inter', 'Segoe UI', sans-serif", size: 13, weight: '600' },
+                                    padding: 16
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#0f172a',
+                                titleFont: { size: 13, weight: 'bold' },
+                                bodyFont: { size: 13 },
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function(ctx) {
+                                        return ctx.dataset.label + ': ' + formatINR(ctx.raw);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { font: { family: "'Inter', sans-serif", size: 12, weight: '600' }, color: '#64748b' }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                                ticks: {
+                                    font: { family: "'Inter', sans-serif", size: 11 },
+                                    color: '#64748b',
+                                    callback: function(value) { return formatINR(value); }
+                                }
+                            }
+                        }
                     }
-
-
-                ],
-                axes: {
-                    xaxis: {
-                        renderer: $.jqplot.CategoryAxisRenderer,
-                        ticks: ticks,
-                        label: "Months",
-                        tickRenderer: $.jqplot.CanvasAxisTickRenderer,
-
-                    }
-
-
-                }
-            });
-
-            $('#chart6').bind('jqplotDataHighlight',
-                function(ev, seriesIndex, pointIndex, data) {
-                    var sales_type = ['Purchase', 'Expense'];
-                    $('#info2').html('Type: ' + sales_type[seriesIndex] + ', Month : ' + ticks[pointIndex] + ', Amount: ' + data[1]);
-                    // $('#info2').html('series: ' + seriesIndex + ', point: ' + pointIndex + ', data: ' + data[1]);
-                }
-            );
-
-            $('#chart6').bind('jqplotDataUnhighlight',
-                function(ev) {
-                    $('#info2').html('Nothing');
-                }
-            );
-
-
+                });
+            }
         });
     </script>

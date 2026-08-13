@@ -650,4 +650,26 @@ public function add_non_gst_invoice($data_invoice)
     return $this->db->insert('non_gst_invoice', $data_invoice);
 }
 
+public function get_salesorder_by_number($number, $uid = 0)
+{
+    $so = $this->get_salesorders_data_group_by($number, $uid);
+    if ($so) {
+        if (empty($so['customer_po_no']) && !empty($so['po_number'])) {
+            $so['customer_po_no'] = $so['po_number'];
+        }
+        if (empty($so['subject']) && !empty($so['salesorder_subheading'])) {
+            $so['subject'] = $so['salesorder_subheading'];
+        }
+        if (empty($so['delivery_date']) && !empty($so['exp_date'])) {
+            $so['delivery_date'] = $so['exp_date'];
+        }
+    }
+    return $so;
+}
+
+public function get_salesorder_detail($number, $uid = 0)
+{
+    return $this->get_salesorders_data($number, $uid);
+}
+
 }

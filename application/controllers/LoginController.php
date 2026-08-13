@@ -330,36 +330,55 @@ class LoginController extends MY_Controller
             'pv_exclusions' => $pv_exclusions,
         );
 
-        if (file_exists($_FILES['company_stamp']['tmp_name']) || is_uploaded_file($_FILES['company_stamp']['tmp_name'])) {
-            $config1['new_image'] = NULL;
-            $company_stamp = $_FILES['company_stamp'];
-            $config1['image_library'] = 'gd2';
-            $config1['source_image'] = $company_stamp['tmp_name'];
-            $config1['new_image'] = './uploads/' . $company_stamp['name'];
-            $config1['allowed_types'] = 'jpg|png|gif|jpeg';
-            $config1['overwrite'] = TRUE;
-            // $config1['width'] = 100;
-            // $config1['height'] = 100;
-
-            $this->image_lib->initialize($config1);
-            $this->image_lib->resize();
-            $data_settings['company_stamp'] = $config1['new_image'];
+        $upload_dir = FCPATH . 'uploads/';
+        if (!is_dir($upload_dir)) {
+            @mkdir($upload_dir, 0777, true);
         }
 
-        if (file_exists($_FILES['company_logo']['tmp_name']) || is_uploaded_file($_FILES['company_logo']['tmp_name'])) {
-            $config1['new_image'] = NULL;
-            $company_logo = $_FILES['company_logo'];
-            $config1['image_library'] = 'gd2';
-            $config1['source_image'] = $company_logo['tmp_name'];
-            $config1['new_image'] = './uploads/' . $company_logo['name'];
-            $config1['allowed_types'] = 'jpg|png|gif|jpeg';
-            $config1['overwrite'] = TRUE;
-            // $config1['width'] = 100;
-            // $config1['height'] = 100;
+        if (isset($_FILES['company_stamp']['tmp_name']) && is_uploaded_file($_FILES['company_stamp']['tmp_name'])) {
+            $company_stamp = $_FILES['company_stamp'];
+            $ext = pathinfo($company_stamp['name'], PATHINFO_EXTENSION);
+            $clean_name = preg_replace('/[^a-zA-Z0-9_-]/', '_', pathinfo($company_stamp['name'], PATHINFO_FILENAME));
+            $stamp_filename = 'stamp_' . time() . '_' . $clean_name . ($ext ? '.' . $ext : '.png');
+            $target_path = $upload_dir . $stamp_filename;
 
-            $this->image_lib->initialize($config1);
-            $this->image_lib->resize();
-            $data_settings['company_logo'] = $config1['new_image'];
+            if (move_uploaded_file($company_stamp['tmp_name'], $target_path)) {
+                $data_settings['company_stamp'] = 'uploads/' . $stamp_filename;
+                if (extension_loaded('gd')) {
+                    @$this->image_lib->clear();
+                    $config1['image_library'] = 'gd2';
+                    $config1['source_image'] = $target_path;
+                    $config1['new_image'] = $target_path;
+                    $config1['maintain_ratio'] = TRUE;
+                    $config1['width'] = 300;
+                    $config1['height'] = 300;
+                    $this->image_lib->initialize($config1);
+                    @$this->image_lib->resize();
+                }
+            }
+        }
+
+        if (isset($_FILES['company_logo']['tmp_name']) && is_uploaded_file($_FILES['company_logo']['tmp_name'])) {
+            $company_logo = $_FILES['company_logo'];
+            $ext = pathinfo($company_logo['name'], PATHINFO_EXTENSION);
+            $clean_name = preg_replace('/[^a-zA-Z0-9_-]/', '_', pathinfo($company_logo['name'], PATHINFO_FILENAME));
+            $logo_filename = 'logo_' . time() . '_' . $clean_name . ($ext ? '.' . $ext : '.png');
+            $target_path = $upload_dir . $logo_filename;
+
+            if (move_uploaded_file($company_logo['tmp_name'], $target_path)) {
+                $data_settings['company_logo'] = 'uploads/' . $logo_filename;
+                if (extension_loaded('gd')) {
+                    @$this->image_lib->clear();
+                    $config1['image_library'] = 'gd2';
+                    $config1['source_image'] = $target_path;
+                    $config1['new_image'] = $target_path;
+                    $config1['maintain_ratio'] = TRUE;
+                    $config1['width'] = 600;
+                    $config1['height'] = 300;
+                    $this->image_lib->initialize($config1);
+                    @$this->image_lib->resize();
+                }
+            }
         }
 
         if (!empty($_POST)) {
@@ -369,6 +388,32 @@ class LoginController extends MY_Controller
             } else {
                 $this->login->add_new_user_settings($data_settings);
             }
+
+            // Immediately update session data with fresh settings from DB
+            $fresh_settings = $this->login->get_settings($this->user_id);
+            if (!empty($fresh_settings)) {
+                $session_data = $this->session->userdata('session_data_head');
+                if (is_array($session_data)) {
+                    $session_data['settings'] = $fresh_settings;
+                    if (!empty($fresh_settings['company_logo'])) {
+                        $session_data['company_logo'] = $fresh_settings['company_logo'];
+                    }
+                    $this->session->set_userdata('session_data_head', $session_data);
+                }
+
+                $session_data2 = $this->session->userdata('session_data_head2');
+                if (is_array($session_data2)) {
+                    $session_data2['settings'] = $fresh_settings;
+                    if (!empty($fresh_settings['company_logo'])) {
+                        $session_data2['company_logo'] = $fresh_settings['company_logo'];
+                    }
+                    if (!empty($fresh_settings['company_name'])) {
+                        $session_data2['company_name'] = $fresh_settings['company_name'];
+                    }
+                    $this->session->set_userdata('session_data_head2', $session_data2);
+                }
+            }
+
             $this->session->set_flashdata('SUCCESSMSG', "Setting added successfully!!");
             redirect('LoginController/get_settings/');
         } else {

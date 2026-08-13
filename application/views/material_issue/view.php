@@ -162,16 +162,23 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                     <table class="table table-bordered">
                                          <thead>
                                              <tr>
-                                                 <th width="5%">Sr.No</th>
-                                                 <th width="30%">Item</th>
-                                                 <th width="10%">Unit</th>
+                                                 <th width="4%">Sr.No</th>
+                                                 <th width="18%">Item</th>
+                                                 <th width="5%">Unit</th>
                                                  <?php if (!$is_mrn): ?>
-                                                 <th width="10%" class="text-right">Required Qty</th>
-                                                 <th width="10%" class="text-right">Total Issued</th>
+                                                 <th width="7%" class="text-right">BOM Qty</th>
+                                                 <th width="7%" class="text-right">Prev. MI</th>
                                                  <?php endif; ?>
-                                                 <th width="12%" class="text-right"><?= $is_mrn ? 'Returned Qty' : 'Current Issue' ?></th>
-                                                 <th width="10%" class="text-right"><?= $is_mrn ? 'Status' : 'Pending Qty' ?></th>
-                                                 <th width="13%">Remarks</th>
+                                                 <th width="8%" class="text-right"><?= $is_mrn ? 'Returned Qty' : 'Current Issue' ?></th>
+                                                 <?php if (!$is_mrn): ?>
+                                                 <th width="8%" class="text-right">Total MI</th>
+                                                 <?php endif; ?>
+                                                 <th width="7%" class="text-right"><?= $is_mrn ? 'Status' : 'Overrun Qty' ?></th>
+                                                 <th width="6%" class="text-right"><?= $is_mrn ? '' : 'Overrun %' ?></th>
+                                                 <th width="8%" class="text-right"><?= $is_mrn ? '' : 'Rate' ?></th>
+                                                 <th width="9%" class="text-right"><?= $is_mrn ? '' : 'Overrun Value' ?></th>
+                                                 <th width="7%"><?= $is_mrn ? '' : 'Overrun Status' ?></th>
+                                                 <th width="6%">Remarks</th>
                                              </tr>
                                          </thead>
                                          <tbody>
@@ -183,33 +190,61 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                  <td><?= $item['code'] ?> - <?= $item['item_name'] ?></td>
                                                  <td class="text-center"><?= $item['unit'] ?></td>
                                                  <?php if (!$is_mrn): ?>
-                                                 <td class="text-right"><?= !empty($issue_slip['joborder_number']) ? number_format($item['required_qty'], 2) : '-' ?></td>
-                                                 <td class="text-right"><?= !empty($issue_slip['joborder_number']) ? number_format($item['fulfilled_qty'], 2) : '-' ?></td>
+                                                 <td class="text-right"><?= !empty($issue_slip['joborder_number']) ? number_format($item['bom_qty'] ?? $item['required_qty'], 2) : '-' ?></td>
+                                                 <td class="text-right"><?= !empty($issue_slip['joborder_number']) ? number_format($item['previous_issued_qty'] ?? 0, 2) : '-' ?></td>
                                                  <?php endif; ?>
                                                  <td class="text-right"><?= number_format($is_mrn ? abs($item['quantity']) : $item['quantity'], 2) ?></td>
+                                                 <?php if (!$is_mrn): ?>
+                                                 <td class="text-right"><strong><?= number_format($item['total_mi_qty'] ?? (floatval($item['previous_issued_qty'] ?? 0) + floatval($item['quantity'])), 2) ?></strong></td>
                                                  <td class="text-right">
                                                      <?php
-                                                     if ($is_mrn) {
-                                                         echo '<span class="label" style="background-color:#ea580c; color:#fff;">Returned</span>';
-                                                     } else {
-                                                         $pending = isset($item['pending_qty']) ? floatval($item['pending_qty']) : 0;
-                                                         $stock = isset($item['current_stock']) ? floatval($item['current_stock']) : 0;
-                                                         if (!empty($issue_slip['joborder_number'])) {
-                                                             if ($pending > 0) {
-                                                                 if ($stock <= 0) {
-                                                                     echo '<span style="color: #dd4b39; font-weight: bold;"><i class="fa fa-exclamation-triangle"></i> Pending: ' . number_format($pending, 2) . ' (No Stock)</span>';
-                                                                 } else {
-                                                                     echo '<span style="color: #f39c12; font-weight: bold;"><i class="fa fa-warning"></i> Remaining: ' . number_format($pending, 2) . '</span>';
-                                                                 }
-                                                             } else {
-                                                                 echo '<span style="color: #00a65a; font-weight: bold;"><i class="fa fa-check-circle"></i> Fully Covered</span>';
-                                                             }
-                                                         } else {
-                                                             echo number_format($pending, 2);
-                                                         }
+                                                     $overrun_qty = floatval($item['overrun_qty'] ?? 0);
+                                                     if ($overrun_qty > 0) {
+                                                         $color = ($item['overrun_status'] ?? 'none') === 'approval_required' ? '#dd4b39' : '#f39c12';
+                                                         echo '<span style="color:'.$color.';font-weight:600;">'.number_format($overrun_qty, 2).'</span>';
+                                                     } else { echo '<span style="color:#00a65a;">0</span>'; }
+                                                     ?>
+                                                 </td>
+                                                 <td class="text-right">
+                                                     <?php
+                                                     $overrun_pct = floatval($item['overrun_pct_actual'] ?? 0);
+                                                     if ($overrun_pct > 0) {
+                                                         $color = ($item['overrun_status'] ?? 'none') === 'approval_required' ? '#dd4b39' : '#f39c12';
+                                                         echo '<span style="color:'.$color.';font-weight:600;">'.number_format($overrun_pct, 2).'%</span>';
+                                                     } else { echo '<span style="color:#00a65a;">0%</span>'; }
+                                                     ?>
+                                                 </td>
+                                                 <td class="text-right"><?= !empty($item['unit_price']) ? '&#8377;'.number_format($item['unit_price'],2) : '-' ?></td>
+                                                 <td class="text-right">
+                                                     <?php
+                                                     $ov = floatval($item['overrun_value'] ?? 0);
+                                                     if ($ov > 0) {
+                                                         $color = ($item['overrun_status'] ?? 'none') === 'approval_required' ? '#dd4b39' : '#f39c12';
+                                                         echo '<span style="color:'.$color.';font-weight:600;">&#8377;'.number_format($ov,2).'</span>';
+                                                     } else { echo '-'; }
+                                                     ?>
+                                                 </td>
+                                                 <td>
+                                                     <?php
+                                                     $os = $item['overrun_status'] ?? 'none';
+                                                     $badges = [
+                                                         'none'              => ['label'=>'None',             'class'=>'label-default'],
+                                                         'within_limit'      => ['label'=>'Within Limit',     'class'=>'label-warning'],
+                                                         'approval_required' => ['label'=>'Approval Required','class'=>'label-danger'],
+                                                         'approved'          => ['label'=>'Approved',         'class'=>'label-success'],
+                                                         'rejected'          => ['label'=>'Rejected',         'class'=>'label-default'],
+                                                     ];
+                                                     $b = $badges[$os] ?? $badges['none'];
+                                                     echo '<span class="label '.$b['class'].'">'.$b['label'].'</span>';
+                                                     if (!empty($item['overrun_remarks'])) {
+                                                         echo '<br><small class="text-muted">'.$item['overrun_remarks'].'</small>';
                                                      }
                                                      ?>
                                                  </td>
+                                                 <?php else: ?>
+                                                 <td><span class="label" style="background-color:#ea580c;color:#fff;">Returned</span></td>
+                                                 <td></td><td></td><td></td><td></td>
+                                                 <?php endif; ?>
                                                  <td><?= $item['remarks'] ?></td>
                                              </tr>
                                              <?php $i++; ?>
@@ -240,6 +275,21 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                 <div class="well">
                                     <strong>Remarks:</strong><br>
                                     <?= $issue_slip['remarks'] ?>
+                                </div>
+                                <?php endif; ?>
+
+                                <?php if ($issue_slip['status'] === 'pending_overrun_approval'): ?>
+                                <div class="alert alert-danger">
+                                    <h4><i class="fa fa-exclamation-triangle"></i> Overrun Approval Required</h4>
+                                    <p>One or more items in this Material Issue Slip exceed the allowed overrun tolerance.<br>
+                                    A manager must <strong>Approve</strong> or <strong>Reject</strong> the overrun before stock is deducted.</p>
+                                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#approveOverrunModal">
+                                        <i class="fa fa-check"></i> Approve Overrun
+                                    </button>
+                                    &nbsp;
+                                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#rejectOverrunModal">
+                                        <i class="fa fa-times"></i> Reject Overrun
+                                    </button>
                                 </div>
                                 <?php endif; ?>
                             </div>
@@ -278,6 +328,68 @@ defined('BASEPATH') or exit('No direct script access allowed');
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-danger">Cancel Issue Slip</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approve Overrun Modal -->
+    <div class="modal fade" id="approveOverrunModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color:#00a65a;color:#fff;">
+                    <button type="button" class="close" data-dismiss="modal" style="color:#fff;">&times;</button>
+                    <h4 class="modal-title"><i class="fa fa-check-circle"></i> Approve Overrun</h4>
+                </div>
+                <form method="post"
+                    action="<?= base_url('MaterialIssueController/approve_overrun/' . $issue_slip['issue_id']) ?>">
+                    <div class="modal-body">
+                        <div class="alert alert-success">
+                            <strong>Approving overrun</strong> will allow excess material issue quantities and trigger stock deduction.
+                        </div>
+                        <div class="form-group">
+                            <label>Manager Remarks (Optional)</label>
+                            <textarea name="overrun_remarks" class="form-control" rows="3"
+                                      placeholder="e.g. Approved for production urgency"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa fa-check"></i> Confirm Approval
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Overrun Modal -->
+    <div class="modal fade" id="rejectOverrunModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color:#dd4b39;color:#fff;">
+                    <button type="button" class="close" data-dismiss="modal" style="color:#fff;">&times;</button>
+                    <h4 class="modal-title"><i class="fa fa-times-circle"></i> Reject Overrun</h4>
+                </div>
+                <form method="post"
+                    action="<?= base_url('MaterialIssueController/reject_overrun/' . $issue_slip['issue_id']) ?>">
+                    <div class="modal-body">
+                        <div class="alert alert-danger">
+                            <strong>Rejecting overrun</strong> will cancel this Material Issue Slip. No stock will be deducted.
+                        </div>
+                        <div class="form-group">
+                            <label>Reason for Rejection <span class="text-danger">*</span></label>
+                            <textarea name="overrun_remarks" class="form-control" rows="3" required
+                                      placeholder="e.g. Exceeds tolerance, revise quantities"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fa fa-times"></i> Confirm Rejection
+                        </button>
                     </div>
                 </form>
             </div>

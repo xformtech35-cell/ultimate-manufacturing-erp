@@ -181,34 +181,105 @@ class MaterialIssueController extends MY_Controller
                 $item_remarks = $this->input->post('item_remarks');
                 $pending_bases = $this->input->post('pending_base');
 
-                // Debug: Log raw POST data
-                log_message('debug', 'POST inventory_ids: ' . json_encode($inventory_ids));
-                log_message('debug', 'POST quantities: ' . json_encode($quantities));
+                // Read joborder_number
+                $joborder_number = $this->input->post('joborder_number');
 
-                $required_bases = $this->input->post('required_base');
+                // Read overrun POST fields sent from the view
+                $bom_qtys             = $this->input->post('bom_qty');
+                $allowed_overrun_pcts = $this->input->post('allowed_overrun_pct_item');
+                $allowed_overrun_qtys = $this->input->post('allowed_overrun_qty_item');
+                $max_allowed_qtys     = $this->input->post('max_allowed_qty_item');
+                $item_rates           = $this->input->post('item_price');
+
+                // Track whether any item needs manager approval
+                $has_approval_required = false;
+                $items_data = array();
 
                 for ($i = 0; $i < count($inventory_ids); $i++) {
                     if (!empty($inventory_ids[$i]) && !empty($quantities[$i]) && $quantities[$i] > 0) {
-                        $requiredQty = isset($required_bases[$i]) ? floatval($required_bases[$i]) : 0;
-                        $qty = floatval($quantities[$i]);
+                        $qty         = floatval($quantities[$i]);
+                        $bom_qty     = isset($bom_qtys[$i]) ? floatval($bom_qtys[$i]) : 0;
+                        $rate        = isset($item_rates[$i]) ? floatval($item_rates[$i]) : 0;
 
-                        if ($requiredQty > 0 && $qty > $requiredQty) {
-                            $this->session->set_flashdata('ERRORMSG', 'Quantity for item ' . ($i+1) . ' cannot exceed required quantity (' . $requiredQty . ').');
+                        // ── 1. STOCK VALIDATION (Requirement 10) ──
+                        $inv_row = $this->db->select('stock, code, item_name, allowed_overrun_pct')
+                                            ->where('inventory_id', $inventory_ids[$i])
+                                            ->get('inventory')
+                                            ->row_array();
+
+                        $available_stock = $inv_row ? floatval($inv_row['stock']) : 0;
+                        if ($qty > $available_stock) {
+                            $item_name_str = $inv_row ? $inv_row['item_name'] : ('Item #' . ($i + 1));
+                            $this->session->set_flashdata('ERRORMSG', "Cannot issue '{$item_name_str}'. Requested quantity ({$qty}) exceeds available stock ({$available_stock}).");
                             redirect('MaterialIssueController/create');
                             return;
                         }
 
+                        // ── 2. CUMULATIVE MI QUANTITY (Requirement 5 & 6) ──
+                        // Excludes cancelled slips automatically via model method
+                        $prev_issued_qty = $this->model->get_issued_quantity_for_inventory($inventory_ids[$i], $joborder_number);
+                        $total_mi_qty    = $prev_issued_qty + $qty;
+
+                        // ── 3. OVERRUN PERCENTAGE TOLERANCE ──
+                        // Check BOM override first, fallback to inventory setting
+                        $bom_override = null;
+                        if (!empty($inv_row['code'])) {
+                            $bom_override = $this->db->select('allowed_overrun_pct')
+                                                     ->where('product_name', $inv_row['code'])
+                                                     ->where('allowed_overrun_pct IS NOT NULL', null, false)
+                                                     ->order_by('bom_id', 'DESC')
+                                                     ->limit(1)
+                                                     ->get('bom')
+                                                     ->row_array();
+                        }
+                        if ($bom_override && $bom_override['allowed_overrun_pct'] !== null) {
+                            $allowed_overrun_pct = floatval($bom_override['allowed_overrun_pct']);
+                        } else {
+                            $allowed_overrun_pct = $inv_row ? floatval($inv_row['allowed_overrun_pct']) : 2.00;
+                        }
+
+                        $allowed_overrun_qty = round($bom_qty * $allowed_overrun_pct / 100, 4);
+                        $max_allowed_qty     = round($bom_qty + $allowed_overrun_qty, 4);
+
+                        // ── 4. OVERRUN CALCULATIONS BASED ON CUMULATIVE MI ──
+                        $overrun_qty        = max(0, round($total_mi_qty - $bom_qty, 4));
+                        $overrun_pct_actual = ($bom_qty > 0 && $total_mi_qty > $bom_qty) ? round(($total_mi_qty - $bom_qty) / $bom_qty * 100, 4) : 0;
+                        $overrun_value      = round($overrun_qty * $rate, 4);
+
+                        // ── 5. OVERRUN STATUS DECISION ──
+                        if ($bom_qty <= 0 || $total_mi_qty <= $bom_qty) {
+                            // No overrun
+                            $overrun_status = 'none';
+                        } elseif ($total_mi_qty <= $max_allowed_qty) {
+                            // Overrun exists but within allowed tolerance
+                            $overrun_status = 'within_limit';
+                        } else {
+                            // Overrun exceeds allowed tolerance → requires approval
+                            $overrun_status = 'approval_required';
+                            $has_approval_required = true;
+                        }
+
                         $items_data[] = array(
-                            'inventory_id_fk' => $inventory_ids[$i],
-                            'quantity' => $quantities[$i],
-                            'unit_price' => 0,
-                            'pending_qty' => max(0, (isset($pending_bases[$i]) ? floatval($pending_bases[$i]) : 0) - floatval($quantities[$i])),
-                            'remarks' => isset($item_remarks[$i]) ? $item_remarks[$i] : ''
+                            'inventory_id_fk'     => $inventory_ids[$i],
+                            'quantity'            => $qty,
+                            'unit_price'          => $rate,
+                            'pending_qty'         => max(0, (isset($pending_bases[$i]) ? floatval($pending_bases[$i]) : 0) - $qty),
+                            'remarks'             => isset($item_remarks[$i]) ? $item_remarks[$i] : '',
+                            // Overrun & Cumulative fields stored on item record
+                            'bom_qty'             => $bom_qty,
+                            'previous_issued_qty' => $prev_issued_qty,
+                            'total_mi_qty'        => $total_mi_qty,
+                            'allowed_overrun_pct' => $allowed_overrun_pct,
+                            'allowed_overrun_qty' => $allowed_overrun_qty,
+                            'max_allowed_qty'     => $max_allowed_qty,
+                            'overrun_qty'         => $overrun_qty,
+                            'overrun_pct_actual'  => $overrun_pct_actual,
+                            'overrun_value'       => $overrun_value,
+                            'overrun_status'      => $overrun_status
                         );
                     }
                 }
 
-                // Debug: Log processed items data
                 log_message('debug', 'Processed items data: ' . json_encode($items_data));
 
                 // Validate items
@@ -314,20 +385,47 @@ class MaterialIssueController extends MY_Controller
                     $unit_price = !empty($inventory['sell_price']) ? floatval($inventory['sell_price']) : floatval($inventory['cost_price']);
                 }
 
+                // ── OVERRUN CONTROL: compute allowed overrun fields for this item ──
+                $bom_qty_val = floatval($item->quantity); // BOM required qty
+                
+                // 1. Check if BOM item has specific overrun_pct override
+                $bom_override = null;
+                if (!empty($inventory['code'])) {
+                    $bom_override = $this->db->select('allowed_overrun_pct')
+                                             ->where('product_name', $inventory['code'])
+                                             ->where('allowed_overrun_pct IS NOT NULL', null, false)
+                                             ->order_by('bom_id', 'DESC')
+                                             ->limit(1)
+                                             ->get('bom')
+                                             ->row_array();
+                }
+                if ($bom_override && $bom_override['allowed_overrun_pct'] !== null) {
+                    $allowed_overrun_pct = floatval($bom_override['allowed_overrun_pct']);
+                } else {
+                    $allowed_overrun_pct = $inventory ? floatval($inventory['allowed_overrun_pct'] ?? 2.00) : 2.00;
+                }
+
+                $allowed_overrun_qty  = round($bom_qty_val * $allowed_overrun_pct / 100, 4);
+                $max_allowed_qty      = round($bom_qty_val + $allowed_overrun_qty, 4);
+
                 $response[] = array(
-                    'item_code' => $item->product_name,
-                    'item_name' => isset($inventory['item_name']) ? $inventory['item_name'] : $item->product_name,
-                    'inventory_id' => $inventory ? $inventory['inventory_id'] : '',
-                    'required_qty' => floatval($item->quantity),
-                    'out_qty' => floatval($out_qty),
-                    'gross_issued_qty' => $gross_issued_qty,
-                    'returned_qty' => $returned_qty,
-                    'net_issued_qty' => $net_issued_qty,
-                    'pending_qty' => $joborder_pending,
-                    'stock' => $available_stock,
-                    'joborder_pending' => $joborder_pending,
-                    'price' => $unit_price,
-                    'unit' => $inventory ? $inventory['unit'] : ''
+                    'item_code'           => $item->product_name,
+                    'item_name'           => isset($inventory['item_name']) ? $inventory['item_name'] : $item->product_name,
+                    'inventory_id'        => $inventory ? $inventory['inventory_id'] : '',
+                    'required_qty'        => $bom_qty_val,
+                    'out_qty'             => floatval($out_qty), // previous_issued_qty
+                    'gross_issued_qty'    => $gross_issued_qty,
+                    'returned_qty'        => $returned_qty,
+                    'net_issued_qty'      => $net_issued_qty,
+                    'pending_qty'         => $joborder_pending,
+                    'stock'               => $available_stock,
+                    'joborder_pending'    => $joborder_pending,
+                    'price'               => $unit_price,
+                    'unit'                => $inventory ? $inventory['unit'] : '',
+                    // Overrun fields
+                    'allowed_overrun_pct' => $allowed_overrun_pct,
+                    'allowed_overrun_qty' => $allowed_overrun_qty,
+                    'max_allowed_qty'     => $max_allowed_qty
                 );
             }
 
@@ -523,6 +621,65 @@ class MaterialIssueController extends MY_Controller
             $this->session->set_flashdata('ERRORMSG', 'Failed to cancel Material Issue Slip');
         }
 
+        redirect('MaterialIssueController/view/' . $issue_id);
+    }
+
+    /**
+     * Approve overrun on a material issue slip (Manager action)
+     * Sets overrun_status = 'approved' on all approval_required items,
+     * then changes slip status to 'draft' so normal stock deduction can proceed.
+     */
+    public function approve_overrun($issue_id)
+    {
+        $remarks = $this->input->post('overrun_remarks') ?: 'Approved by manager';
+
+        // Update all approval_required items on this slip to approved
+        $this->db->set('overrun_status', 'approved')
+                 ->set('overrun_remarks', $remarks)
+                 ->set('overrun_approved_by', $this->uid)
+                 ->where('issue_id', $issue_id)
+                 ->where('overrun_status', 'approval_required')
+                 ->update('material_issue_items');
+
+        // Check if any items still pending approval
+        $still_pending = $this->db->where('issue_id', $issue_id)
+                                  ->where('overrun_status', 'approval_required')
+                                  ->count_all_results('material_issue_items');
+
+        if ($still_pending == 0) {
+            // All overruns approved — unlock slip back to draft for normal processing
+            $this->db->set('status', 'draft')
+                     ->where('issue_id', $issue_id)
+                     ->update('material_issue_slips');
+        }
+
+        $this->session->set_flashdata('SUCCESSMSG', 'Overrun approved. Material Issue Slip is now active.');
+        redirect('MaterialIssueController/view/' . $issue_id);
+    }
+
+    /**
+     * Reject overrun on a material issue slip (Manager action)
+     * Sets overrun_status = 'rejected' on all approval_required items,
+     * then cancels the slip — no stock is deducted.
+     */
+    public function reject_overrun($issue_id)
+    {
+        $remarks = $this->input->post('overrun_remarks') ?: 'Rejected by manager';
+
+        // Update all approval_required items to rejected
+        $this->db->set('overrun_status', 'rejected')
+                 ->set('overrun_remarks', $remarks)
+                 ->set('overrun_approved_by', $this->uid)
+                 ->where('issue_id', $issue_id)
+                 ->where('overrun_status', 'approval_required')
+                 ->update('material_issue_items');
+
+        // Cancel the slip — no stock deduction
+        $this->db->set('status', 'cancelled')
+                 ->where('issue_id', $issue_id)
+                 ->update('material_issue_slips');
+
+        $this->session->set_flashdata('ERRORMSG', 'Overrun rejected. Material Issue Slip has been cancelled.');
         redirect('MaterialIssueController/view/' . $issue_id);
     }
 

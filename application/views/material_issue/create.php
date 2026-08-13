@@ -115,14 +115,19 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                         <table class="table table-bordered" id="itemsTable">
                                             <thead>
                                                 <tr>
-                                                    <th width="20%">Item *</th>
-                                                    <th width="8%">Available Stock</th>
-                                                    <th width="8%">Required Qty</th>
-                                                    <th width="8%">Out Qty</th>
-                                                    <th width="8%">Pending</th>
-                                                    <th width="8%">Price</th>
-                                                    <th width="12%">Quantity *</th>
-                                                    <th width="16%">Remarks</th>
+                                                    <th width="16%">Item *</th>
+                                                    <th width="6%">Avail. Stock</th>
+                                                    <th width="6%">BOM Qty</th>
+                                                    <th width="6%">Prev. MI</th>
+                                                    <th width="5%">Allwd %</th>
+                                                    <th width="6%">Allwd Qty</th>
+                                                    <th width="6%">Max Qty</th>
+                                                    <th width="8%">Current MI *</th>
+                                                    <th width="7%">Total MI</th>
+                                                    <th width="6%">Overrun Qty</th>
+                                                    <th width="5%">Overrun %</th>
+                                                    <th width="9%">Rate / Overrun Value</th>
+                                                    <th width="9%">Remarks</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="itemsBody">
@@ -133,11 +138,11 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                             data-row="0" required>
                                                             <option value="">Select Item</option>
                                                             <option value="NEW">+ Add New Product</option>
-
                                                             <?php foreach ($inventory_items as $item): ?>
                                                             <option value="<?= $item['inventory_id'] ?>"
                                                                 data-stock="<?= $item['stock'] ?>"
                                                                 data-price="<?= $item['sell_price'] ?>"
+                                                                data-overrun-pct="<?= $item['allowed_overrun_pct'] ?? 2 ?>"
                                                                 data-code="<?= $item['code'] ?>">
                                                                 <?= $item['code'] ?> - <?= $item['item_name'] ?>
                                                             </option>
@@ -149,34 +154,50 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                         <input type="hidden" name="system_stock[]" id="system_stock_0">
                                                     </td>
                                                     <td>
-                                                        <span id="required_qty_0" class="required-qty-display">-</span>
-                                                        <input type="hidden" name="required_base[]" id="required_base_0"
-                                                            value="0">
+                                                        <span id="bom_qty_0" class="bom-qty-display">-</span>
+                                                        <input type="hidden" name="bom_qty[]" id="bom_qty_hidden_0" value="0">
+                                                        <input type="hidden" name="required_base[]" id="required_base_0" value="0">
                                                     </td>
                                                     <td>
                                                         <span id="out_qty_0" class="out-qty-display">0</span>
-                                                        <input type="hidden" name="out_base[]" id="out_base_0"
-                                                            value="0">
+                                                        <input type="hidden" name="out_base[]" id="out_base_0" value="0">
                                                     </td>
                                                     <td>
-                                                        <span id="pending_qty_0" class="pending-qty-display">-</span>
-                                                        <input type="hidden" name="pending_base[]" id="pending_base_0"
-                                                            value="0">
+                                                        <span id="allowed_pct_0" class="text-info">-</span>
+                                                        <input type="hidden" name="allowed_overrun_pct_item[]" id="allowed_overrun_pct_hidden_0" value="0">
                                                     </td>
                                                     <td>
-                                                        <span id="price_0" class="price-display">-</span>
-                                                        <input type="hidden" name="item_price[]" id="item_price_0" value="0">
+                                                        <span id="allowed_qty_0" class="text-info">-</span>
+                                                        <input type="hidden" name="allowed_overrun_qty_item[]" id="allowed_overrun_qty_hidden_0" value="0">
+                                                    </td>
+                                                    <td>
+                                                        <span id="max_qty_0" class="text-info">-</span>
+                                                        <input type="hidden" name="max_allowed_qty_item[]" id="max_allowed_qty_hidden_0" value="0">
+                                                        <input type="hidden" name="pending_base[]" id="pending_base_0" value="0">
                                                     </td>
                                                     <td>
                                                         <input type="text" name="quantity[]"
-                                                            class="form-control quantity" data-row="0" step="0.01"
+                                                            class="form-control quantity" id="qty_input_0" data-row="0" step="0.01"
                                                             min="0.01" required>
                                                         <span id="qty_helper_0" class="help-block" style="font-size: 11px; margin-bottom: 0;"></span>
                                                     </td>
                                                     <td>
+                                                        <span id="total_mi_qty_0" style="font-weight:600;">0</span>
+                                                    </td>
+                                                    <td>
+                                                        <span id="overrun_qty_0" style="font-weight:600;">0</span>
+                                                    </td>
+                                                    <td>
+                                                        <span id="overrun_pct_0" style="font-weight:600;">0%</span>
+                                                    </td>
+                                                    <td>
+                                                        <span id="price_0" class="price-display">-</span><br>
+                                                        <small id="overrun_val_0" class="text-danger" style="font-weight:600;"></small>
+                                                        <input type="hidden" name="item_price[]" id="item_price_0" value="0">
+                                                    </td>
+                                                    <td>
                                                         <input type="text" name="item_remarks[]" class="form-control">
                                                     </td>
-
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -231,19 +252,21 @@ defined('BASEPATH') or exit('No direct script access allowed');
             });
         }
 
-        // Add new row
+        // Add new row (manual item selection — no JO)
         $('#addRow').click(function() {
+            const currentRow = rowCount;
             const newRow = `
-                <tr id="row_${rowCount}">
+                <tr id="row_${currentRow}">
                     <td>
                         <select name="inventory_id[]" class="form-control select2 item-select product_name_auto item_search_name name_list" 
-                                data-row="${rowCount}" required>
+                                data-row="${currentRow}" required>
                             <option value="">Select Item</option>
                             <option value="NEW">+ Add New Product</option>
                             <?php foreach ($inventory_items as $item): ?>
                                 <option value="<?= $item['inventory_id'] ?>" 
                                         data-stock="<?= $item['stock'] ?>"
                                         data-price="<?= $item['sell_price'] ?>"
+                                        data-overrun-pct="<?= $item['allowed_overrun_pct'] ?? 2 ?>"
                                         data-code="<?= $item['code'] ?>">
                                     <?= $item['code'] ?> - <?= $item['item_name'] ?>
                                 </option>
@@ -251,36 +274,53 @@ defined('BASEPATH') or exit('No direct script access allowed');
                         </select>
                     </td>
                     <td>
-                        <span id="stock_${rowCount}" class="stock-display">-</span>
-                        <input type="hidden" name="system_stock[]" id="system_stock_${rowCount}">
+                        <span id="stock_${currentRow}" class="stock-display">-</span>
+                        <input type="hidden" name="system_stock[]" id="system_stock_${currentRow}">
                     </td>
                     <td>
-                        <span id="required_qty_${rowCount}" class="required-qty-display">-</span>
-                        <input type="hidden" name="required_base[]" id="required_base_${rowCount}" value="0">
+                        <span id="bom_qty_${currentRow}" class="bom-qty-display">-</span>
+                        <input type="hidden" name="bom_qty[]" id="bom_qty_hidden_${currentRow}" value="0">
+                        <input type="hidden" name="required_base[]" id="required_base_${currentRow}" value="0">
                     </td>
                     <td>
-                        <span id="out_qty_${rowCount}" class="out-qty-display">0</span>
-                        <input type="hidden" name="out_base[]" id="out_base_${rowCount}" value="0">
+                        <span id="out_qty_${currentRow}" class="out-qty-display">0</span>
+                        <input type="hidden" name="out_base[]" id="out_base_${currentRow}" value="0">
                     </td>
                     <td>
-                        <span id="pending_qty_${rowCount}" class="pending-qty-display">-</span>
-                        <input type="hidden" name="pending_base[]" id="pending_base_${rowCount}" value="0">
+                        <span id="allowed_pct_${currentRow}" class="text-info">-</span>
+                        <input type="hidden" name="allowed_overrun_pct_item[]" id="allowed_overrun_pct_hidden_${currentRow}" value="0">
                     </td>
                     <td>
-                        <span id="price_${rowCount}" class="price-display">-</span>
-                        <input type="hidden" name="item_price[]" id="item_price_${rowCount}" value="0">
+                        <span id="allowed_qty_${currentRow}" class="text-info">-</span>
+                        <input type="hidden" name="allowed_overrun_qty_item[]" id="allowed_overrun_qty_hidden_${currentRow}" value="0">
+                    </td>
+                    <td>
+                        <span id="max_qty_${currentRow}" class="text-info">-</span>
+                        <input type="hidden" name="max_allowed_qty_item[]" id="max_allowed_qty_hidden_${currentRow}" value="0">
+                        <input type="hidden" name="pending_base[]" id="pending_base_${currentRow}" value="0">
                     </td>
                     <td>
                         <input type="text" name="quantity[]" class="form-control quantity" 
-                               data-row="${rowCount}" step="0.01" required>
-                        <span id="qty_helper_${rowCount}" class="help-block" style="font-size: 11px; margin-bottom: 0;"></span>
+                               id="qty_input_${currentRow}" data-row="${currentRow}" step="0.01" min="0.01" required>
+                        <span id="qty_helper_${currentRow}" class="help-block" style="font-size: 11px; margin-bottom: 0; line-height: 1.4;"></span>
+                    </td>
+                    <td>
+                        <span id="overrun_qty_${currentRow}" style="font-weight:600;">0</span>
+                    </td>
+                    <td>
+                        <span id="overrun_pct_${currentRow}" style="font-weight:600;">0%</span>
+                    </td>
+                    <td>
+                        <span id="price_${currentRow}" class="price-display">-</span><br>
+                        <small id="overrun_val_${currentRow}" class="text-danger" style="font-weight:600;"></small>
+                        <input type="hidden" name="item_price[]" id="item_price_${currentRow}" value="0">
                     </td>
                     <td>
                         <input type="text" name="item_remarks[]" class="form-control">
                     </td>
                     <td>
                         <button type="button" class="btn btn-danger btn-sm remove-row" 
-                                onclick="removeRow(${rowCount})">
+                                onclick="removeRow(${currentRow})">
                             <i class="fa fa-trash"></i>
                         </button>
                     </td>
@@ -306,66 +346,53 @@ defined('BASEPATH') or exit('No direct script access allowed');
             }
         });
 
-        // Item selection change
+        // Item selection change (manual mode, no JO)
         $(document).on('change', '.item-select', function() {
             const row = $(this).data('row');
-            const inventoryId = $(this).val();
+            const selectedOption = $(this).find('option:selected');
+            const stock       = parseFloat(selectedOption.data('stock')) || 0;
+            const price       = parseFloat(selectedOption.data('price')) || 0;
+            const overrunPct  = parseFloat(selectedOption.data('overrun-pct')) || 2;
 
-            if (!inventoryId) {
-                // Clear all fields if no item selected
+            if (!$(this).val()) {
                 $(`#stock_${row}`).text('-');
                 $(`#system_stock_${row}`).val('');
+                $(`#bom_qty_${row}`).text('-'); $(`#bom_qty_hidden_${row}`).val(0);
+                $(`#required_base_${row}`).val(0);
+                $(`#out_base_${row}`).val(0); $(`#out_qty_${row}`).text(0);
+                $(`#allowed_pct_${row}`).text('-'); $(`#allowed_overrun_pct_hidden_${row}`).val(0);
+                $(`#allowed_qty_${row}`).text('-'); $(`#allowed_overrun_qty_hidden_${row}`).val(0);
+                $(`#max_qty_${row}`).text('-'); $(`#max_allowed_qty_hidden_${row}`).val(0);
                 $(`#pending_base_${row}`).val(0);
-                $(`#pending_qty_${row}`).text('-');
-                $(`#out_base_${row}`).val(0);
-                $(`#out_qty_${row}`).text(0);
-                $(`#price_${row}`).text('-');
-                $(`#item_price_${row}`).val('0');
-                $(`#row_${row} .quantity`).attr('max', 0);
+                $(`#price_${row}`).text('-'); $(`#item_price_${row}`).val(0);
+                $(`#overrun_qty_${row}`).text(0);
+                $(`#overrun_pct_${row}`).text('0%');
+                $(`#overrun_val_${row}`).text('');
                 return;
             }
 
-            // Get stock and price from data attribute
-            const selectedOption = $(this).find('option:selected');
-            const stock = selectedOption.data('stock');
-            const price = selectedOption.data('price');
+            const bomQty         = stock; // When no JO, BOM qty = available stock
+            const allowedOvQty   = parseFloat((bomQty * overrunPct / 100).toFixed(4));
+            const maxAllowedQty  = parseFloat((bomQty + allowedOvQty).toFixed(4));
 
-            // Update stock display from attribute
-            if (stock) {
-                $(`#stock_${row}`).text(stock);
-                $(`#system_stock_${row}`).val(stock);
-                $(`#required_base_${row}`).val(stock);
-                $(`#required_qty_${row}`).text(stock);
-                $(`#pending_base_${row}`).val(stock);
-                $(`#pending_qty_${row}`).text(stock);
-                $(`#row_${row} .quantity`).attr('max', stock);
-            } else {
-                $(`#stock_${row}`).text('-');
-                $(`#required_base_${row}`).val(0);
-                $(`#required_qty_${row}`).text('-');
-                $(`#pending_qty_${row}`).text('-');
-            }
-
-            // Update price display from attribute
-            if (price) {
-                $(`#price_${row}`).text(price);
-                $(`#item_price_${row}`).val(price);
-            } else {
-                $(`#price_${row}`).text('-');
-                $(`#item_price_${row}`).val('0');
-            }
-
-            // Set out/base for manual selection
-            $(`#out_base_${row}`).val(0);
-            $(`#out_qty_${row}`).text(0);
+            $(`#stock_${row}`).text(stock);
+            $(`#system_stock_${row}`).val(stock);
+            $(`#bom_qty_${row}`).text(bomQty); $(`#bom_qty_hidden_${row}`).val(bomQty);
+            $(`#required_base_${row}`).val(bomQty);
+            $(`#pending_base_${row}`).val(bomQty);
+            $(`#allowed_pct_${row}`).text(overrunPct + '%'); $(`#allowed_overrun_pct_hidden_${row}`).val(overrunPct);
+            $(`#allowed_qty_${row}`).text(allowedOvQty); $(`#allowed_overrun_qty_hidden_${row}`).val(allowedOvQty);
+            $(`#max_qty_${row}`).text(maxAllowedQty); $(`#max_allowed_qty_hidden_${row}`).val(maxAllowedQty);
+            $(`#price_${row}`).text(price > 0 ? price : '-'); $(`#item_price_${row}`).val(price);
+            $(`#out_base_${row}`).val(0); $(`#out_qty_${row}`).text(0);
+            $(`#overrun_qty_${row}`).text(0); $(`#overrun_pct_${row}`).text('0%'); $(`#overrun_val_${row}`).text('');
         });
 
-        // Job order selection change -> load JO items
+        // Job order selection change -> load JO items with overrun fields
         $('#joborder_number').on('change', function() {
             const joNumber = $(this).val();
 
             if (!joNumber) {
-                // Reset to single blank row
                 $('#itemsBody').html('');
                 rowCount = 1;
                 $('#addRow').trigger('click');
@@ -376,9 +403,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                 url: '<?= base_url("MaterialIssueController/get_joborder_items") ?>',
                 method: 'GET',
                 dataType: 'json',
-                data: {
-                    number: joNumber
-                },
+                data: { number: joNumber },
                 success: function(response) {
                     console.log('Job Order Items Response:', response);
                     if (response.status === 'success') {
@@ -387,18 +412,24 @@ defined('BASEPATH') or exit('No direct script access allowed');
                         rowCount = 0;
                         items.forEach(function(item) {
                             const currentRow = rowCount;
-                            const suggestedQty = Math.max(0, Math.min(parseFloat(item.pending_qty) || 0, parseFloat(item.stock) || 0));
-                            const pendingVal = parseFloat(item.pending_qty) || 0;
-                            const stockVal = parseFloat(item.stock) || 0;
-                            
+                            const bomQty        = parseFloat(item.required_qty) || 0;
+                            const allowedPct    = parseFloat(item.allowed_overrun_pct) || 2;
+                            const allowedQty    = parseFloat(item.allowed_overrun_qty) || parseFloat((bomQty * allowedPct / 100).toFixed(4));
+                            const maxAllowedQty = parseFloat(item.max_allowed_qty)  || parseFloat((bomQty + allowedQty).toFixed(4));
+                            const stockVal      = parseFloat(item.stock) || 0;
+                            const outQty        = parseFloat(item.out_qty) || 0;
+                            const pendingVal    = parseFloat(item.pending_qty) || 0;
+                            const price         = parseFloat(item.price) || 0;
+                            const suggestedQty  = Math.max(0, Math.min(pendingVal, stockVal));
+
                             let helperHtml = '';
                             if (pendingVal > 0) {
                                 if (stockVal <= 0) {
-                                    helperHtml = `<span style="color: #dd4b39; font-weight: 500;"><i class="fa fa-exclamation-triangle"></i> Pending: ${pendingVal} (No Stock)</span>`;
+                                    helperHtml = `<span style="color:#dd4b39;font-weight:500;"><i class="fa fa-exclamation-triangle"></i> Pending: ${pendingVal} (No Stock)</span>`;
                                 } else if (stockVal < pendingVal) {
-                                    helperHtml = `<span style="color: #f39c12; font-weight: 500;"><i class="fa fa-warning"></i> Pending: ${pendingVal} (Stock: ${stockVal})</span>`;
+                                    helperHtml = `<span style="color:#f39c12;font-weight:500;"><i class="fa fa-warning"></i> Pending: ${pendingVal} (Stock: ${stockVal})</span>`;
                                 } else {
-                                    helperHtml = `<span style="color: #00a65a; font-weight: 500;"><i class="fa fa-check-circle"></i> Pending: ${pendingVal}</span>`;
+                                    helperHtml = `<span style="color:#00a65a;font-weight:500;"><i class="fa fa-check-circle"></i> Pending: ${pendingVal}</span>`;
                                 }
                             }
 
@@ -409,28 +440,48 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                         <strong>${item.item_code} - ${item.item_name}</strong>
                                     </td>
                                     <td>
-                                        <span id="stock_${currentRow}" class="stock-display">${item.stock}</span>
-                                        <input type="hidden" name="system_stock[]" id="system_stock_${currentRow}" value="${item.stock}">
+                                        <span id="stock_${currentRow}" class="stock-display">${stockVal}</span>
+                                        <input type="hidden" name="system_stock[]" id="system_stock_${currentRow}" value="${stockVal}">
                                     </td>
                                     <td>
-                                        <span id="required_qty_${currentRow}" class="required-qty-display">${item.required_qty}</span>
-                                        <input type="hidden" name="required_base[]" id="required_base_${currentRow}" value="${item.required_qty}">
+                                        <span id="bom_qty_${currentRow}" class="bom-qty-display text-primary" style="font-weight:600;">${bomQty}</span>
+                                        <input type="hidden" name="bom_qty[]" id="bom_qty_hidden_${currentRow}" value="${bomQty}">
+                                        <input type="hidden" name="required_base[]" id="required_base_${currentRow}" value="${bomQty}">
                                     </td>
                                     <td>
-                                        <span id="out_qty_${currentRow}" class="out-qty-display">${item.out_qty}</span>
-                                        <input type="hidden" name="out_base[]" id="out_base_${currentRow}" value="${item.out_qty}">
+                                        <span id="out_qty_${currentRow}" class="out-qty-display">${outQty}</span>
+                                        <input type="hidden" name="out_base[]" id="out_base_${currentRow}" value="${outQty}">
                                     </td>
                                     <td>
-                                        <span id="pending_qty_${currentRow}" class="pending-qty-display">${item.pending_qty}</span>
-                                        <input type="hidden" name="pending_base[]" id="pending_base_${currentRow}" value="${item.pending_qty}">
+                                        <span id="allowed_pct_${currentRow}" class="text-info">${allowedPct}%</span>
+                                        <input type="hidden" name="allowed_overrun_pct_item[]" id="allowed_overrun_pct_hidden_${currentRow}" value="${allowedPct}">
                                     </td>
                                     <td>
-                                        <span id="price_${currentRow}" class="price-display">${item.price || '-'}</span>
-                                        <input type="hidden" name="item_price[]" id="item_price_${currentRow}" value="${item.price || 0}">
+                                        <span id="allowed_qty_${currentRow}" class="text-info">${allowedQty}</span>
+                                        <input type="hidden" name="allowed_overrun_qty_item[]" id="allowed_overrun_qty_hidden_${currentRow}" value="${allowedQty}">
                                     </td>
                                     <td>
-                                        <input type="text" name="quantity[]" class="form-control quantity" data-row="${currentRow}" step="0.01" min="0" max="${item.stock}" value="${suggestedQty}" required>
+                                        <span id="max_qty_${currentRow}" class="text-info" style="font-weight:600;">${maxAllowedQty}</span>
+                                        <input type="hidden" name="max_allowed_qty_item[]" id="max_allowed_qty_hidden_${currentRow}" value="${maxAllowedQty}">
+                                        <input type="hidden" name="pending_base[]" id="pending_base_${currentRow}" value="${pendingVal}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="quantity[]" class="form-control quantity" id="qty_input_${currentRow}" data-row="${currentRow}" step="0.01" min="0" value="${suggestedQty}" required>
                                         <span id="qty_helper_${currentRow}" class="help-block" style="font-size: 11px; margin-bottom: 0; line-height: 1.4;">${helperHtml}</span>
+                                    </td>
+                                    <td>
+                                        <span id="total_mi_qty_${currentRow}" style="font-weight:600;">0</span>
+                                    </td>
+                                    <td>
+                                        <span id="overrun_qty_${currentRow}" style="font-weight:600;">0</span>
+                                    </td>
+                                    <td>
+                                        <span id="overrun_pct_${currentRow}" style="font-weight:600;">0%</span>
+                                    </td>
+                                    <td>
+                                        <span id="price_${currentRow}" class="price-display">${price > 0 ? price.toFixed(2) : '-'}</span><br>
+                                        <small id="overrun_val_${currentRow}" class="text-danger" style="font-weight:600;"></small>
+                                        <input type="hidden" name="item_price[]" id="item_price_${currentRow}" value="${price}">
                                     </td>
                                     <td>
                                         <input type="text" name="item_remarks[]" class="form-control">
@@ -445,7 +496,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
                             `;
 
                             $('#itemsBody').append(itemRow);
-                            $(`#row_${currentRow} .quantity`).trigger('change');
+                            // Trigger overrun calculation for pre-filled quantity
+                            $(`#qty_input_${currentRow}`).trigger('input');
                             rowCount++;
                         });
 
@@ -457,62 +509,74 @@ defined('BASEPATH') or exit('No direct script access allowed');
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('AJAX Error Status:', status);
                     console.error('AJAX Error:', error);
-                    console.error('AJAX Response:', xhr.responseText);
                     let errorMsg = 'Error fetching job order items';
-                    if (xhr.responseText) {
-                        try {
-                            let resp = JSON.parse(xhr.responseText);
-                            errorMsg = resp.message || errorMsg;
-                        } catch (e) {
-                            errorMsg = xhr.responseText;
-                        }
-                    }
+                    try { errorMsg = JSON.parse(xhr.responseText).message || errorMsg; } catch(e) {}
                     alert(errorMsg + ' (Check browser console for details)');
                 }
             });
         });
 
-        // Quantity validation and pending/out update
+        // ── OVERRUN REAL-TIME CALCULATION (CUMULATIVE) ──
+        // Triggered on every keystroke/change of the MI Quantity input
         $(document).on('input change', '.quantity', function() {
-            const row = $(this).data('row');
-            let quantity = parseFloat($(this).val()) || 0;
-            const stock = parseFloat($(`#stock_${row}`).text()) || 0;
-            const basePending = parseFloat($(`#pending_base_${row}`).val()) || stock;
-            const requiredQty = parseFloat($(`#required_base_${row}`).val()) || 0;
-            const baseOut = parseFloat($(`#out_base_${row}`).val()) || 0;
+            const row           = $(this).data('row');
+            const miQty         = parseFloat($(this).val()) || 0;
+            const bomQty        = parseFloat($(`#bom_qty_hidden_${row}`).val()) || 0;
+            const allowedPct    = parseFloat($(`#allowed_overrun_pct_hidden_${row}`).val()) || 0;
+            const allowedQty    = parseFloat($(`#allowed_overrun_qty_hidden_${row}`).val()) || 0;
+            const maxAllowedQty = parseFloat($(`#max_allowed_qty_hidden_${row}`).val()) || 0;
+            const stockVal      = parseFloat($(`#stock_${row}`).text()) || 0;
+            const prevIssuedQty = parseFloat($(`#out_base_${row}`).val()) || 0;
+            const rate          = parseFloat($(`#item_price_${row}`).val()) || 0;
 
-            // Determine current allowed limit based on required, pending and stock
-            const effectiveRequired = requiredQty > 0 ? requiredQty : stock;
-            const allowedMax = Math.max(0, Math.min(stock, basePending + baseOut, effectiveRequired));
+            // Cumulative Total MI Quantity = Prev Issued Qty + Current MI Qty
+            const totalMiQty    = parseFloat((prevIssuedQty + miQty).toFixed(4));
+            $(`#total_mi_qty_${row}`).text(totalMiQty);
 
-            if (quantity > allowedMax) {
-                alert(`Quantity cannot exceed allowed limit (${allowedMax})`);
-                quantity = allowedMax;
-                $(this).val(allowedMax);
-            }
+            // 1. Overrun Qty: totalMiQty - bomQty (only when positive)
+            const overrunQty  = Math.max(0, parseFloat((totalMiQty - bomQty).toFixed(4)));
+            // 2. Overrun %: (totalMiQty - bomQty) / bomQty * 100
+            const overrunPct  = (bomQty > 0 && totalMiQty > bomQty) ? parseFloat(((totalMiQty - bomQty) / bomQty * 100).toFixed(2)) : 0;
+            // 3. Overrun Value: overrunQty * rate
+            const overrunVal  = parseFloat((overrunQty * rate).toFixed(2));
 
-            // Update pending: remaining required minus currently issued quantity
-            const pending = Math.max(0, (requiredQty > 0 ? requiredQty : basePending + baseOut) - (
-                baseOut + quantity));
-            $(`#pending_qty_${row}`).text(pending);
+            // Update overrun display cells
+            const $overrunQtySpan  = $(`#overrun_qty_${row}`);
+            const $overrunPctSpan  = $(`#overrun_pct_${row}`);
+            const $overrunValSmall = $(`#overrun_val_${row}`);
+            const $helper          = $(`#qty_helper_${row}`);
 
-            // Update out quantity: baseOut + Current Quantity
-            const outQty = Math.max(0, baseOut + quantity);
-            $(`#out_qty_${row}`).text(outQty);
+            $overrunQtySpan.text(overrunQty > 0 ? overrunQty : 0);
+            $overrunPctSpan.text(overrunPct > 0 ? overrunPct + '%' : '0%');
 
-            // Update helper block dynamically
-            const helper = $(`#qty_helper_${row}`);
-            if (helper.length > 0 && requiredQty > 0) {
-                if (pending > 0) {
-                    if (stock <= 0) {
-                         helper.html(`<span style="color: #dd4b39; font-weight: 500;"><i class="fa fa-exclamation-triangle"></i> Pending: ${pending} (No Stock)</span>`);
-                    } else {
-                         helper.html(`<span style="color: #f39c12; font-weight: 500;"><i class="fa fa-warning"></i> Remaining: ${pending}</span>`);
-                    }
+            // 4. Color-coded status feedback based on CUMULATIVE Total MI
+            if (bomQty > 0 && totalMiQty > bomQty) {
+                if (totalMiQty <= maxAllowedQty) {
+                    // Within allowed tolerance — orange warning
+                    $overrunQtySpan.css('color', '#f39c12');
+                    $overrunPctSpan.css('color', '#f39c12');
+                    $overrunValSmall.text(rate > 0 ? '₹' + overrunVal.toFixed(2) + ' overrun' : '').css('color', '#f39c12');
+                    $helper.html(`<span style="color:#f39c12;font-weight:500;"><i class="fa fa-warning"></i> Within Limit (Total: ${totalMiQty} / Max: ${maxAllowedQty})</span>`);
                 } else {
-                    helper.html(`<span style="color: #00a65a; font-weight: 500;"><i class="fa fa-check-circle"></i> Fully Covered</span>`);
+                    // Exceeds tolerance — red, approval required
+                    $overrunQtySpan.css('color', '#dd4b39');
+                    $overrunPctSpan.css('color', '#dd4b39');
+                    $overrunValSmall.text(rate > 0 ? '₹' + overrunVal.toFixed(2) + ' overrun' : '').css('color', '#dd4b39');
+                    $helper.html(`<span style="color:#dd4b39;font-weight:500;"><i class="fa fa-exclamation-triangle"></i> <strong>Approval Required</strong> (Total: ${totalMiQty} / Max: ${maxAllowedQty})</span>`);
+                }
+            } else {
+                // No overrun
+                $overrunQtySpan.css('color', '#00a65a').text('0');
+                $overrunPctSpan.css('color', '#00a65a').text('0%');
+                $overrunValSmall.text('');
+                if (bomQty > 0) {
+                    const remaining = Math.max(0, bomQty - totalMiQty);
+                    if (remaining > 0) {
+                        $helper.html(`<span style="color:#f39c12;font-weight:500;"><i class="fa fa-warning"></i> Remaining: ${remaining}</span>`);
+                    } else {
+                        $helper.html(`<span style="color:#00a65a;font-weight:500;"><i class="fa fa-check-circle"></i> Fully Covered</span>`);
+                    }
                 }
             }
         });

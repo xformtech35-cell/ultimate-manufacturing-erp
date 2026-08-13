@@ -14,14 +14,27 @@ $username   = $res['username'] ?? 'Admin';
 $user_id    = $res['user_id'] ?? 1;
 $settings   = (isset($session_data_head['settings']) && is_array($session_data_head['settings'])) ? $session_data_head['settings'] : array();
 
-$default_brand_name = 'UWS ENVIRO-TECH PVT LTD';
+$ci =& get_instance();
+if (isset($ci->db) && $ci->db->table_exists('settings')) {
+    $db_settings = $ci->db->get('settings')->row_array();
+    if (!empty($db_settings) && is_array($db_settings)) {
+        $settings = array_merge($settings, $db_settings);
+    }
+}
+
+$default_brand_name = 'Xformtech';
 $default_brand_logo = 'uploads/UWS_private_limited.png';
 
 $brand_full_name = !empty($settings['company_name']) ? trim($settings['company_name']) : $default_brand_name;
 $brand_short_name = substr($brand_full_name, 0, 30);
 $sidebar_brand_name = substr($brand_full_name, 0, 24);
 
-$brand_logo_banner = !empty($settings['company_logo']) ? ltrim($settings['company_logo'], './') : $default_brand_logo;
+$raw_logo = !empty($settings['company_logo']) ? ltrim(str_replace('\\', '/', $settings['company_logo']), './') : '';
+if (!empty($raw_logo) && file_exists(FCPATH . $raw_logo)) {
+    $brand_logo_banner = $raw_logo;
+} else {
+    $brand_logo_banner = $default_brand_logo;
+}
 $brand_logo_icon = $brand_logo_banner;
 
 
@@ -834,9 +847,9 @@ if ($currentPage == 'InventoryController') {
         <!-- Sticky Sidebar Header (Logo + Search Panel) -->
         <div class="sidebar-sticky-header">
             <!-- Sidebar user panel -->
-            <div class="user-panel">
-                <div class="pull-left image" style="width:100%;display:flex;align-items:center;justify-content:flex-start;height:auto;padding:0;margin:0;overflow:hidden;line-height:0;background:#fff;">
-                    <img src="<?php echo base_url() . $brand_logo_banner; ?>" alt="<?php echo $brand_full_name; ?>" style="width:100%;max-width:100%;height:auto;display:block;margin:0;padding:0;object-fit:contain;object-position:left center;line-height:0;">
+            <div class="user-panel" style="background:#fff; padding:8px 10px; border-bottom: 1px solid rgba(0,0,0,0.08);">
+                <div class="pull-left image" style="width:100%; display:flex; align-items:center; justify-content:center; min-height:48px;">
+                    <img src="<?php echo base_url() . ltrim($brand_logo_banner, '/'); ?>" alt="<?php echo htmlspecialchars($brand_full_name); ?>" style="max-width:100%; max-height:55px; height:auto; width:auto; display:block; margin:0 auto; object-fit:contain;" onerror="this.onerror=null; this.src='<?php echo base_url(); ?>uploads/UWS_private_limited.png';">
                 </div>
             </div> 
             <div class="sidebar-search-container">

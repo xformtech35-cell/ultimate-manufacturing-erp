@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $session_data_head1 = $this->session->userdata('session_data_head');
 if (isset($session_data_head1)) {
 } else {
@@ -51,7 +51,13 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                             <div class="col-sm-7">
                                                 <input type="hidden" value="<?php echo $settings['setting_id'] ?? ''; ?>" class="form-control input-sm" name="setting_id" id="setting_id">
                                                 <input type="file" class="form-control input-sm" name="company_logo" id="company_logo">
-                                                <img src="<?php echo base_url() . $settings['company_logo']; ?>" width="20%" height="20%" />
+                                                <?php 
+                                                $current_logo_url = !empty($settings['company_logo']) ? base_url() . ltrim(str_replace('\\', '/', $settings['company_logo']), './') : '';
+                                                if (!empty($current_logo_url)) { ?>
+                                                    <div style="margin-top: 8px;">
+                                                        <img src="<?php echo $current_logo_url; ?>" alt="Company Logo" style="max-width: 220px; max-height: 80px; object-fit: contain; border: 1px solid #ddd; padding: 4px; border-radius: 4px; background: #fff;">
+                                                    </div>
+                                                <?php } ?>
                                             </div>
                                         </div>
 
@@ -120,9 +126,15 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
                                         <div class="form-group row">
                                             <label for="inputEmail3" class="col-sm-4 control-label"> Authorised Signatory (Stamp) </label>
-                                            <div class="col-sm-7" style="height:140">
+                                            <div class="col-sm-7" style="height:auto;">
                                                 <input type="file" class="form-control input-sm" name="company_stamp" id="company_stamp">
-                                                <img src="<?php echo base_url() . $settings['company_stamp']; ?>" width="15%" height="15%" />
+                                                <?php 
+                                                $current_stamp_url = !empty($settings['company_stamp']) ? base_url() . ltrim(str_replace('\\', '/', $settings['company_stamp']), './') : '';
+                                                if (!empty($current_stamp_url)) { ?>
+                                                    <div style="margin-top: 8px;">
+                                                        <img src="<?php echo $current_stamp_url; ?>" alt="Authorised Stamp" style="max-width: 150px; max-height: 80px; object-fit: contain; border: 1px solid #ddd; padding: 4px; border-radius: 4px; background: #fff;">
+                                                    </div>
+                                                <?php } ?>
                                             </div>
                                         </div>
 

@@ -498,7 +498,17 @@ class Material_issue_model extends CI_Model
      */
     public function get_issue_slips($filters = array())
     {
-        $this->db->select('mis.*, u.username as issued_by_name');
+        $this->db->select('mis.*, u.username as issued_by_name,
+            (SELECT
+                CASE
+                    WHEN COUNT(CASE WHEN mii.overrun_status = \'approval_required\' THEN 1 END) > 0 THEN \'approval_required\'
+                    WHEN COUNT(CASE WHEN mii.overrun_status = \'approved\' THEN 1 END) > 0 THEN \'approved\'
+                    WHEN COUNT(CASE WHEN mii.overrun_status = \'within_limit\' THEN 1 END) > 0 THEN \'within_limit\'
+                    WHEN COUNT(CASE WHEN mii.overrun_status = \'rejected\' THEN 1 END) > 0 THEN \'rejected\'
+                    ELSE \'none\'
+                END
+             FROM ' . $this->db->dbprefix('material_issue_items') . ' mii WHERE mii.issue_id = mis.issue_id
+            ) as overrun_status', FALSE);
         $this->db->from($this->issue_slip_table . ' mis');
         $this->db->join($this->users_table . ' u', 'u.user_id = mis.uid', 'left');
 
