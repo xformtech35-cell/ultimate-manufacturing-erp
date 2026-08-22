@@ -356,7 +356,7 @@ public function get_joborders_with_pending($uid) {
         $this->db->from('joborder_total');
         $this->db->where('joborder_total.date >=', $f_date);
         $this->db->where('joborder_total.date <=', $t_date);
-        $this->db->join('customer', 'customer.customer_id_fk=joborder_total.customer_id_fk', 'Left Join');
+        $this->db->join('customer', 'customer.customer_id=joborder_total.customer_id_fk', 'Left Join');
         $this->db->join('user u', 'joborder_total.uid=u.user_id', 'Left Join');
         $this->db->join('user u2', 'joborder_total.approved_by=u2.user_id', 'Left Join');
         $this->db->group_by('joborder_total.number_fk');
