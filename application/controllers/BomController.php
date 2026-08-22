@@ -605,6 +605,17 @@ class BomController extends MY_Controller {
             }
         }
 
+        $system   = !empty($so_total['system']) ? $so_total['system'] : ($so_item['product_name'] ?? '');
+        $location = !empty($so_total['location']) ? $so_total['location'] : ($so_total['plant_location'] ?? '');
+        $capacity = !empty($so_total['capacity']) ? $so_total['capacity'] : '';
+
+        // Extract capacity from description if empty in SO header
+        if (empty($capacity) && !empty($so_item['description'])) {
+            if (preg_match('/Capacity\s*:\s*([^<\r\n]+)/i', $so_item['description'], $m)) {
+                $capacity = trim(strip_tags($m[1]));
+            }
+        }
+
         echo json_encode([
             'success'              => true,
             'so_number'            => $so_total['number_fk'],
@@ -613,10 +624,10 @@ class BomController extends MY_Controller {
             'customer_code'        => $so_total['c_code'] ?? '',
             'project_code'         => $so_total['project_code'] ?? '',
             'oc_number'            => $so_total['number_fk'],
-            'system'               => $so_item['product_name'] ?? '',
-            'location'             => $so_item['description'] ?? '',
-            'capacity'             => $so_item['unit'] ?? '',
-            'project_qty'          => $so_item['quantity'] ?? 1,
+            'system'               => $system,
+            'location'             => $location,
+            'capacity'             => $capacity,
+            'project_qty'          => $so_total['project_qty'] ?? $so_item['quantity'] ?? 1,
             'suggested_bom_number' => $suggested_bom_number,
             'is_revision'          => $is_revision
         ]);
