@@ -612,17 +612,7 @@ if ($_has_project_master) {
                                                             'items' => array()
                                                         );
                                                     }
-                                                    // Prevent duplicate item entries for the same PR item ID
-                                                    $exists = false;
-                                                    foreach ($grouped_requisitions[$pr_key]['items'] as $existing_item) {
-                                                        if (!empty($req->item_id) && !empty($existing_item->item_id) && $req->item_id == $existing_item->item_id) {
-                                                            $exists = true;
-                                                            break;
-                                                        }
-                                                    }
-                                                    if (!$exists) {
-                                                        $grouped_requisitions[$pr_key]['items'][] = $req;
-                                                    }
+                                                    $grouped_requisitions[$pr_key]['items'][] = $req;
                                                 }
                                             }
                                             ?>
@@ -652,25 +642,45 @@ if ($_has_project_master) {
                                                     }
                                                 ?>
                                                     <!-- Parent Header Row (PR Summary) -->
+                                                    <?php
+                                                    $is_single_item = ($item_count == 1);
+                                                    $single_item    = $items[0];
+                                                    $singleApproved = ($single_item->approval_status == 'Approved' && (isset($single_item->workflow_status) ? $single_item->workflow_status == 'Approved' : true));
+                                                    ?>
                                                     <tr id="pr-row-<?php echo $pr_id; ?>" class="pr-parent-row <?php echo $rowClass; ?>" data-prid="<?php echo $pr_id; ?>" data-status="<?php echo htmlspecialchars($status); ?>" style="font-weight: 500;">
                                                         <td>
-                                                            <?php if ($approved_items_count > 0): ?>
-                                                                <input type="checkbox" class="parent-pr-checkbox" data-prid="<?php echo $pr_id; ?>" title="Select/Deselect all approved items in this PR" />
+                                                            <?php if ($is_single_item): ?>
+                                                                <?php if ($singleApproved): ?>
+                                                                    <input type="checkbox" name="item_id[]" value="<?php echo $single_item->item_id; ?>" class="item-checkbox approved-checkbox child-cb-<?php echo $pr_id; ?>" />
+                                                                <?php else: ?>
+                                                                    <input type="checkbox" disabled class="disabled-checkbox" title="Item not approved" />
+                                                                <?php endif; ?>
                                                             <?php else: ?>
-                                                                <input type="checkbox" disabled class="disabled-checkbox" title="No approved items in this PR" />
+                                                                <?php if ($approved_items_count > 0): ?>
+                                                                    <input type="checkbox" class="parent-pr-checkbox" data-prid="<?php echo $pr_id; ?>" title="Select/Deselect all approved items in this PR" />
+                                                                <?php else: ?>
+                                                                    <input type="checkbox" disabled class="disabled-checkbox" title="No approved items in this PR" />
+                                                                <?php endif; ?>
                                                             <?php endif; ?>
                                                         </td>
-                                                        <td class="toggle-pr-btn" data-prid="<?php echo $pr_id; ?>" style="cursor: pointer;">
-                                                            <i class="fa fa-plus-circle text-primary pr-icon-<?php echo $pr_id; ?>" style="margin-right: 6px; font-size: 14px;"></i>
-                                                            <strong><?php echo htmlspecialchars($req->pr_no); ?></strong>
-                                                            <span class="badge bg-blue" style="font-size: 10px; margin-left: 4px; border-radius: 10px; padding: 2px 7px;">
-                                                                <?php echo $item_count; ?> <?php echo ($item_count > 1) ? 'Items' : 'Item'; ?>
-                                                            </span>
-                                                        </td>
+                                                        <?php if ($is_single_item): ?>
+                                                            <td>
+                                                                <strong><?php echo htmlspecialchars($req->pr_no); ?></strong>
+                                                                <span class="badge bg-blue" style="font-size: 10px; margin-left: 4px; border-radius: 10px; padding: 2px 7px;">1 Item</span>
+                                                            </td>
+                                                        <?php else: ?>
+                                                            <td class="toggle-pr-btn" data-prid="<?php echo $pr_id; ?>" style="cursor: pointer;">
+                                                                <i class="fa fa-plus-circle text-primary pr-icon-<?php echo $pr_id; ?>" style="margin-right: 6px; font-size: 14px;"></i>
+                                                                <strong><?php echo htmlspecialchars($req->pr_no); ?></strong>
+                                                                <span class="badge bg-blue" style="font-size: 10px; margin-left: 4px; border-radius: 10px; padding: 2px 7px;">
+                                                                    <?php echo $item_count; ?> Items
+                                                                </span>
+                                                            </td>
+                                                        <?php endif; ?>
                                                         <?php if ($_has_project_master): ?>
                                                             <td><?php echo isset($req->project_code) ? htmlspecialchars($req->project_code) : 'N/A'; ?></td>
                                                         <?php endif; ?>
-                                                        <td class="toggle-pr-btn col-sales-order" data-prid="<?php echo $pr_id; ?>" style="cursor: pointer;">
+                                                        <td class="<?php echo $is_single_item ? '' : 'toggle-pr-btn'; ?> col-sales-order" data-prid="<?php echo $pr_id; ?>" style="<?php echo $is_single_item ? '' : 'cursor: pointer;'; ?>">
                                                             <strong><?php echo isset($req->so_no) ? htmlspecialchars($req->so_no) : 'N/A'; ?></strong>
                                                         </td>
                                                         <td>
@@ -694,19 +704,32 @@ if ($_has_project_master) {
                                                             }
                                                             ?>
                                                         </td>
-                                                        <td class="toggle-pr-btn col-item" data-prid="<?php echo $pr_id; ?>" style="cursor: pointer;">
-                                                            <span class="text-primary" style="font-weight: 600;">
-                                                                <i class="fa fa-cubes"></i> <?php echo htmlspecialchars($items[0]->item_code); ?><?php echo ($item_count > 1) ? ' <small class="text-muted">(+' . ($item_count - 1) . ' more)</small>' : ''; ?>
-                                                            </span>
-                                                        </td>
-                                                        <td style="text-align: center;">-</td>
-                                                        <td style="text-align: right;">
-                                                            <?php
-                                                            $total_qty = 0;
-                                                            foreach ($items as $it) { $total_qty += (float)$it->quantity; }
-                                                            echo number_format($total_qty, 2);
-                                                            ?>
-                                                        </td>
+                                                        <?php if ($is_single_item): ?>
+                                                            <td class="col-item">
+                                                                <span class="text-primary" style="font-weight: 600;">
+                                                                    <i class="fa fa-cube text-info"></i> <?php echo htmlspecialchars($single_item->item_code); ?>
+                                                                </span>
+                                                                <?php if (!empty($single_item->description)): ?>
+                                                                    <br><small class="text-muted"><?php echo htmlspecialchars($single_item->description); ?></small>
+                                                                <?php endif; ?>
+                                                            </td>
+                                                            <td style="text-align: center;"><?php echo htmlspecialchars($single_item->unit ?: '-'); ?></td>
+                                                            <td style="text-align: right; font-weight: 600; color: #00a65a;"><?php echo number_format((float)$single_item->quantity, 2); ?></td>
+                                                        <?php else: ?>
+                                                            <td class="toggle-pr-btn col-item" data-prid="<?php echo $pr_id; ?>" style="cursor: pointer;">
+                                                                <span class="text-primary" style="font-weight: 600;">
+                                                                    <i class="fa fa-cubes"></i> <?php echo htmlspecialchars($items[0]->item_code); ?> <small class="text-muted">(+<?php echo ($item_count - 1); ?> more)</small>
+                                                                </span>
+                                                            </td>
+                                                            <td style="text-align: center;">-</td>
+                                                            <td style="text-align: right;">
+                                                                <?php
+                                                                $total_qty = 0;
+                                                                foreach ($items as $it) { $total_qty += (float)$it->quantity; }
+                                                                echo number_format($total_qty, 2);
+                                                                ?>
+                                                            </td>
+                                                        <?php endif; ?>
                                                         <td><?php echo date('d-m-Y', strtotime($req->pr_date)); ?></td>
                                                         <td><?php echo htmlspecialchars($req->department_name ?: 'Store'); ?></td>
                                                         <td><?php echo htmlspecialchars($req->requested_by_name ?: 'Admin'); ?></td>
@@ -721,9 +744,11 @@ if ($_has_project_master) {
                                                          </td>
                                                          <td style="text-align: center; vertical-align: middle; white-space: nowrap;">
                                                              <div style="display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
-                                                                 <button type="button" class="btn btn-default btn-xs toggle-pr-btn" data-prid="<?php echo $pr_id; ?>"  style="padding: 2px 6px; font-size: 10px; line-height: 1.2; margin: 0; display: inline-flex; align-items: center; justify-content: center; height: 22px; width: 22px;">
-                                                                     <i class="fa fa-chevron-down pr-chevron-<?php echo $pr_id; ?>"></i>
-                                                                 </button>
+                                                                 <?php if (!$is_single_item): ?>
+                                                                     <button type="button" class="btn btn-default btn-xs toggle-pr-btn" data-prid="<?php echo $pr_id; ?>"  style="padding: 2px 6px; font-size: 10px; line-height: 1.2; margin: 0; display: inline-flex; align-items: center; justify-content: center; height: 22px; width: 22px;">
+                                                                         <i class="fa fa-chevron-down pr-chevron-<?php echo $pr_id; ?>"></i>
+                                                                     </button>
+                                                                 <?php endif; ?>
                                                                  <a href="<?php echo base_url('RequisitionController/show_requisition/' . $req->pr_id); ?>" class="btn btn-info btn-xs"  style="padding: 2px 6px; font-size: 10px; line-height: 1.2; margin: 0; display: inline-flex; align-items: center; justify-content: center; height: 22px; width: 22px; background-color: #00c0ef !important; border-color: #00c0ef !important;">
                                                                      <i class="fa fa-eye"></i>
                                                                  </a>
@@ -746,15 +771,16 @@ if ($_has_project_master) {
                                   </form>
                                  <!-- End of Form -->
 
-                                 <!-- Hidden Child Item Templates -->
+                                 <!-- Hidden Child Item Templates (Only for multi-item PRs) -->
                                  <div id="pr-child-templates" style="display: none;">
                                      <?php if (!empty($grouped_requisitions)): ?>
                                          <?php foreach ($grouped_requisitions as $pr_key => $pr_group):
-                                             $req = $pr_group['info'];
                                              $items = $pr_group['items'];
+                                             if (count($items) <= 1) continue; // Single item PRs are rendered directly above
+                                             $req = $pr_group['info'];
                                              $pr_id = $req->pr_id;
                                          ?>
-                                             <div id="child-template-<?php echo $pr_id; ?>">
+                                             <script type="text/template" id="child-template-<?php echo $pr_id; ?>">
                                                  <div style="padding: 0; margin: 0; background: transparent; border: none; box-shadow: none;">
                                                      <div class="table-responsive" style="border: none; width: 100%;">
                                                          <table class="table table-bordered table-condensed table-hover no-datatable table-details" style="background: #fff; margin-bottom: 0; font-size: 12px;">
@@ -762,8 +788,6 @@ if ($_has_project_master) {
                                                                  <?php foreach ($items as $item):
                                                                      $itemStatus = $item->approval_status;
                                                                      $itemApproved = ($itemStatus == 'Approved');
-                                                                     $itemPending = ($itemStatus == 'Pending');
-                                                                     $itemRejected = ($itemStatus == 'Rejected');
                                                                  ?>
                                                                      <tr>
                                                                          <td style="text-align: center; width: <?php echo $_col_checkbox; ?> !important; vertical-align: middle;">
@@ -816,7 +840,7 @@ if ($_has_project_master) {
                                                          </table>
                                                      </div>
                                                  </div>
-                                             </div>
+                                             </script>
                                          <?php endforeach; ?>
                                      <?php endif; ?>
                                  </div>
@@ -1075,9 +1099,6 @@ if ($_has_project_master) {
                 if (!confirm('Are you sure you want to convert ' + checkedItemIds.length + ' approved item(s) to RFQ?')) {
                     return false;
                 }
-
-                // Uncheck native checkboxes in form so only clean unique dynamic hidden inputs are submitted
-                $('.approved-checkbox, .item-checkbox').prop('checked', false);
 
                 // Clear any dynamic hidden item_id inputs to avoid duplicates
                 $('.dynamic-rfq-item-id').remove();
