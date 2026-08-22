@@ -57,7 +57,11 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                                 <label for="number">OC Number</label>
                                                 <?php 
                                                 $oc_number = '';
-                                                if(isset($oc_id) && $oc_id > 0) {
+                                                if (!empty($so_header['number_fk'])) {
+                                                    $oc_number = $so_header['number_fk'];
+                                                } elseif (!empty($so_header['number'])) {
+                                                    $oc_number = $so_header['number'];
+                                                } elseif (isset($oc_id) && $oc_id > 0) {
                                                     $oc_number = 'OC-' . str_pad($oc_id + 1, 3, '0', STR_PAD_LEFT) . '/' . date('y') . '-' . (date('y') + 1);
                                                 } else {
                                                     $oc_number = 'OC-001/' . date('y') . '-' . (date('y') + 1);
@@ -81,8 +85,9 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                                                  <select class="form-control" id="customer_id" name="customer_id" required>
                                                      <option value="">-- Select Customer --</option>
                                                      <?php if(isset($customer_result) && !empty($customer_result)) {
+                                                         $target_cust_id = $so_header['customer_id_fk'] ?? $so_header['customer_id'] ?? '';
                                                          foreach($customer_result as $cust) {
-                                                             $selected = (isset($so_header['customer_id_fk']) && $so_header['customer_id_fk'] == $cust->customer_id) ? 'selected' : '';
+                                                             $selected = (!empty($target_cust_id) && $target_cust_id == $cust->customer_id) ? 'selected="selected"' : '';
                                                              $addr = isset($cust->address) ? htmlspecialchars($cust->address, ENT_QUOTES) : '';
                                                              $gstin = isset($cust->gstin) ? htmlspecialchars($cust->gstin, ENT_QUOTES) : '';
                                                              $mobile = isset($cust->mobile_number) ? htmlspecialchars($cust->mobile_number, ENT_QUOTES) : '';
@@ -399,8 +404,6 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
 
                 if (val) {
                     $('#oa_action_box').slideDown();
-                    updateOALetterPreview();
-                    $('#modal_oa_preview').modal('show');
                 } else {
                     $('#oa_action_box').slideUp();
                 }
