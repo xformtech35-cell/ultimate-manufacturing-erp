@@ -94,59 +94,97 @@ Class Bom extends CI_Model {
         }
     }
 
-    public function get_boms($uid) {
-        $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year) && $fy_year !== 'all') {
-            $fy_from = $fy_year . '-04-01';
-            $fy_to   = ($fy_year + 1) . '-03-31';
-            $this->db->where('bom_total.date >=', $fy_from);
-            $this->db->where('bom_total.date <=', $fy_to);
-        }
-
-        $this->db->select('bom_total.id as bom_total_id, bom_total.number_fk as number, bom_total.date, bom_total.status, 
-                          bom_total.note, bom_total.project_code, bom_total.customer_code, bom_total.system, 
-                          bom_total.location, bom_total.capacity, bom_total.project_qty, bom_total.oc_number,
-                          bom_total.send_to_mrp,
-                          customer.company_name, customer.fullname, u.username as prepare_by, u2.username as approved_by_name');
-        $this->db->from('bom_total');
-        $this->db->join('customer', 'customer.customer_id = bom_total.customer_id_fk', 'left');
-        $this->db->join('user u', 'bom_total.uid = u.user_id', 'left');
-        $this->db->join('user u2', 'bom_total.approved_by = u2.user_id', 'left');
-        // $this->db->where('bom_total.uid', $uid);
-        $this->db->order_by('bom_total.id', 'desc');
-        $query = $this->db->get();
+    private function get_combined_boms_query($status = null)
+    {
+        $prefix = $this->db->dbprefix;
         
-        return $query->result();
-    }
-
-    public function get_bom_data_by_status($status, $uid) {
+        $fy_where_ba = "";
+        $fy_where_bt = "";
         $fy_year = $this->session->userdata('fy_year');
         if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
-            $this->db->where('bom_total.date >=', $fy_from);
-            $this->db->where('bom_total.date <=', $fy_to);
+            $fy_where_ba = " AND ba.action_date >= {$this->db->escape($fy_from)} AND ba.action_date <= {$this->db->escape($fy_to)}";
+            $fy_where_bt = " AND bt.date >= {$this->db->escape($fy_from)} AND bt.date <= {$this->db->escape($fy_to)}";
         }
 
-        $this->db->select('bom_total.id as bom_total_id, bom_total.number_fk as number, bom_total.date, bom_total.status, 
-                          bom_total.note, bom_total.project_code, bom_total.customer_code, bom_total.system, 
-                          bom_total.location, bom_total.capacity, bom_total.project_qty, bom_total.oc_number,
-                          bom_total.send_to_mrp,
-                          customer.company_name, customer.fullname, u.username as prepare_by, u2.username as approved_by_name');
-        $this->db->from('bom_total');
-        $this->db->join('customer', 'customer.customer_id = bom_total.customer_id_fk', 'left');
-        $this->db->join('user u', 'bom_total.uid = u.user_id', 'left');
-        $this->db->join('user u2', 'bom_total.approved_by = u2.user_id', 'left');
-        if ((int)$status === 5) {
-            $prefix = $this->db->dbprefix;
-            $this->db->where("({$prefix}bom_total.status = 5 OR {$prefix}bom_total.number_fk IN (SELECT bom_number FROM {$prefix}bom_approvals WHERE status = 'rejected'))", NULL, FALSE);
-        } else {
-            $this->db->where('bom_total.status', $status);
+        $status_where = "";
+        if ($status !== null && $status !== '') {
+            $status_val = (int) $status;
+            $status_where = " WHERE sub.status = {$status_val}";
         }
-        // $this->db->where('bom_total.uid', $uid);
-        $this->db->order_by('bom_total.id', 'desc');
-        $query = $this->db->get();
-        return $query->result();
+
+        return "SELECT * FROM (
+                    SELECT 
+                        bt.id                      AS bom_total_id,
+                        bt.number_fk               AS number,
+                        ba.action_date             AS date,
+                        CASE 
+                            WHEN ba.status = 'approved' THEN 4
+                            WHEN ba.status = 'rejected' THEN 5
+                            ELSE bt.status
+                        END                        AS status,
+                        ba.remarks                 AS note,
+                        bt.project_code,
+                        bt.customer_code,
+                        bt.system,
+                        bt.location,
+                        bt.capacity,
+                        bt.project_qty,
+                        bt.oc_number,
+                        bt.send_to_mrp,
+                        c.company_name,
+                        c.fullname,
+                        u.username                 AS prepare_by,
+                        ba.action_by               AS approved_by_name,
+                        ba.action_date             AS sort_date
+                    FROM {$prefix}bom_approvals ba
+                    JOIN {$prefix}bom_total bt ON bt.number_fk = ba.bom_number
+                    LEFT JOIN {$prefix}customer c ON c.customer_id = bt.customer_id_fk
+                    LEFT JOIN {$prefix}user u ON u.user_id = bt.uid
+                    WHERE ba.status IN ('approved', 'rejected') {$fy_where_ba}
+
+                    UNION ALL
+
+                    SELECT 
+                        bt.id                      AS bom_total_id,
+                        bt.number_fk               AS number,
+                        bt.date                    AS date,
+                        bt.status                  AS status,
+                        bt.note                    AS note,
+                        bt.project_code,
+                        bt.customer_code,
+                        bt.system,
+                        bt.location,
+                        bt.capacity,
+                        bt.project_qty,
+                        bt.oc_number,
+                        bt.send_to_mrp,
+                        c.company_name,
+                        c.fullname,
+                        u.username                 AS prepare_by,
+                        u2.username                AS approved_by_name,
+                        bt.date                    AS sort_date
+                    FROM {$prefix}bom_total bt
+                    LEFT JOIN {$prefix}customer c ON c.customer_id = bt.customer_id_fk
+                    LEFT JOIN {$prefix}user u ON u.user_id = bt.uid
+                    LEFT JOIN {$prefix}user u2 ON u2.user_id = bt.approved_by
+                    WHERE bt.number_fk NOT IN (
+                        SELECT bom_number FROM {$prefix}bom_approvals WHERE status IN ('approved', 'rejected')
+                    ) {$fy_where_bt}
+                ) sub
+                {$status_where}
+                ORDER BY sub.sort_date DESC, sub.bom_total_id DESC";
+    }
+
+    public function get_boms($uid) {
+        $sql = $this->get_combined_boms_query(null);
+        return $this->db->query($sql)->result();
+    }
+
+    public function get_bom_data_by_status($status, $uid) {
+        $sql = $this->get_combined_boms_query($status);
+        return $this->db->query($sql)->result();
     }
 
     public function get_bom_data($number, $uid) {
@@ -232,18 +270,8 @@ Class Bom extends CI_Model {
     }
 
     public function get_bom_count($uid) {
-        $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year) && $fy_year !== 'all') {
-            $fy_from = $fy_year . '-04-01';
-            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
-            $this->db->where('bom_total.date >=', $fy_from);
-            $this->db->where('bom_total.date <=', $fy_to);
-        }
-        $this->db->select('*');
-        $this->db->from('bom_total');
-        // Removed uid filter — show all BOMs across all users
-        $query = $this->db->get();
-        return $query->num_rows();
+        $sql = $this->get_combined_boms_query(null);
+        return $this->db->query($sql)->num_rows();
     }
    
     public function get_status($number, $uid) {
@@ -276,24 +304,8 @@ Class Bom extends CI_Model {
     }
     
     public function get_bom_draft_count($status, $uid) {
-        $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year) && $fy_year !== 'all') {
-            $fy_from = $fy_year . '-04-01';
-            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
-            $this->db->where('bom_total.date >=', $fy_from);
-            $this->db->where('bom_total.date <=', $fy_to);
-        }
-        $this->db->select('*');
-        $this->db->from('bom_total');
-        if ((int)$status === 5) {
-            $prefix = $this->db->dbprefix;
-            $this->db->where("({$prefix}bom_total.status = 5 OR {$prefix}bom_total.number_fk IN (SELECT bom_number FROM {$prefix}bom_approvals WHERE status = 'rejected'))", NULL, FALSE);
-        } else {
-            $this->db->where('bom_total.status', $status);
-        }
-        // Removed uid filter — count BOMs from all users
-        $query = $this->db->get();
-        return $query->num_rows();
+        $sql = $this->get_combined_boms_query($status);
+        return $this->db->query($sql)->num_rows();
     }
 
     public function get_datewise_record($from_date, $to_date, $uid) {
