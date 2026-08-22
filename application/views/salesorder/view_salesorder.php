@@ -71,9 +71,9 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                             <i class="fa fa-filter"></i> Filter
                                         </button>
                                     </form>
-                                    <a href="<?php echo base_url('SalesOrderController/so_approval_dashboard'); ?>" class="btn btn-info btn-sm" style="height: 30px; line-height: 20px; font-weight: 600; padding: 5px 15px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; border: none; background-color: #0288d1 !important; color: white !important;">
+                                    <!-- <a href="<?php echo base_url('SalesOrderController/so_approval_dashboard'); ?>" class="btn btn-info btn-sm" style="height: 30px; line-height: 20px; font-weight: 600; padding: 5px 15px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; border: none; background-color: #0288d1 !important; color: white !important;">
                                         <i class="fa fa-check-square-o"></i> SO Approval Dashboard
-                                    </a>
+                                    </a> -->
                                     <a href="<?php echo base_url(); ?>SalesOrderController/index?str=All" class="btn btn-success btn-sm" style="height: 30px; line-height: 20px; font-weight: 600; padding: 5px 15px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; border: none; background-color: #2e7d32 !important;">
                                         <i class="fa fa-list"></i> Show All
                                     </a>

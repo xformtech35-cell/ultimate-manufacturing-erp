@@ -197,9 +197,9 @@ class Salesorder extends CI_Model
         }
 
         $this->db->select('salesorder_total.id, salesorder_total.project_code, customer.company_name as customer_name, customer.fullname, salesorder_total.number_fk as number, COALESCE(q.gst_type, "S") as gst_type, salesorder_total.date, salesorder_total.basic_total, salesorder_total.total, salesorder_total.status, salesorder_total.remarks, u1.username as created_by_name, u2.username as approved_by_name');
+        $this->db->from('salesorder_total');
         $this->db->join('user u1', 'u1.user_id = salesorder_total.uid', 'left');
         $this->db->join('user u2', 'u2.user_id = salesorder_total.approved_by', 'left');
-        $this->db->from('salesorder_total');
         $this->db->join('customer', 'customer.customer_id=salesorder_total.customer_id_fk', 'left');
         $this->db->join('salesorder q', 'q.number=salesorder_total.number_fk', 'left');
         // $this->db->where('salesorder_total.uid', $uid);
@@ -216,9 +216,9 @@ class Salesorder extends CI_Model
     public function get_salesorders_for_joborder($uid, $limit = 0)
     {
         $this->db->select('salesorder_total.id, salesorder_total.project_code, customer.company_name as customer_name, customer.fullname, salesorder_total.number_fk as number, COALESCE(q.gst_type, "S") as gst_type, salesorder_total.date, salesorder_total.basic_total, salesorder_total.total, salesorder_total.status, u1.username as created_by_name, u2.username as approved_by_name');
+        $this->db->from('salesorder_total');
         $this->db->join('user u1', 'u1.user_id = salesorder_total.uid', 'left');
         $this->db->join('user u2', 'u2.user_id = salesorder_total.approved_by', 'left');
-        $this->db->from('salesorder_total');
         $this->db->join('customer', 'customer.customer_id=salesorder_total.customer_id_fk', 'left');
         $this->db->join('salesorder q', 'q.number=salesorder_total.number_fk', 'left');
         // $this->db->where('salesorder_total.uid', $uid);
@@ -235,9 +235,9 @@ class Salesorder extends CI_Model
     {
 
         $this->db->select('qt.id, q.number, qt.date, c.company_name as customer_name, c.fullname, COALESCE(q.gst_type, "S") as gst_type, qt.project_code, qt.basic_total, qt.total, qt.status, qt.remarks, u1.username as created_by_name, u2.username as approved_by_name');
+        $this->db->from('salesorder_total qt');
         $this->db->join('user u1', 'u1.user_id = qt.uid', 'left');
         $this->db->join('user u2', 'u2.user_id = qt.approved_by', 'left');
-        $this->db->from('salesorder_total qt');
         $this->db->join('customer c', 'c.customer_id=qt.customer_id_fk', 'left');
         $this->db->join('salesorder q', 'q.number=qt.number_fk', 'left');
         $this->db->where('qt.status', $status);
@@ -622,9 +622,9 @@ public function get_pending_salesorders($uid, $status_filter = 'pending')
     }
 
     $this->db->select('salesorder_total.id, salesorder_total.project_code, customer.company_name as customer_name, customer.fullname, salesorder_total.number_fk as number, COALESCE(q.gst_type, "S") as gst_type, salesorder_total.date, salesorder_total.basic_total, salesorder_total.total, salesorder_total.status, salesorder_total.remarks, u1.username as created_by_name, u2.username as approved_by_name');
+    $this->db->from('salesorder_total');
     $this->db->join('user u1', 'u1.user_id = salesorder_total.uid', 'left');
     $this->db->join('user u2', 'u2.user_id = salesorder_total.approved_by', 'left');
-    $this->db->from('salesorder_total');
     $this->db->join('customer', 'customer.customer_id=salesorder_total.customer_id_fk', 'left');
     $this->db->join('salesorder q', 'q.number=salesorder_total.number_fk', 'left');
 
