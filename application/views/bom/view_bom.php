@@ -75,14 +75,27 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             </div>
 
                             <ul class="nav nav-tabs">
+                                <?php
+                                $c_action = $this->uri->segment(2);
+                                $c_status = $this->uri->segment(3);
+                                ?>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="<?php echo base_url(); ?>BomController/get_bom_data_by_status/2">Sent <span class="badge badge-light"> <?php echo $bom_sent_count; ?></span></a>
+                                    <a class="nav-link <?php echo ($c_action == 'get_bom_data_by_status' && $c_status == '1') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>BomController/get_bom_data_by_status/1">Draft <span class="badge badge-light"><?php echo isset($bom_draft_count) ? $bom_draft_count : 0; ?></span></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="<?php echo base_url(); ?>BomController/get_bom_data_by_status/1">Draft <span class="badge badge-light"> <?php echo $bom_draft_count; ?></span></a>
+                                    <a class="nav-link <?php echo ($c_action == 'get_bom_data_by_status' && $c_status == '2') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>BomController/get_bom_data_by_status/2">Sent <span class="badge badge-light"><?php echo isset($bom_sent_count) ? $bom_sent_count : 0; ?></span></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="<?php echo base_url(); ?>BomController/index?str=All">All BOMs <span class="badge badge-light"> <?php echo $bom_count; ?></span></a>
+                                    <a class="nav-link <?php echo ($c_action == 'get_bom_data_by_status' && $c_status == '7') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>BomController/get_bom_data_by_status/7">Under Review <span class="badge badge-light"><?php echo isset($bom_under_review_count) ? $bom_under_review_count : 0; ?></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($c_action == 'get_bom_data_by_status' && $c_status == '4') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>BomController/get_bom_data_by_status/4">Approved <span class="badge badge-light"><?php echo isset($bom_approved_count) ? $bom_approved_count : 0; ?></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($c_action == 'get_bom_data_by_status' && $c_status == '5') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>BomController/get_bom_data_by_status/5">Rejected <span class="badge badge-light"><?php echo isset($bom_rejected_count) ? $bom_rejected_count : 0; ?></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($c_action == 'index' || empty($c_action) || $c_action == 'get_monthyearwise_record' || $c_action == 'get_datewise_record') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>BomController/index?str=All">All BOMs <span class="badge badge-light"><?php echo isset($bom_count) ? $bom_count : 0; ?></span></a>
                                 </li>
                             </ul>
 
@@ -165,7 +178,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                  <td><?php echo isset($key->company_name) ? $key->company_name : ''; ?></td>
                                                  <td><?php echo isset($key->oc_number) ? $key->oc_number : ''; ?></td>
                                                  <td><span class="label label-info" style="font-size: 11px; font-weight: normal;"><?php echo !empty($key->prepare_by) ? htmlspecialchars($key->prepare_by) : 'Admin'; ?></span></td>
-                                                 <td><span class="label label-success" style="font-size: 11px; font-weight: normal;"><?php echo !empty($key->approved_by_name) ? htmlspecialchars($key->approved_by_name) : ($status == 4 ? 'Admin' : '-'); ?></span></td>
+                                                 <td>
+                                                     <?php if ($status == 4) { ?>
+                                                         <span class="label label-success" style="font-size: 11px; font-weight: normal;"><?php echo !empty($key->approved_by_name) ? htmlspecialchars($key->approved_by_name) : 'Admin'; ?></span>
+                                                     <?php } else { ?>
+                                                         -
+                                                     <?php } ?>
+                                                 </td>
 
                                                  <td>
                                                      <div class="dropdown">
@@ -219,8 +238,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                                  <!-- Draft/Sent/Viewed: cannot send to MRP yet -->
                                                                  <li><a href="javascript:void(0);" style="color:#bbb;cursor:not-allowed;" title="BOM must be Approved first"><i class="fa fa-lock text-muted"></i> Send to MRP (Locked)</a></li>
                                                              <?php } ?>
-                                                             <li role="presentation" class="divider"></li>
-                                                             <li><a href="<?php echo base_url() . 'BomController/delete_bom_by_bom_number/' . (isset($key->number) ? $key->number : ''); ?>" onclick="return confirm('Are you sure you want to delete this BOM?')">Delete</a></li>
+                                                             <?php if ($bom_status != 4) { ?>
+                                                                 <li role="presentation" class="divider"></li>
+                                                                 <li><a href="<?php echo base_url() . 'BomController/delete_bom_by_bom_number/' . (isset($key->number) ? $key->number : ''); ?>" onclick="return confirm('Are you sure you want to delete this BOM?')">Delete</a></li>
+                                                             <?php } ?>
                                                          </ul>
                                                      </div>
                                                 </td>

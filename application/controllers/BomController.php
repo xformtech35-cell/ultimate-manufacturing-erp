@@ -841,10 +841,11 @@ if (count($date_parts) == 3) {
 }
     public function index() {
         $data['bom_count'] = $this->bom->get_bom_count($this->user_id);
-        $draft_status = 1;
-        $data['bom_draft_count'] = $this->bom->get_bom_draft_count($draft_status, $this->user_id);
-        $sent_status = 2;
-        $data['bom_sent_count'] = $this->bom->get_bom_draft_count($sent_status, $this->user_id);
+        $data['bom_draft_count'] = $this->bom->get_bom_draft_count(1, $this->user_id);
+        $data['bom_sent_count'] = $this->bom->get_bom_draft_count(2, $this->user_id);
+        $data['bom_under_review_count'] = $this->bom->get_bom_draft_count(7, $this->user_id);
+        $data['bom_approved_count'] = $this->bom->get_bom_draft_count(4, $this->user_id);
+        $data['bom_rejected_count'] = $this->bom->get_bom_draft_count(5, $this->user_id);
         $data['boms'] = $this->bom->get_boms($this->user_id);
         $data['unit_result'] = $this->units->get_units($this->user_id);
         $data['settings'] = $this->login->get_settings($this->user_id);
@@ -863,6 +864,9 @@ if (count($date_parts) == 3) {
         $data['bom_count'] = $this->bom->get_bom_count($this->user_id);
         $data['bom_draft_count'] = $this->bom->get_bom_draft_count(1, $this->user_id);
         $data['bom_sent_count'] = $this->bom->get_bom_draft_count(2, $this->user_id);
+        $data['bom_under_review_count'] = $this->bom->get_bom_draft_count(7, $this->user_id);
+        $data['bom_approved_count'] = $this->bom->get_bom_draft_count(4, $this->user_id);
+        $data['bom_rejected_count'] = $this->bom->get_bom_draft_count(5, $this->user_id);
         $data['unit_result'] = $this->units->get_units($this->user_id);
         $data['settings'] = $this->login->get_settings($this->user_id);
         $data['bom_id'] = $this->bom->get_last_bom_number($this->user_id);
@@ -876,10 +880,11 @@ if (count($date_parts) == 3) {
     public function get_monthyearwise_record() {
         $month_year = $this->input->post('month_year');
         $data['bom_count'] = $this->bom->get_bom_count($this->user_id);
-        $draft_status = 1;
-        $data['bom_draft_count'] = $this->bom->get_bom_draft_count($draft_status, $this->user_id);
-        $sent_status = 2;
-        $data['bom_sent_count'] = $this->bom->get_bom_draft_count($sent_status, $this->user_id);
+        $data['bom_draft_count'] = $this->bom->get_bom_draft_count(1, $this->user_id);
+        $data['bom_sent_count'] = $this->bom->get_bom_draft_count(2, $this->user_id);
+        $data['bom_under_review_count'] = $this->bom->get_bom_draft_count(7, $this->user_id);
+        $data['bom_approved_count'] = $this->bom->get_bom_draft_count(4, $this->user_id);
+        $data['bom_rejected_count'] = $this->bom->get_bom_draft_count(5, $this->user_id);
         $data['unit_result'] = $this->units->get_units($this->user_id);
         $data['settings'] = $this->login->get_settings($this->user_id);
         $data['bom_id'] = $this->bom->get_last_bom_number($this->user_id);
@@ -894,10 +899,11 @@ if (count($date_parts) == 3) {
         $status = $this->uri->segment(3);
         $data['boms'] = $this->bom->get_bom_data_by_status($status, $this->user_id);
         $data['bom_count'] = $this->bom->get_bom_count($this->user_id);
-        $draft_status = 1;
-        $data['bom_draft_count'] = $this->bom->get_bom_draft_count($draft_status, $this->user_id);
-        $sent_status = 2;
-        $data['bom_sent_count'] = $this->bom->get_bom_draft_count($sent_status, $this->user_id);
+        $data['bom_draft_count'] = $this->bom->get_bom_draft_count(1, $this->user_id);
+        $data['bom_sent_count'] = $this->bom->get_bom_draft_count(2, $this->user_id);
+        $data['bom_under_review_count'] = $this->bom->get_bom_draft_count(7, $this->user_id);
+        $data['bom_approved_count'] = $this->bom->get_bom_draft_count(4, $this->user_id);
+        $data['bom_rejected_count'] = $this->bom->get_bom_draft_count(5, $this->user_id);
         
         $session_data_head = $this->session->userdata('session_data_head');
         $this->load->view('admin/header_side_bar', $session_data_head);
@@ -1135,6 +1141,13 @@ if (count($date_parts) == 3) {
         // Index 2 in array_slice corresponds to index 3 in 1-indexed URI segments
         $bom_segments = array_slice($segments, 2);
         $bom_number = implode('/', $bom_segments);
+
+        $status_res = $this->bom->get_status($bom_number, $this->user_id);
+        if (!empty($status_res) && isset($status_res[0]->status) && (int)$status_res[0]->status === 4) {
+            $this->session->set_flashdata('INFOMSG', "Approved BOM cannot be deleted!");
+            redirect('BomController/index');
+            return;
+        }
         
         $result = $this->bom->delete_bom_by_bom_number($bom_number, $this->user_id);
         $result1 = $this->bom->delete_bom_total_by_bom_number($bom_number, $this->user_id);
