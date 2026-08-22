@@ -1426,7 +1426,14 @@ class Requisition extends CI_Model
             return [];
         }
 
-        // First, let's check if the column exists by running a simpler query
+        if (is_array($item_ids)) {
+            $item_ids = array_values(array_unique(array_filter($item_ids)));
+        }
+
+        if (empty($item_ids)) {
+            return [];
+        }
+
         $this->db->select('
         pri.item_id,
         pri.pr_id,
@@ -1453,11 +1460,9 @@ class Requisition extends CI_Model
         $this->db->from('purchase_requisition_items pri');
         $this->db->join('purchase_requisition pr', 'pri.pr_id = pr.pr_id', 'left');
         $this->db->join('department_master d', 'pr.department_id_fk = d.department_id', 'left');
-        $this->db->join('user u', 'pr.requested_by = u.user_id', 'left');  // Changed from 'user' to 'user'
+        $this->db->join('user u', 'pr.requested_by = u.user_id', 'left');
         $this->db->where_in('pri.item_id', $item_ids);
-
-        // Debug: Show the SQL query
-        // echo $this->db->get_compiled_select(); die();
+        $this->db->group_by('pri.item_id');
 
         $query = $this->db->get();
         return $query->result();

@@ -52,6 +52,9 @@ class RFQController extends MY_Controller
         if ($this->input->server('REQUEST_METHOD') === 'POST') {
             $item_ids = $this->input->post('item_id');
             if (!empty($item_ids)) {
+                if (is_array($item_ids)) {
+                    $item_ids = array_values(array_unique(array_filter($item_ids)));
+                }
                 $data['pr_items']  = $this->requisition->get_requisition_items_by_item_ids($item_ids);
             }
         } else {

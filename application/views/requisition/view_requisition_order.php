@@ -612,7 +612,17 @@ if ($_has_project_master) {
                                                             'items' => array()
                                                         );
                                                     }
-                                                    $grouped_requisitions[$pr_key]['items'][] = $req;
+                                                    // Prevent duplicate item entries for the same PR item ID
+                                                    $exists = false;
+                                                    foreach ($grouped_requisitions[$pr_key]['items'] as $existing_item) {
+                                                        if (!empty($req->item_id) && !empty($existing_item->item_id) && $req->item_id == $existing_item->item_id) {
+                                                            $exists = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (!$exists) {
+                                                        $grouped_requisitions[$pr_key]['items'][] = $req;
+                                                    }
                                                 }
                                             }
                                             ?>
@@ -1065,6 +1075,9 @@ if ($_has_project_master) {
                 if (!confirm('Are you sure you want to convert ' + checkedItemIds.length + ' approved item(s) to RFQ?')) {
                     return false;
                 }
+
+                // Uncheck native checkboxes in form so only clean unique dynamic hidden inputs are submitted
+                $('.approved-checkbox, .item-checkbox').prop('checked', false);
 
                 // Clear any dynamic hidden item_id inputs to avoid duplicates
                 $('.dynamic-rfq-item-id').remove();
