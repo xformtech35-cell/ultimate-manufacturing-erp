@@ -4896,7 +4896,9 @@ function myFunction1(clicked_id) {
         .val(unit)
         .trigger("change");
 
-      $("#quantity" + row_idx).val("1");
+      if (!$("#quantity" + row_idx).val() || $("#quantity" + row_idx).val() == "0") {
+        $("#quantity" + row_idx).val("1");
+      }
       $("#gst_per" + row_idx).val(gst_per);
       $("#price" + row_idx).val(sell_price);
       $("#span_amount" + row_idx).text(rupee + amount.toFixed(2));

@@ -1094,7 +1094,7 @@ function hydrateBomItemSelects() {
         }
 
         if (resolvedValue) {
-            $select.val(resolvedValue).trigger('change');
+            $select.val(resolvedValue);
             $row.find('input.product_code').val(resolvedValue);
         }
     });
