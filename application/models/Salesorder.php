@@ -495,16 +495,16 @@ public function get_project_code($uid)
         $f_date = $parse_date($from_date);
         $t_date = $parse_date($to_date);
 
-        $this->db->select('salesorder_total.id, salesorder_total.project_code, customer.company_name as customer_name, customer.fullname, salesorder_id, gst_type, number, date, basic_total, total, status, u.username as created_by_name, u2.username as approved_by_name, salesorder_total.remarks');
-        $this->db->from('salesorder');
-        $this->db->join('salesorder_total', 'salesorder_total.number_fk=salesorder.number', 'Left Join');
-        $this->db->join('customer', 'customer.customer_id=salesorder.customer_id', 'Left Join');
-        $this->db->join('user u', 'salesorder.uid=u.user_id', 'Left Join');
-        $this->db->join('user u2', 'salesorder_total.approved_by=u2.user_id', 'Left Join');
-        $this->db->where('salesorder.date >=', $f_date);
-        $this->db->where('salesorder.date <=', $t_date);
-        $this->db->group_by('salesorder.number');
-        $this->db->order_by("salesorder.salesorder_id", "desc");
+        $this->db->select('salesorder_total.id, salesorder_total.project_code, customer.company_name as customer_name, customer.fullname, salesorder_total.number_fk as number, COALESCE(q.gst_type, "S") as gst_type, salesorder_total.date, salesorder_total.basic_total, salesorder_total.total, salesorder_total.status, u.username as created_by_name, u2.username as approved_by_name, salesorder_total.remarks');
+        $this->db->from('salesorder_total');
+        $this->db->join('customer', 'customer.customer_id=salesorder_total.customer_id_fk', 'left');
+        $this->db->join('salesorder q', 'q.number=salesorder_total.number_fk', 'left');
+        $this->db->join('user u', 'salesorder_total.uid=u.user_id', 'left');
+        $this->db->join('user u2', 'salesorder_total.approved_by=u2.user_id', 'left');
+        $this->db->where('salesorder_total.date >=', $f_date);
+        $this->db->where('salesorder_total.date <=', $t_date);
+        $this->db->group_by('salesorder_total.id');
+        $this->db->order_by('salesorder_total.id', 'desc');
         $query = $this->db->get();
         return $query->result();
     }
@@ -516,15 +516,15 @@ public function get_project_code($uid)
         $nmonth = date('m', strtotime($monthyear_arr[0]));
         $newmonthyear_str = $monthyear_arr[1] . '-' . $nmonth;
         //print_r($newmonthyear_str);die();
-        $this->db->select('salesorder_total.id, salesorder_total.project_code, customer.company_name as customer_name, customer.fullname, salesorder_id, gst_type, number, date, basic_total, total, status, u.username as created_by_name, u2.username as approved_by_name, salesorder_total.remarks');
-        $this->db->from('salesorder');
-        $this->db->like('date', $newmonthyear_str, 'both');
-        $this->db->join('salesorder_total', 'salesorder_total.number_fk=salesorder.number', 'Left Join');
-        $this->db->join('customer', 'customer.customer_id=salesorder.customer_id', 'Left Join');
-        $this->db->join('user u', 'salesorder.uid=u.user_id', 'Left Join');
-        $this->db->join('user u2', 'salesorder_total.approved_by=u2.user_id', 'Left Join');
-        $this->db->group_by('salesorder.number');
-        $this->db->order_by("salesorder.salesorder_id", "desc");
+        $this->db->select('salesorder_total.id, salesorder_total.project_code, customer.company_name as customer_name, customer.fullname, salesorder_total.number_fk as number, COALESCE(q.gst_type, "S") as gst_type, salesorder_total.date, salesorder_total.basic_total, salesorder_total.total, salesorder_total.status, u.username as created_by_name, u2.username as approved_by_name, salesorder_total.remarks');
+        $this->db->from('salesorder_total');
+        $this->db->join('customer', 'customer.customer_id=salesorder_total.customer_id_fk', 'left');
+        $this->db->join('salesorder q', 'q.number=salesorder_total.number_fk', 'left');
+        $this->db->join('user u', 'salesorder_total.uid=u.user_id', 'left');
+        $this->db->join('user u2', 'salesorder_total.approved_by=u2.user_id', 'left');
+        $this->db->like('salesorder_total.date', $newmonthyear_str, 'both');
+        $this->db->group_by('salesorder_total.id');
+        $this->db->order_by('salesorder_total.id', 'desc');
         $query = $this->db->get();
         return $query->result();
     }
