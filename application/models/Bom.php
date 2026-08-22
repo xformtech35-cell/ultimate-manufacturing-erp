@@ -139,10 +139,7 @@ Class Bom extends CI_Model {
         $this->db->join('user u2', 'bom_total.approved_by = u2.user_id', 'left');
         if ((int)$status === 5) {
             $prefix = $this->db->dbprefix;
-            $this->db->group_start();
-            $this->db->where('bom_total.status', 5);
-            $this->db->or_where("bom_total.number_fk IN (SELECT bom_number FROM {$prefix}bom_approvals WHERE status = 'rejected')", NULL, FALSE);
-            $this->db->group_end();
+            $this->db->where("({$prefix}bom_total.status = 5 OR {$prefix}bom_total.number_fk IN (SELECT bom_number FROM {$prefix}bom_approvals WHERE status = 'rejected'))", NULL, FALSE);
         } else {
             $this->db->where('bom_total.status', $status);
         }
@@ -290,10 +287,7 @@ Class Bom extends CI_Model {
         $this->db->from('bom_total');
         if ((int)$status === 5) {
             $prefix = $this->db->dbprefix;
-            $this->db->group_start();
-            $this->db->where('bom_total.status', 5);
-            $this->db->or_where("bom_total.number_fk IN (SELECT bom_number FROM {$prefix}bom_approvals WHERE status = 'rejected')", NULL, FALSE);
-            $this->db->group_end();
+            $this->db->where("({$prefix}bom_total.status = 5 OR {$prefix}bom_total.number_fk IN (SELECT bom_number FROM {$prefix}bom_approvals WHERE status = 'rejected'))", NULL, FALSE);
         } else {
             $this->db->where('bom_total.status', $status);
         }
