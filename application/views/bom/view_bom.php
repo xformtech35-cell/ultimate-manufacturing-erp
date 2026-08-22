@@ -121,9 +121,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             <th>Date</th>
                                             <th>BOM Number</th>
                                             <th>Company Name</th>
-                                            <th>SO/OC Number</th>
+                                            <th>SO / OC Number</th>
+                                            <th>System</th>
                                             <th>Created By</th>
                                             <th>Approved By</th>
+                                            <th>Remarks</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -166,7 +168,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                     }
                                                 ?></td>
                                                  <td>
-                                                     <a href="<?php echo base_url() . 'BomController/show_bom/' . $bom_id; ?>"><?php echo isset($key->number) ? $key->number : ''; ?></a>
+                                                     <a href="<?php echo base_url() . 'BomController/show_bom/' . $bom_id; ?>"><strong><?php echo isset($key->number) ? $key->number : ''; ?></strong></a>
                                                      <?php if (isset($key->send_to_mrp)) {
                                                          if ($key->send_to_mrp == 1) {
                                                              echo ' <span class="label label-warning" style="margin-left: 5px;">Sent to MRP</span>';
@@ -175,8 +177,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                          }
                                                      } ?>
                                                  </td>
-                                                 <td><?php echo isset($key->company_name) ? $key->company_name : ''; ?></td>
-                                                 <td><?php echo isset($key->oc_number) ? $key->oc_number : ''; ?></td>
+                                                 <td><?php echo isset($key->company_name) ? htmlspecialchars($key->company_name) : (!empty($key->fullname) ? htmlspecialchars($key->fullname) : ''); ?></td>
+                                                 <td>
+                                                     <?php echo isset($key->oc_number) ? htmlspecialchars($key->oc_number) : ''; ?>
+                                                     <?php if (!empty($key->project_code)): ?>
+                                                         <br><small class="text-muted">Project: <?php echo htmlspecialchars($key->project_code); ?></small>
+                                                     <?php endif; ?>
+                                                 </td>
+                                                 <td><?php echo isset($key->system) ? htmlspecialchars($key->system) : ''; ?></td>
                                                  <td><span class="label label-info" style="font-size: 11px; font-weight: normal;"><?php echo !empty($key->prepare_by) ? htmlspecialchars($key->prepare_by) : 'Admin'; ?></span></td>
                                                  <td>
                                                      <?php if ($status == 4) { ?>
@@ -185,6 +193,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                          -
                                                      <?php } ?>
                                                  </td>
+                                                 <td><small class="text-muted"><?php echo isset($key->note) ? htmlspecialchars($key->note) : ''; ?></small></td>
 
                                                  <td>
                                                      <div class="dropdown">
@@ -245,15 +254,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                          </ul>
                                                      </div>
                                                 </td>
-                                            </tr>
-                                        <?php
-                                            $i++;
-                                            }
-                                        } else { ?>
-                                            <tr>
-                                                <td colspan="7" class="text-center">No BOM records found</td>
-                                            </tr>
-                                        <?php } ?>
+                                             </tr>
+                                         <?php
+                                             $i++;
+                                             }
+                                         } else { ?>
+                                             <tr>
+                                                 <td colspan="11" class="text-center">No BOM records found</td>
+                                             </tr>
+                                         <?php } ?>
                                     </tbody>
                                 </table>
                             </div>
