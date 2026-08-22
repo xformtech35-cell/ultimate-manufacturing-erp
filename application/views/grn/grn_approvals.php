@@ -54,7 +54,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                                 <tr>
                                                                     <td><?= $i++ ?></td>
                                                                     <td>
-                                                                        <a href="<?= base_url('GrnController/view_grn_details/' . str_replace('/', '-', $approval['grn_number'])) ?>"
+                                                                        <a href="<?= base_url('GrnController/show_grn/' . $approval['grn_number']) ?>"
                                                                             class="text-primary" title="View GRN Details">
                                                                             <i class="fa fa-eye"></i> <?= html_escape($approval['grn_number'] ?? 'N/A') ?>
                                                                         </a>
@@ -88,7 +88,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                                     </td>
                                                                     <td>
                                                                         <div class="btn-group">
-                                                                             <a href="<?= base_url('GrnController/view_grn_details/' . str_replace('/', '-', $approval['grn_number'])) ?>"
+                                                                             <a href="<?= base_url('GrnController/show_grn/' . $approval['grn_number']) ?>"
                                                                                  class="btn btn-xs btn-info" title="View Details">
                                                                                  <i class="fa fa-eye"></i> View
                                                                              </a>
@@ -166,7 +166,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                                 <tr>
                                                                     <td><?= $i++ ?></td>
                                                                     <td>
-                                                                        <a href="<?= base_url('GrnController/show_grn_approval_details/' . str_replace('/', '-', $history['grn_number'])) ?>"
+                                                                        <a href="<?= base_url('GrnController/show_grn/' . $history['grn_number']) ?>"
                                                                             class="text-primary" title="View Details">
                                                                             <i class="fa fa-eye"></i> <?= html_escape($history['grn_number'] ?? 'N/A') ?>
                                                                         </a>

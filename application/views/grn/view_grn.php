@@ -84,7 +84,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                             <li role="presentation" class="divider"></li>
                                                             <li><a href="<?php echo base_url() . 'Pdf/grn_pdf/' . $key->grn_number ?>" name="btn_submit" id="download1" class="js-gear-download">Export As PDF</a></li>
                                                             <!-- Add this line for inspection report -->
-                                                            <li><a href="<?php echo base_url() . 'GrnController/conduct_inspection/' . $key->grn_number; ?>">Conduct Inspection</a></li>
+                                                            <!-- <li><a href="<?php echo base_url() . 'GrnController/conduct_inspection/' . $key->grn_number; ?>">Conduct Inspection</a></li> -->
 
                                                             <li><a href="<?php echo base_url() . 'GrnController/inspection_report/' . $key->grn_number; ?>">View Inspection Report</a></li>
                                                             <li><a href="<?php echo base_url() . 'GrnController/delete_grn_by_grn_number/' . $key->grn_number; ?>" class="js-gear-delete">Delete</a></li>
