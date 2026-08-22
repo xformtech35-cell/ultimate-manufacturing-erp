@@ -429,6 +429,12 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
                                         <div class="col-md-6">
                                              <div class="form-group row">
+                                                  <label for="number" class="col-sm-4 control-label">SO Number<span style="color: red;">*</span></label>
+                                                  <div class="col-sm-8">
+                                                      <input type="text" class="form-control input-sm" name="number" id="number" required="" placeholder="e.g. UWS-2526-DS-PIL-OC-242" oninput="this.value=this.value.toUpperCase()" autocomplete="off">
+                                                  </div>
+                                              </div>
+                                             <div class="form-group row">
                                                   <label for="system" class="col-sm-4 control-label">System<span style="color: red;">*</span></label>
                                                   <div class="col-sm-8">
                                                       <input type="text" class="form-control input-sm" name="system" id="system" required>
@@ -467,12 +473,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                      <input type="text" class="form-control input-sm" name="project_qty" id="project_qty">
                                                  </div>
                                              </div>
-                                             <div class="form-group row">
-                                                  <label for="number" class="col-sm-4 control-label">SO Number<span style="color: red;">*</span></label>
-                                                  <div class="col-sm-8">
-                                                      <input type="text" class="form-control input-sm" name="number" id="number" required="" placeholder="e.g. UWS-2526-DS-PIL-OC-242" oninput="this.value=this.value.toUpperCase()" autocomplete="off">
-                                                  </div>
-                                              </div>
 
 
                                              <div class="form-group row hide">

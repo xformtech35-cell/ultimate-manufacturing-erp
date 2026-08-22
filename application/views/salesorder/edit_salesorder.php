@@ -186,6 +186,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                              </div> -->
 
                                             <div class="form-group row">
+                                                <label for="number" class="col-sm-4 control-label">SO Number<span style="color: red;">*</span></label>
+                                                <div class="col-sm-8">
+                                                    <input type="text" class="form-control input-sm" name="number" id="number" required="" value="<?php echo htmlspecialchars($salesorders_data_group['number_fk'] ?? ''); ?>">
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group row">
                                                 <label for="system" class="col-sm-4 control-label">System<span style="color: red;">*</span></label>
                                                 <div class="col-sm-8">
                                                     <input type="text" class="form-control input-sm" name="system" id="system" required value="<?php echo htmlspecialchars($salesorders_data_group['system'] ?? ''); ?>">
@@ -227,13 +234,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                 <label for="project_qty" class="col-sm-4 control-label">Project Quantity</label>
                                                 <div class="col-sm-8">
                                                     <input type="text" class="form-control input-sm" name="project_qty" id="project_qty" value="<?php echo htmlspecialchars($salesorders_data_group['project_qty'] ?? ''); ?>">
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group row">
-                                                <label for="number" class="col-sm-4 control-label">SO Number<span style="color: red;">*</span></label>
-                                                <div class="col-sm-8">
-                                                    <input type="text" class="form-control input-sm" name="number" id="number" required="" value="<?php echo htmlspecialchars($salesorders_data_group['number_fk'] ?? ''); ?>">
                                                 </div>
                                             </div>
 
