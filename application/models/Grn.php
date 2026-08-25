@@ -15,7 +15,7 @@ class Grn extends CI_Model
     // Get PO details
     public function get_po_details_details($po_number, $uid)
     {
-        $this->db->select('po.*, pot.supplier_id_fk as supplier_id, pot.gst_type as po_gst_type');
+        $this->db->select('po.*, pot.supplier_id_fk as supplier_id, po.gst_type as po_gst_type');
         $this->db->from('purchase_order po');
         $this->db->join('po_total pot', 'pot.number_fk = po.number', 'left');
         $this->db->where('po.number', $po_number);
