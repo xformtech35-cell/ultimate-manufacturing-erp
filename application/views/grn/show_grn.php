@@ -27,6 +27,23 @@ if (empty($settings)) {
         'address' => ''
     ];
 }
+
+$is_igst = false;
+if (!empty($show_grn)) {
+    foreach ($show_grn as $item) {
+        if ((isset($item->gst_type) && $item->gst_type === 'I') || (isset($item->igst) && floatval($item->igst) > 0)) {
+            $is_igst = true;
+            break;
+        }
+    }
+}
+if (!$is_igst && !empty($grn_data_group['po_number_fk'])) {
+    $ci =& get_instance();
+    $po_chk = $ci->db->select('gst_type')->where('number', $grn_data_group['po_number_fk'])->get('purchase_order')->row_array();
+    if (!empty($po_chk['gst_type']) && $po_chk['gst_type'] === 'I') {
+        $is_igst = true;
+    }
+}
 ?>
 <style>
     /* Prevent top content/breadcrumbs from hiding under the fixed header */
@@ -239,10 +256,15 @@ if (empty($settings)) {
                                             $total_igst = 0;
                                             if (!empty($show_grn)) {
                                                 foreach ($show_grn as $key) {
-                                            $total_qty += isset($key->quantity) ? (float)$key->quantity : 0;
-                                            $total_sgst += isset($key->sgst) ? (float)$key->sgst : 0;
-                                            $total_cgst += isset($key->cgst) ? (float)$key->cgst : 0;
-                                            $total_igst += isset($key->igst) ? (float)$key->igst : 0;
+                                             $r_qty = isset($key->received_quantity) ? (float)$key->received_quantity : (isset($key->quantity) ? (float)$key->quantity : 0);
+                                             $r_price = isset($key->price) ? (float)$key->price : 0;
+                                             $r_gst_pct = (float)rtrim(isset($key->gst) ? $key->gst : '0', '%');
+                                             $row_igst = (isset($key->igst) && (float)$key->igst > 0) ? (float)$key->igst : ($is_igst ? (($r_qty * $r_price) * $r_gst_pct / 100) : 0);
+
+                                             $total_qty += isset($key->quantity) ? (float)$key->quantity : 0;
+                                             $total_sgst += isset($key->sgst) ? (float)$key->sgst : 0;
+                                             $total_cgst += isset($key->cgst) ? (float)$key->cgst : 0;
+                                             $total_igst += $row_igst;
                                             ?>
                                                     <tr>
                                                         <td><?php echo $i; ?></td>
@@ -253,7 +275,7 @@ if (empty($settings)) {
                                                         <td><?php echo isset($key->hsn_code) ? $key->hsn_code : ''; ?></td>
                                                         <td><?php echo isset($key->gst) ? $key->gst : ''; ?></td>
                                                         <?php if ($is_igst) { ?>
-                                                            <td class="gst"><?php echo isset($key->igst) ? number_format($key->igst, 2) : '0.00'; ?></td>
+                                                            <td class="gst"><?php echo number_format($row_igst, 2); ?></td>
                                                         <?php } else { ?>
                                                             <td class="gst"><?php echo isset($key->sgst) ? number_format($key->sgst, 2) : '0.00'; ?></td>
                                                             <td class="gst"><?php echo isset($key->cgst) ? number_format($key->cgst, 2) : '0.00'; ?></td>
