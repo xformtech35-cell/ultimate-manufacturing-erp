@@ -124,16 +124,36 @@ private function get_invoice_total_id($invoice_number)
     return $result ? $result->id : 0;
 }
 
+    private function prepare_status_counts(&$data)
+    {
+        $data['salesorder_count']          = $this->salesorder->get_salesorder_count($this->user_id);
+        $data['salesorder_draft_count']    = $this->salesorder->get_salesorder_draft_count(array(1, 'Draft', 'draft'), $this->user_id);
+        $data['salesorder_sent_count']     = $this->salesorder->get_salesorder_draft_count(array(2, 'Under Process', 'under process', 'Sent', 'sent'), $this->user_id);
+        $data['salesorder_viewed_count']   = $this->salesorder->get_salesorder_draft_count(array(3, 'Viewed', 'viewed'), $this->user_id);
+        $data['salesorder_approved_count'] = $this->salesorder->get_salesorder_draft_count(array(4, 'Approved', 'approved'), $this->user_id);
+        $data['salesorder_hold_count']     = $this->salesorder->get_salesorder_draft_count(array(5, 'Hold', 'hold'), $this->user_id);
+        $data['salesorder_canceled_count'] = $this->salesorder->get_salesorder_draft_count(array(6, 'Canceled', 'canceled', 'Cancelled', 'cancelled'), $this->user_id);
+    }
+
     public function get_salesorder_data_by_status()
     {
-        $status = $this->uri->segment(3);
-        $data['salesorders'] = $this->salesorder->get_salesorder_data_by_status($status, $this->user_id);
-        //
-        $data['salesorder_count'] = $this->salesorder->get_salesorder_count($this->user_id);
-        $draft_status = 1;
-        $data['salesorder_draft_count'] = $this->salesorder->get_salesorder_draft_count($draft_status, $this->user_id);
-        $sent_status = 2;
-        $data['salesorder_sent_count'] = $this->salesorder->get_salesorder_draft_count($sent_status, $this->user_id);
+        $status_param = $this->uri->segment(3);
+
+        $status_map = array(
+            '1' => array(1, 'Draft', 'draft'),
+            '2' => array(2, 'Under Process', 'under process', 'Sent', 'sent'),
+            '3' => array(3, 'Viewed', 'viewed'),
+            '4' => array(4, 'Approved', 'approved'),
+            '5' => array(5, 'Hold', 'hold'),
+            '6' => array(6, 'Canceled', 'canceled', 'Cancelled', 'cancelled')
+        );
+
+        $status_filter = isset($status_map[$status_param]) ? $status_map[$status_param] : $status_param;
+
+        $data['salesorders'] = $this->salesorder->get_salesorder_data_by_status($status_filter, $this->user_id);
+        
+        $this->prepare_status_counts($data);
+
         // Load system team users for CC selection
         $team_users = $this->db->select('username, user_email')
                                 ->from('user')
@@ -152,18 +172,14 @@ private function get_invoice_total_id($invoice_number)
     public function index()
     {
         $str = $this->input->get('str');
-        //print_r($str);die();
         if ($str == "All" || $str === null) {
             $data['salesorders'] = $this->salesorder->get_salesorders($this->user_id);
         } else {
             $month_year = date('M-y');
             $data['salesorders'] = $this->salesorder->get_monthyearwise_record($month_year, $this->user_id);
         }
-        $data['salesorder_count'] = $this->salesorder->get_salesorder_count($this->user_id);
-        $draft_status = 1;
-        $data['salesorder_draft_count'] = $this->salesorder->get_salesorder_draft_count($draft_status, $this->user_id);
-        $sent_status = 2;
-        $data['salesorder_sent_count'] = $this->salesorder->get_salesorder_draft_count($sent_status, $this->user_id);
+        
+        $this->prepare_status_counts($data);
 
         $data['product_name'] = $this->inventory->get_product_part_name($this->user_id);
         $data['settings'] = $this->login->get_settings($this->user_id);

@@ -89,15 +89,28 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 
 
-                            <ul class="nav nav-tabs">
+                            <?php
+                            $c_action = $this->uri->segment(2);
+                            $c_status = $this->uri->segment(3);
+                            ?>
+                            <ul class="nav nav-tabs" style="margin-bottom: 15px;">
                                 <li class="nav-item">
-                                    <a class="nav-link <?php echo ($this->uri->segment(2) == 'get_salesorder_data_by_status' && $this->uri->segment(3) == '2') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SalesOrderController/get_salesorder_data_by_status/2">Sent <span class="badge badge-light"> <?php echo $salesorder_sent_count; ?></span></a>
+                                    <a class="nav-link <?php echo ($c_action == 'get_salesorder_data_by_status' && $c_status == '1') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SalesOrderController/get_salesorder_data_by_status/1">Draft <span class="badge badge-light"><?php echo isset($salesorder_draft_count) ? $salesorder_draft_count : 0; ?></span></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link <?php echo ($this->uri->segment(2) == 'get_salesorder_data_by_status' && $this->uri->segment(3) == '1') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SalesOrderController/get_salesorder_data_by_status/1">Draft <span class="badge badge-light"> <?php echo $salesorder_draft_count; ?></span></a>
+                                    <a class="nav-link <?php echo ($c_action == 'get_salesorder_data_by_status' && $c_status == '2') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SalesOrderController/get_salesorder_data_by_status/2">Sent / Under Process <span class="badge badge-light"><?php echo isset($salesorder_sent_count) ? $salesorder_sent_count : 0; ?></span></a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link <?php echo ($this->uri->segment(2) == 'index' || $this->uri->segment(2) == '' || $this->uri->segment(2) == 'get_monthyearwise_record') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SalesOrderController/index?str=All">All Sales Orders <span class="badge badge-light"> <?php echo $salesorder_count; ?></span></a>
+                                    <a class="nav-link <?php echo ($c_action == 'get_salesorder_data_by_status' && $c_status == '4') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SalesOrderController/get_salesorder_data_by_status/4">Approved <span class="badge badge-light"><?php echo isset($salesorder_approved_count) ? $salesorder_approved_count : 0; ?></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($c_action == 'get_salesorder_data_by_status' && $c_status == '5') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SalesOrderController/get_salesorder_data_by_status/5">Hold <span class="badge badge-light"><?php echo isset($salesorder_hold_count) ? $salesorder_hold_count : 0; ?></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($c_action == 'get_salesorder_data_by_status' && $c_status == '6') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SalesOrderController/get_salesorder_data_by_status/6">Canceled <span class="badge badge-light"><?php echo isset($salesorder_canceled_count) ? $salesorder_canceled_count : 0; ?></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($c_action == 'index' || $c_action == '' || $c_action == 'get_monthyearwise_record' || $c_action == 'get_datewise_record') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SalesOrderController/index?str=All">All Sales Orders <span class="badge badge-light"><?php echo isset($salesorder_count) ? $salesorder_count : 0; ?></span></a>
                                 </li>
                             </ul>
 

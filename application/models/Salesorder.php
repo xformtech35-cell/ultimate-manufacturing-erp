@@ -240,7 +240,11 @@ class Salesorder extends CI_Model
         $this->db->join('user u2', 'u2.user_id = qt.approved_by', 'left');
         $this->db->join('customer c', 'c.customer_id=qt.customer_id_fk', 'left');
         $this->db->join('salesorder q', 'q.number=qt.number_fk', 'left');
-        $this->db->where('qt.status', $status);
+        if (is_array($status)) {
+            $this->db->where_in('qt.status', $status);
+        } else {
+            $this->db->where('qt.status', $status);
+        }
         // $this->db->where('qt.uid', $uid);
         $this->db->group_by('qt.id');
         $this->db->order_by('qt.id', 'DESC');
@@ -458,7 +462,11 @@ class Salesorder extends CI_Model
         }
         $this->db->select('*');
         $this->db->from('salesorder_total');
-        $this->db->where('salesorder_total.status', $status);
+        if (is_array($status)) {
+            $this->db->where_in('salesorder_total.status', $status);
+        } else {
+            $this->db->where('salesorder_total.status', $status);
+        }
         $query = $this->db->get();
         return $query->num_rows();
     }
