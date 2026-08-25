@@ -6,6 +6,36 @@ $(document).ready(function() {
         format: 'dd-mm-yyyy'
     });
     
+    var currentGstMode = 'S';
+
+    // IGST Button toggle
+    $('#toggle_igst_btn').click(function() {
+        if (currentGstMode === 'S') {
+            currentGstMode = 'I';
+            $(this).removeClass('btn-primary').addClass('btn-warning').text('GST (Intrastate)');
+            $('#dynamic_field tbody tr').each(function() {
+                var $row = $(this);
+                $row.find('.gst_type').val('I');
+                var gst = parseFloat($row.find('.gst_rate').val()) || 0;
+                $row.find('.igst_rate').val(gst);
+                $row.find('.sgst_rate').val(0);
+                $row.find('.cgst_rate').val(0);
+            });
+        } else {
+            currentGstMode = 'S';
+            $(this).removeClass('btn-warning').addClass('btn-primary').text('IGST');
+            $('#dynamic_field tbody tr').each(function() {
+                var $row = $(this);
+                $row.find('.gst_type').val('S');
+                var gst = parseFloat($row.find('.gst_rate').val()) || 0;
+                $row.find('.sgst_rate').val(gst / 2);
+                $row.find('.cgst_rate').val(gst / 2);
+                $row.find('.igst_rate').val(0);
+            });
+        }
+        calculateTotals();
+    });
+
     // PO change - load items
     $('#po_number').change(function() {
         var po_number = $(this).val();
@@ -20,6 +50,13 @@ $(document).ready(function() {
 
             $.post('<?php echo base_url(); ?>GrnController/get_po_details_details', {po_number: po_number}, function(data) {
                 if (data && data.length > 0) {
+                    if (data[0].po_gst_type === 'I' || data[0].gst_type === 'I') {
+                        currentGstMode = 'I';
+                        $('#toggle_igst_btn').removeClass('btn-primary').addClass('btn-warning').text('GST (Intrastate)');
+                    } else {
+                        currentGstMode = 'S';
+                        $('#toggle_igst_btn').removeClass('btn-warning').addClass('btn-primary').text('IGST');
+                    }
                     $('#dynamic_field tbody').empty();
                     $.each(data, function(index, item) {
                         addRow(item);
