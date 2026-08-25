@@ -55,6 +55,7 @@ $(document).ready(function() {
     $('#po_number').change(function() {
         var po_number = $(this).val();
         if (po_number) {
+            $('#po_number_fk').val(po_number);
             var baseGrn = $('#grn_number').val().split('/(')[0];
             var match = po_number.match(/\/\(([0-9]+\/[0-9]+)\)$/);
             if (match) {

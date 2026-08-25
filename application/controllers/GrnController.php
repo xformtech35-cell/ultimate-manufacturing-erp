@@ -127,6 +127,9 @@ class GrnController extends MY_Controller
         $supplier_id = $this->input->post('supplier_id');
         $grn_number = $this->input->post('grn_number');
         $po_number_fk = $this->input->post('po_number_fk');
+        if (empty($po_number_fk)) {
+            $po_number_fk = $this->input->post('po_number');
+        }
 
         // Auto-format grn_number with OC/SO suffix if not already present
         if (!empty($grn_number) && !preg_match('/\/\([0-9]+\/[0-9]+\)$/', $grn_number) && !empty($po_number_fk)) {
@@ -173,7 +176,7 @@ class GrnController extends MY_Controller
         $total_grn_amount1 = $this->input->post('total_quotation_amount');
 
         // Auto-resolve supplier_id from PO if missing
-        if (empty($supplier_id) && !empty($po_number_fk)) {
+        if ((empty($supplier_id) || $supplier_id == '0') && !empty($po_number_fk)) {
             $po_info = $this->db->select('supplier_id_fk')->where('number_fk', $po_number_fk)->get('po_total')->row_array();
             if (!empty($po_info['supplier_id_fk'])) {
                 $supplier_id = $po_info['supplier_id_fk'];
