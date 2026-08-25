@@ -139,9 +139,9 @@ if (date('m') <= 3) {
                                                 <th>Quantity</th>
                                                 <th>HSN Code</th>
                                                 <th>GST</th>
-                                                <th>SGST</th>
-                                                <th>CGST</th>
-                                                <th>IGST</th>
+                                                <th class="sgst_col">SGST</th>
+                                                <th class="cgst_col">CGST</th>
+                                                <th class="igst_col" style="display:none;">IGST</th>
                                                 <th>Received</th>
                                                 <th>Pending</th>
                                                 <th>Price/Unit</th>

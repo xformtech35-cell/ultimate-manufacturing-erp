@@ -8,11 +8,27 @@ $(document).ready(function() {
     
     var currentGstMode = 'S';
 
+    function applyGstMode(mode) {
+        currentGstMode = mode;
+        if (mode === 'I') {
+            $('#toggle_igst_btn').removeClass('btn-primary').addClass('btn-warning').text('GST (Intrastate)');
+            $('.sgst_col, .cgst_col').hide();
+            $('.igst_col').show();
+            $('#sgst_amount, #cgst_amount, #sgst_br, #cgst_br').hide();
+            $('#igst_amount, #igst_br').show();
+        } else {
+            $('#toggle_igst_btn').removeClass('btn-warning').addClass('btn-primary').text('IGST');
+            $('.igst_col').hide();
+            $('.sgst_col, .cgst_col').show();
+            $('#igst_amount, #igst_br').hide();
+            $('#sgst_amount, #cgst_amount, #sgst_br, #cgst_br').show();
+        }
+    }
+
     // IGST Button toggle
     $('#toggle_igst_btn').click(function() {
         if (currentGstMode === 'S') {
-            currentGstMode = 'I';
-            $(this).removeClass('btn-primary').addClass('btn-warning').text('GST (Intrastate)');
+            applyGstMode('I');
             $('#dynamic_field tbody tr').each(function() {
                 var $row = $(this);
                 $row.find('.gst_type').val('I');
@@ -22,8 +38,7 @@ $(document).ready(function() {
                 $row.find('.cgst_rate').val(0);
             });
         } else {
-            currentGstMode = 'S';
-            $(this).removeClass('btn-warning').addClass('btn-primary').text('IGST');
+            applyGstMode('S');
             $('#dynamic_field tbody tr').each(function() {
                 var $row = $(this);
                 $row.find('.gst_type').val('S');
@@ -50,13 +65,8 @@ $(document).ready(function() {
 
             $.post('<?php echo base_url(); ?>GrnController/get_po_details_details', {po_number: po_number}, function(data) {
                 if (data && data.length > 0) {
-                    if (data[0].po_gst_type === 'I' || data[0].gst_type === 'I') {
-                        currentGstMode = 'I';
-                        $('#toggle_igst_btn').removeClass('btn-primary').addClass('btn-warning').text('GST (Intrastate)');
-                    } else {
-                        currentGstMode = 'S';
-                        $('#toggle_igst_btn').removeClass('btn-warning').addClass('btn-primary').text('IGST');
-                    }
+                    var mode = (data[0].po_gst_type === 'I' || data[0].gst_type === 'I') ? 'I' : 'S';
+                    applyGstMode(mode);
                     $('#dynamic_field tbody').empty();
                     $.each(data, function(index, item) {
                         addRow(item);
@@ -212,9 +222,9 @@ $(document).ready(function() {
             <td><input type="number" name="quantity[]" class="form-control quantity" value="${quantity}" readonly /></td>
             <td><input type="text" name="hsn[]" class="form-control hsn" value="${item.hsn_code || ''}" /></td>
             <td><input type="number" step="0.01" name="gst_per[]" class="form-control gst_rate" value="${gst}" /></td>
-            <td><input type="number" step="0.01" name="sgst[]" class="form-control sgst_rate" value="${sgst}" /></td>
-            <td><input type="number" step="0.01" name="cgst[]" class="form-control cgst_rate" value="${cgst}" /></td>
-            <td><input type="number" step="0.01" name="igst[]" class="form-control igst_rate" value="${igst}" /></td>
+            <td class="sgst_col"><input type="number" step="0.01" name="sgst[]" class="form-control sgst_rate" value="${sgst}" /></td>
+            <td class="cgst_col"><input type="number" step="0.01" name="cgst[]" class="form-control cgst_rate" value="${cgst}" /></td>
+            <td class="igst_col"><input type="number" step="0.01" name="igst[]" class="form-control igst_rate" value="${igst}" /></td>
             <td><input type="number" step="0.01" name="received_quantity[]" class="form-control received_quantity" value="${pending_qty}" /></td>
             <td class="pending_qty">${pending_qty.toFixed(2)}</td>
             <td><input type="number" step="0.01" name="price[]" class="form-control price" value="${item.price || 0}" /></td>
@@ -222,6 +232,7 @@ $(document).ready(function() {
             <td><button type="button" class="btn btn-danger btn-xs remove_row">Remove</button></td>
         `);
         $('#dynamic_field tbody').append(row);
+        applyGstMode(currentGstMode);
 
         row.find('.gst_rate').change(function() {
             var new_gst = parseFloat($(this).val()) || 0;
@@ -269,9 +280,9 @@ $(document).ready(function() {
             <td><input type="number" name="quantity[]" class="form-control quantity" /></td>
             <td><input type="text" name="hsn[]" class="form-control hsn" /></td>
             <td><input type="number" step="0.01" name="gst_per[]" class="form-control gst_rate" /></td>
-            <td><input type="number" step="0.01" name="sgst[]" class="form-control sgst_rate" /></td>
-            <td><input type="number" step="0.01" name="cgst[]" class="form-control cgst_rate" /></td>
-            <td><input type="number" step="0.01" name="igst[]" class="form-control igst_rate" /></td>
+            <td class="sgst_col"><input type="number" step="0.01" name="sgst[]" class="form-control sgst_rate" /></td>
+            <td class="cgst_col"><input type="number" step="0.01" name="cgst[]" class="form-control cgst_rate" /></td>
+            <td class="igst_col"><input type="number" step="0.01" name="igst[]" class="form-control igst_rate" /></td>
             <td><input type="number" step="0.01" name="received_quantity[]" class="form-control received_quantity" /></td>
             <td>-</td>
             <td><input type="number" step="0.01" name="price[]" class="form-control price" /></td>
@@ -279,6 +290,7 @@ $(document).ready(function() {
             <td><button type="button" class="btn btn-danger btn-xs remove_row">Remove</button></td>
         `);
         $('#dynamic_field tbody').append(row);
+        applyGstMode(currentGstMode);
         row.find('.received_quantity, .price, .sgst_rate, .cgst_rate, .igst_rate, .gst_rate').change(function() {
             calculateRow(row);
             calculateTotals();
