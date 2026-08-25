@@ -1249,20 +1249,6 @@ class Supplier extends CI_Model
         return $query->result();
     }
 
-    public function get_po_count($uid)
-    {
-        $fy_year = $this->session->userdata('fy_year');
-        if (!empty($fy_year) && $fy_year !== 'all') {
-            $fy_from = $fy_year . '-04-01';
-            $fy_to   = ($fy_year + 1) . '-03-31';
-            $this->db->where('po_total.date >=', $fy_from);
-            $this->db->where('po_total.date <=', $fy_to);
-        }
-        $this->db->select('id');
-        $this->db->from('po_total');
-        $query = $this->db->get();
-        return $query->num_rows();
-    }
 
     public function get_po_status_count($status, $uid)
     {
