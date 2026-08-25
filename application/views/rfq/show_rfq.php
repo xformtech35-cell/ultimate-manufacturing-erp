@@ -127,7 +127,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label"><i class="fa fa-calendar-alt"></i> Quote Date *</label>
-                                                <input type="text" class="form-control datepicker" name="quote_date" required>
+                                                <input type="text" class="form-control datepicker" name="quote_date" autocomplete="off" required>
 
                                             </div>
                                         </div>
@@ -508,8 +508,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
             border-color: #dc3545;
         }
 
-        .datepicker {
-            z-index: 1151 !important;
+        .datepicker, .datepicker-dropdown {
+            z-index: 99999 !important;
         }
     </style>
 

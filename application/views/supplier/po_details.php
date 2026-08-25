@@ -44,9 +44,9 @@ defined('BASEPATH') or exit('No direct script access allowed');
                             <div class="box-header">
                                 <h3 class="box-title">Purchase Order - <?= $po['number_fk'] ?? 'N/A' ?></h3>
                                 <div class="pull-right">
-                                    <a href="<?= base_url('SupplierController/po_approvals') ?>" class="btn btn-success">
+                                    <!-- <a href="<?= base_url('SupplierController/po_approvals') ?>" class="btn btn-success">
                                         <i class="fa fa-list"></i> View PO Approvals
-                                    </a>
+                                    </a> -->
                                     <a href="<?= base_url('RFQController/index') ?>" class="btn btn-primary">
                                         <i class="fa fa-arrow-left"></i> Back to RFQ List
                                     </a>
