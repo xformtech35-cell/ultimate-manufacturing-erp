@@ -646,6 +646,16 @@ if ($_has_project_master) {
                                                     $is_single_item = ($item_count == 1);
                                                     $single_item    = $items[0];
                                                     $singleApproved = ($single_item->approval_status == 'Approved' && (isset($single_item->workflow_status) ? $single_item->workflow_status == 'Approved' : true));
+
+                                                    $approved_items_count = 0;
+                                                    $approved_item_ids = array();
+                                                    foreach ($items as $item) {
+                                                        $itemApproved = ($item->approval_status == 'Approved' && (isset($item->workflow_status) ? $item->workflow_status == 'Approved' : true));
+                                                        if ($itemApproved) {
+                                                            $approved_items_count++;
+                                                            $approved_item_ids[] = (int)$item->item_id;
+                                                        }
+                                                    }
                                                     ?>
                                                     <tr id="pr-row-<?php echo $pr_id; ?>" class="pr-parent-row <?php echo $rowClass; ?>" data-prid="<?php echo $pr_id; ?>" data-status="<?php echo htmlspecialchars($status); ?>" style="font-weight: 500;">
                                                         <td>
@@ -657,7 +667,7 @@ if ($_has_project_master) {
                                                                 <?php endif; ?>
                                                             <?php else: ?>
                                                                 <?php if ($approved_items_count > 0): ?>
-                                                                    <input type="checkbox" class="parent-pr-checkbox" data-prid="<?php echo $pr_id; ?>" title="Select/Deselect all approved items in this PR" />
+                                                                    <input type="checkbox" class="parent-pr-checkbox" data-prid="<?php echo $pr_id; ?>" data-itemids='<?php echo json_encode($approved_item_ids); ?>' title="Select/Deselect all approved items in this PR" />
                                                                 <?php else: ?>
                                                                     <input type="checkbox" disabled class="disabled-checkbox" title="No approved items in this PR" />
                                                                 <?php endif; ?>
@@ -940,6 +950,7 @@ if ($_has_project_master) {
                             
                             var $childContainer = $tr.next('tr').find('.collapse');
                             syncChildWidths($tr);
+                            syncChildCheckboxesWithParent($tr, prid);
                             
                             $childContainer.collapse('show');
                             $tr.addClass('shown');
@@ -963,17 +974,29 @@ if ($_has_project_master) {
                         $icon.removeClass('fa-minus-circle text-danger').addClass('fa-plus-circle text-primary');
                         $chevron.removeClass('fa-chevron-up').addClass('fa-chevron-down');
                         syncChildWidths($tr);
+                        syncChildCheckboxesWithParent($tr, prid);
                     }
                 } else {
                     var injectedRow = '<tr class="pr-child-row-injected"><td colspan="13" style="padding: 0 !important;"><div class="collapse" style="height: 0; overflow: hidden;">' + childHtml + '</div></td></tr>';
                     $tr.after(injectedRow);
                     var $childContainer = $tr.next('tr').find('.collapse');
                     syncChildWidths($tr);
+                    syncChildCheckboxesWithParent($tr, prid);
                     $childContainer.collapse('show');
                     $icon.removeClass('fa-plus-circle text-primary').addClass('fa-minus-circle text-danger');
                     $chevron.removeClass('fa-chevron-down').addClass('fa-chevron-up');
                 }
             });
+
+            // Helper to sync newly injected child checkboxes with parent checkbox state
+            function syncChildCheckboxesWithParent($tr, prid) {
+                var $parentCb = $tr.find('.parent-pr-checkbox');
+                if ($parentCb.length > 0) {
+                    var isParentChecked = $parentCb.prop('checked');
+                    var $nextTr = $tr.next('tr');
+                    $nextTr.find('.child-cb-' + prid + ':not(:disabled)').prop('checked', isParentChecked);
+                }
+            }
 
             // Dynamically synchronize widths of child row columns with parent columns
             function syncChildWidths($tr) {
@@ -1037,23 +1060,62 @@ if ($_has_project_master) {
                 });
             }
 
-            // Helper to get unique checked item IDs (handling dynamic rows and hidden templates)
+            // Helper to get unique checked item IDs (handling dynamic rows, collapsed PRs and hidden templates)
             function getCheckedItemIds() {
                 var checkedIds = [];
+
+                // 1. Collect item IDs from checked parent PR checkboxes (for collapsed multi-item PRs)
+                $('.parent-pr-checkbox:checked').each(function() {
+                    var itemIdsAttr = $(this).attr('data-itemids') || $(this).data('itemids');
+                    if (itemIdsAttr) {
+                        try {
+                            var ids = typeof itemIdsAttr === 'string' ? JSON.parse(itemIdsAttr) : itemIdsAttr;
+                            if (Array.isArray(ids)) {
+                                $.each(ids, function(i, id) {
+                                    var idVal = String(id);
+                                    if (idVal && checkedIds.indexOf(idVal) === -1) {
+                                        checkedIds.push(idVal);
+                                    }
+                                });
+                            }
+                        } catch(e) {}
+                    }
+                });
+
+                // 2. Collect item IDs from individually checked approved checkboxes (visible single items / expanded child rows)
                 $('.approved-checkbox:checked').each(function() {
-                    var val = $(this).val();
+                    var val = String($(this).val());
                     if (val && checkedIds.indexOf(val) === -1) {
                         checkedIds.push(val);
                     }
                 });
+
                 return checkedIds;
             }
 
-            // Sync state between visible checkboxes and template checkboxes
+            // Sync state between visible checkboxes and template checkboxes, and update parent PR checkbox status
             $(document).on('change', '.approved-checkbox', function() {
                 var itemId = $(this).val();
                 var isChecked = $(this).prop('checked');
+
                 $('.approved-checkbox[value="' + itemId + '"]').not(this).prop('checked', isChecked);
+
+                // Update parent PR checkbox if inside an expanded child row
+                var $tableDetails = $(this).closest('table.table-details');
+                if ($tableDetails.length > 0) {
+                    var $childRowContainer = $tableDetails.closest('tr');
+                    var $parentRow = $childRowContainer.prev('tr.pr-parent-row');
+                    if ($parentRow.length > 0) {
+                        var prid = $parentRow.data('prid');
+                        var $allChildCbs = $tableDetails.find('.child-cb-' + prid + ':not(:disabled)');
+                        var $checkedChildCbs = $tableDetails.find('.child-cb-' + prid + ':not(:disabled):checked');
+                        var $parentCb = $parentRow.find('.parent-pr-checkbox');
+                        if ($parentCb.length > 0 && $allChildCbs.length > 0) {
+                            $parentCb.prop('checked', $allChildCbs.length === $checkedChildCbs.length);
+                        }
+                    }
+                }
+
                 updateConvertButton();
             });
 
@@ -1061,14 +1123,16 @@ if ($_has_project_master) {
             $(document).on('change', '.parent-pr-checkbox', function() {
                 var prid = $(this).data('prid');
                 var isChecked = $(this).prop('checked');
-                $('.child-cb-' + prid + ':not(:disabled)').prop('checked', isChecked).trigger('change');
+                $('.child-cb-' + prid + ':not(:disabled)').prop('checked', isChecked);
+                updateConvertButton();
             });
 
             // Select All functionality - checks all approved checkboxes across all PRs
             $('#selectAll').click(function() {
                 var isChecked = $(this).prop('checked');
-                $('.approved-checkbox:not(:disabled)').prop('checked', isChecked).trigger('change');
                 $('.parent-pr-checkbox:not(:disabled)').prop('checked', isChecked);
+                $('.approved-checkbox:not(:disabled)').prop('checked', isChecked);
+                updateConvertButton();
             });
 
             // Update Convert button state
