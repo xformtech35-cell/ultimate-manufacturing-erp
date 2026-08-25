@@ -65,6 +65,9 @@ $(document).ready(function() {
 
             $.post('<?php echo base_url(); ?>GrnController/get_po_details_details', {po_number: po_number}, function(data) {
                 if (data && data.length > 0) {
+                    if (data[0].supplier_id) {
+                        $('#supplier_id').val(data[0].supplier_id);
+                    }
                     var mode = (data[0].po_gst_type === 'I' || data[0].gst_type === 'I') ? 'I' : 'S';
                     applyGstMode(mode);
                     $('#dynamic_field tbody').empty();
@@ -226,7 +229,10 @@ $(document).ready(function() {
             <td class="cgst_col"><input type="number" step="0.01" name="cgst[]" class="form-control cgst_rate" value="${cgst}" /></td>
             <td class="igst_col"><input type="number" step="0.01" name="igst[]" class="form-control igst_rate" value="${igst}" /></td>
             <td><input type="number" step="0.01" name="received_quantity[]" class="form-control received_quantity" value="${pending_qty}" /></td>
-            <td class="pending_qty">${pending_qty.toFixed(2)}</td>
+            <td class="pending_qty_cell">
+                <input type="hidden" name="pending_quantity[]" class="pending_quantity" value="${pending_qty.toFixed(2)}" />
+                <span class="pending_qty_text">${pending_qty.toFixed(2)}</span>
+            </td>
             <td><input type="number" step="0.01" name="price[]" class="form-control price" value="${item.price || 0}" /></td>
             <td class="amount">₹0.00</td>
             <td><button type="button" class="btn btn-danger btn-xs remove_row">Remove</button></td>
@@ -261,7 +267,9 @@ $(document).ready(function() {
     function updatePendingQty(row) {
         var qty = parseFloat(row.find('.quantity').val()) || 0;
         var rec = parseFloat(row.find('.received_quantity').val()) || 0;
-        row.find('.pending_qty').text(Math.max(0, qty - rec).toFixed(2));
+        var p_qty = Math.max(0, qty - rec);
+        row.find('.pending_quantity').val(p_qty.toFixed(2));
+        row.find('.pending_qty_text').text(p_qty.toFixed(2));
     }
     
     // Add new row button if needed
@@ -284,7 +292,10 @@ $(document).ready(function() {
             <td class="cgst_col"><input type="number" step="0.01" name="cgst[]" class="form-control cgst_rate" /></td>
             <td class="igst_col"><input type="number" step="0.01" name="igst[]" class="form-control igst_rate" /></td>
             <td><input type="number" step="0.01" name="received_quantity[]" class="form-control received_quantity" /></td>
-            <td>-</td>
+            <td class="pending_qty_cell">
+                <input type="hidden" name="pending_quantity[]" class="pending_quantity" value="0.00" />
+                <span class="pending_qty_text">-</span>
+            </td>
             <td><input type="number" step="0.01" name="price[]" class="form-control price" /></td>
             <td class="amount">₹0.00</td>
             <td><button type="button" class="btn btn-danger btn-xs remove_row">Remove</button></td>

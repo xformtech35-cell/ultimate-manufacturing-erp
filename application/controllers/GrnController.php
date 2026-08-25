@@ -172,40 +172,60 @@ class GrnController extends MY_Controller
         $invoice_date = $this->input->post('invoice_date');
         $total_grn_amount1 = $this->input->post('total_quotation_amount');
 
+        // Auto-resolve supplier_id from PO if missing
+        if (empty($supplier_id) && !empty($po_number_fk)) {
+            $po_info = $this->db->select('supplier_id_fk')->where('number_fk', $po_number_fk)->get('po_total')->row_array();
+            if (!empty($po_info['supplier_id_fk'])) {
+                $supplier_id = $po_info['supplier_id_fk'];
+            } else {
+                $po_line = $this->db->select('supplier_id')->where('number', $po_number_fk)->get('purchase_order')->row_array();
+                if (!empty($po_line['supplier_id'])) {
+                    $supplier_id = $po_line['supplier_id'];
+                }
+            }
+        }
+
         $item_count = is_array($product_name) ? count($product_name) : 0;
         $data = array();
 
         for ($i = 0; $i < $item_count; $i++) {
-            if (!empty($product_name[$i]) && $quantity[$i] != '' && $price[$i] != '') {
+            $p_name  = isset($product_name[$i]) ? $product_name[$i] : '';
+            $p_qty   = isset($quantity[$i]) ? (float)$quantity[$i] : 0;
+            $p_price = isset($price[$i]) ? (float)$price[$i] : 0;
+
+            if (!empty($p_name) && isset($quantity[$i]) && $quantity[$i] !== '' && isset($price[$i]) && $price[$i] !== '') {
+                $rec_qty  = isset($received_quantity[$i]) ? (float)$received_quantity[$i] : 0;
+                $pend_qty = (is_array($pending_quantity) && isset($pending_quantity[$i])) ? (float)$pending_quantity[$i] : max(0, $p_qty - $rec_qty);
+
                 $data[] = array(
                     'supplier_id' => $supplier_id,
                     'grn_number' => $grn_number,
                     'po_number_fk' => $po_number_fk,
                     'date' => $this->input->post('date'),
                     'note' => $note,
-                    'product_name' => $product_name[$i],
-                    'quantity' => $quantity[$i],
-                    'hsn_code' => $hsn[$i],
-                    'gst' => $gst_per[$i],
+                    'product_name' => $p_name,
+                    'quantity' => $p_qty,
+                    'hsn_code' => isset($hsn[$i]) ? $hsn[$i] : '',
+                    'gst' => isset($gst_per[$i]) ? $gst_per[$i] : '0',
                     'sgst' => isset($sgst[$i]) ? $sgst[$i] : '0',
                     'cgst' => isset($cgst[$i]) ? $cgst[$i] : '0',
                     'igst' => isset($igst[$i]) ? $igst[$i] : '0',
                     'gst_type' => is_array($row_gst_type) ? (isset($row_gst_type[$i]) ? $row_gst_type[$i] : 'S') : (!empty($row_gst_type) ? $row_gst_type : 'S'),
-                    'received_quantity' => $received_quantity[$i],
-                    'pending_quantity' => $pending_quantity[$i],
-                    'price' => $price[$i],
-                    'description' => $description[$i],
+                    'received_quantity' => $rec_qty,
+                    'pending_quantity' => $pend_qty,
+                    'price' => $p_price,
+                    'description' => isset($description[$i]) ? $description[$i] : '',
                     'invoice_number' => $invoice_number,
                     'invoice_date' => $invoice_date,
                     'uid' => $this->user_id,
                 );
 
-                $pending_qty = array(
-                    'po_pending_quantity' => $pending_quantity[$i],
+                $pending_qty_arr = array(
+                    'po_pending_quantity' => $pend_qty,
                     'uid' => $this->user_id,
                 );
 
-                $this->grn->add_pending_qty_to_po_table($pending_qty, $po_number_fk, $product_name[$i], $this->user_id);
+                $this->grn->add_pending_qty_to_po_table($pending_qty_arr, $po_number_fk, $p_name, $this->user_id);
             }
         }
 
