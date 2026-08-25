@@ -197,6 +197,8 @@ if (date('m') <= 3) {
 
 
                 <script>
+                    <?php $this->load->view('grn/create_grn.js'); ?>
+
                     $(document).ready(function() {
                         // Form submit validation for GRN
                         $('#add_name').submit(function(e) {
@@ -208,8 +210,8 @@ if (date('m') <= 3) {
                             }
                             var hasValidRow = false;
                             trs.each(function() {
-                                var received = parseFloat($(this).find('.received_quantity_auto').val()) || 0;
-                                var price = parseFloat($(this).find('.price_auto').val()) || 0;
+                                var received = parseFloat($(this).find('.received_quantity').val()) || 0;
+                                var price = parseFloat($(this).find('.price').val()) || 0;
                                 if (received > 0 && price > 0) {
                                     hasValidRow = true;
                                     return false; // break
