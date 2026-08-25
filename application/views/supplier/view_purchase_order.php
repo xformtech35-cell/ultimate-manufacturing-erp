@@ -202,6 +202,33 @@ $selected_month_year = isset($selected_month_year) ? $selected_month_year : date
                                 </div>
                                 <div style="clear: both !important;"></div>
                             </div>
+                            <?php
+                            $c_action = $this->uri->segment(2);
+                            $c_status = $this->uri->segment(3);
+                            ?>
+                            <ul class="nav nav-tabs" style="margin-bottom: 15px; margin-top: 10px; padding-left: 15px; padding-right: 15px;">
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($c_action == 'get_po_data_by_status' && $c_status == '1') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SupplierController/get_po_data_by_status/1">Draft <span class="badge badge-light"><?php echo isset($po_draft_count) ? $po_draft_count : 0; ?></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($c_action == 'get_po_data_by_status' && $c_status == '2') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SupplierController/get_po_data_by_status/2">Pending <span class="badge badge-light"><?php echo isset($po_pending_count) ? $po_pending_count : 0; ?></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($c_action == 'get_po_data_by_status' && $c_status == '4') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SupplierController/get_po_data_by_status/4">Approved <span class="badge badge-light"><?php echo isset($po_approved_count) ? $po_approved_count : 0; ?></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($c_action == 'get_po_data_by_status' && $c_status == '5') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SupplierController/get_po_data_by_status/5">Rejected <span class="badge badge-light"><?php echo isset($po_rejected_count) ? $po_rejected_count : 0; ?></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($c_action == 'get_po_data_by_status' && $c_status == '6') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SupplierController/get_po_data_by_status/6">Cancelled <span class="badge badge-light"><?php echo isset($po_cancelled_count) ? $po_cancelled_count : 0; ?></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($c_action == 'get_po_data_by_status' && $c_status == '7') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SupplierController/get_po_data_by_status/7">Accepted <span class="badge badge-light"><?php echo isset($po_accepted_count) ? $po_accepted_count : 0; ?></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link <?php echo ($c_action == 'view_purchase_order' || $c_action == 'index' || $c_action == '') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>SupplierController/view_purchase_order?str=All">All Purchase Orders <span class="badge badge-light"><?php echo isset($po_count) ? $po_count : 0; ?></span></a>
+                                </li>
+                            </ul>
                             <!-- /.box-header -->
                               <div class="box-body no-padding">
                                   <table id="view_purchase_order" class="table table-hover table-striped" style="margin-bottom: 0;">

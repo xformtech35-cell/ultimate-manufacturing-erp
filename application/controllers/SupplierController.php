@@ -91,6 +91,57 @@ class SupplierController extends MY_Controller
         $this->load->view('supplier/add_supplier', $data);
     }
 
+    private function prepare_po_status_counts(&$data)
+    {
+        $data['po_count']           = $this->supplier->get_po_count($this->user_id);
+        $data['po_draft_count']     = $this->supplier->get_po_status_count(array(1, 'Draft', 'draft'), $this->user_id);
+        $data['po_pending_count']   = $this->supplier->get_po_status_count(array(2, 'Pending', 'pending'), $this->user_id);
+        $data['po_viewed_count']    = $this->supplier->get_po_status_count(array(3, 'Viewed', 'viewed'), $this->user_id);
+        $data['po_approved_count']  = $this->supplier->get_po_status_count(array(4, 'Approved', 'approved'), $this->user_id);
+        $data['po_rejected_count']  = $this->supplier->get_po_status_count(array(5, 'Rejected', 'rejected'), $this->user_id);
+        $data['po_cancelled_count'] = $this->supplier->get_po_status_count(array(6, 'Cancelled', 'canceled', 'cancelled'), $this->user_id);
+        $data['po_accepted_count']  = $this->supplier->get_po_status_count(array(7, 'Accepted', 'accepted'), $this->user_id);
+    }
+
+    public function get_po_data_by_status()
+    {
+        $status_param = $this->uri->segment(3);
+
+        $status_map = array(
+            '1' => array(1, 'Draft', 'draft'),
+            '2' => array(2, 'Pending', 'pending'),
+            '3' => array(3, 'Viewed', 'viewed'),
+            '4' => array(4, 'Approved', 'approved'),
+            '5' => array(5, 'Rejected', 'rejected'),
+            '6' => array(6, 'Cancelled', 'canceled', 'cancelled'),
+            '7' => array(7, 'Accepted', 'accepted')
+        );
+
+        $status_filter = isset($status_map[$status_param]) ? $status_map[$status_param] : $status_param;
+
+        $data['purchase_order'] = $this->supplier->get_po_data_by_status($status_filter, $this->user_id);
+        $data['from_date'] = '';
+        $data['to_date'] = '';
+
+        $this->prepare_po_status_counts($data);
+
+        $data['settings'] = $this->login->get_settings($this->user_id);
+        $data['po_id'] = $this->supplier->get_last_po_number($this->user_id);
+        $data['result'] = $this->supplier->get_supplier($this->user_id);
+
+        $data['team_users'] = $this->db->select('username, user_email')
+                                       ->from('user')
+                                       ->where('user_email IS NOT NULL')
+                                       ->where('user_email !=', '')
+                                       ->group_by('user_email')
+                                       ->get()
+                                       ->result_array();
+
+        $session_data_head = $this->session->userdata('session_data_head');
+        $this->load->view('admin/header_side_bar', $session_data_head);
+        $this->load->view('supplier/view_purchase_order', $data);
+    }
+
     public function view_purchase_order()
     {
         $str = $this->input->get('str');
@@ -112,6 +163,8 @@ class SupplierController extends MY_Controller
             $data['from_date'] = '';
             $data['to_date'] = '';
         }
+
+        $this->prepare_po_status_counts($data);
 
         $data['settings'] = $this->login->get_settings($this->user_id);
         $data['po_id'] = $this->supplier->get_last_po_number($this->user_id);

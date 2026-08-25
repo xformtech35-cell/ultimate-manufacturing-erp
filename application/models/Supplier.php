@@ -1222,4 +1222,65 @@ class Supplier extends CI_Model
     {
         return $this->db->insert_batch('supplier', $vendors);
     }
+
+    public function get_po_data_by_status($status, $uid)
+    {
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year) && $fy_year !== 'all') {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31';
+            $this->db->where('po_total.date >=', $fy_from);
+            $this->db->where('po_total.date <=', $fy_to);
+        }
+
+        $this->db->select('* ,number, SUM(purchase_pay_amount) as total_balance_amount');
+        $this->db->from('purchase_order');
+        $this->db->join('supplier', 'supplier.supplier_id=purchase_order.supplier_id', 'Left Join');
+        $this->db->join('po_total', 'po_total.number_fk=purchase_order.number', 'Right Join');
+        $this->db->join('purchase_payment_gst', 'purchase_payment_gst.purchase_number_fk=po_total.number_fk', 'Left');
+        if (is_array($status)) {
+            $this->db->where_in('po_total.status', $status);
+        } else {
+            $this->db->where('po_total.status', $status);
+        }
+        $this->db->group_by('purchase_order.number');
+        $this->db->order_by("purchase_order.po_id", "desc");
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    public function get_po_count($uid)
+    {
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year) && $fy_year !== 'all') {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31';
+            $this->db->where('po_total.date >=', $fy_from);
+            $this->db->where('po_total.date <=', $fy_to);
+        }
+        $this->db->select('id');
+        $this->db->from('po_total');
+        $query = $this->db->get();
+        return $query->num_rows();
+    }
+
+    public function get_po_status_count($status, $uid)
+    {
+        $fy_year = $this->session->userdata('fy_year');
+        if (!empty($fy_year) && $fy_year !== 'all') {
+            $fy_from = $fy_year . '-04-01';
+            $fy_to   = ($fy_year + 1) . '-03-31';
+            $this->db->where('po_total.date >=', $fy_from);
+            $this->db->where('po_total.date <=', $fy_to);
+        }
+        $this->db->select('id');
+        $this->db->from('po_total');
+        if (is_array($status)) {
+            $this->db->where_in('po_total.status', $status);
+        } else {
+            $this->db->where('po_total.status', $status);
+        }
+        $query = $this->db->get();
+        return $query->num_rows();
+    }
 }
