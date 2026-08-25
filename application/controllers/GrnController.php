@@ -150,9 +150,19 @@ class GrnController extends MY_Controller
         $quantity = $this->input->post('quantity');
         $hsn = $this->input->post('hsn');
 
+        // Self-healing schema check for grn table
+        if (!$this->db->field_exists('igst', 'grn')) {
+            $this->db->query("ALTER TABLE `{$this->db->dbprefix}grn` ADD COLUMN `igst` DECIMAL(10,2) DEFAULT '0.00' AFTER `cgst`");
+        }
+        if (!$this->db->field_exists('gst_type', 'grn')) {
+            $this->db->query("ALTER TABLE `{$this->db->dbprefix}grn` ADD COLUMN `gst_type` VARCHAR(10) DEFAULT 'S' AFTER `igst`");
+        }
+
         $gst_per = $this->input->post('gst_per');
         $sgst = $this->input->post('sgst');
         $cgst = $this->input->post('cgst');
+        $igst = $this->input->post('igst');
+        $row_gst_type = $this->input->post('gst_type');
 
         $received_quantity = $this->input->post('received_quantity');
         $pending_quantity = $this->input->post('pending_quantity');
@@ -177,8 +187,10 @@ class GrnController extends MY_Controller
                     'quantity' => $quantity[$i],
                     'hsn_code' => $hsn[$i],
                     'gst' => $gst_per[$i],
-                    'sgst' => $sgst[$i],
-                    'cgst' => $cgst[$i],
+                    'sgst' => isset($sgst[$i]) ? $sgst[$i] : '0',
+                    'cgst' => isset($cgst[$i]) ? $cgst[$i] : '0',
+                    'igst' => isset($igst[$i]) ? $igst[$i] : '0',
+                    'gst_type' => is_array($row_gst_type) ? (isset($row_gst_type[$i]) ? $row_gst_type[$i] : 'S') : (!empty($row_gst_type) ? $row_gst_type : 'S'),
                     'received_quantity' => $received_quantity[$i],
                     'pending_quantity' => $pending_quantity[$i],
                     'price' => $price[$i],

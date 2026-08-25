@@ -140,6 +140,7 @@ if (date('m') <= 3) {
                                                 <th>GST</th>
                                                 <th>SGST</th>
                                                 <th>CGST</th>
+                                                <th>IGST</th>
                                                 <th>Received</th>
                                                 <th>Pending</th>
                                                 <th>Price/Unit</th>
@@ -157,8 +158,9 @@ if (date('m') <= 3) {
                                             <!--<span id="total_grn_amount" name="total_grn_amount">Grand Total: ₹0.00</span><br>-->
                                             <input type="hidden" name="total_grn_amount1" id="total_grn_amount1" class="form-control input-sm basic_total" value="0.00" />
                                             <div style="font-size:10px; margin-bottom:2px;">
-                                                <span class="text" id="sgst_amount" name="sgst_amount[]"><b>SGST Amount:</b> ₹0.00</span><br> &nbsp;
-                                                <span class="text" id="cgst_amount" name="cgst_amount[]"><b>CGST Amount:</b> ₹0.00</span><br> &nbsp;
+                                                <span class="text" id="sgst_amount" name="sgst_amount[]"><b>SGST Amount:</b> ₹0.00</span><br id="sgst_br">
+                                                <span class="text" id="cgst_amount" name="cgst_amount[]"><b>CGST Amount:</b> ₹0.00</span><br id="cgst_br">
+                                                <span class="text" id="igst_amount" name="igst_amount[]" style="display:none;"><b>IGST Amount:</b> ₹0.00</span><br id="igst_br" style="display:none;">
                                                 <span class="text" id="grand_total_amount"><b>Grand Total:</b> ₹0.00</span>
                                             </div>
                                             <input type="hidden" name="total_quotation_amount" id="total_quotation_amount" class="form-control input-sm name_list" value="0.00" />

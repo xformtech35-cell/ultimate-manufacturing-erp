@@ -15,12 +15,12 @@ class Grn extends CI_Model
     // Get PO details
     public function get_po_details_details($po_number, $uid)
     {
-        $this->db->select('supplier_id, number');
-        $this->db->from('purchase_order');
-        $this->db->where('number', $po_number);
-        $this->db->group_by('purchase_order.number');
+        $this->db->select('po.*, pot.supplier_id_fk as supplier_id, pot.gst_type as po_gst_type');
+        $this->db->from('purchase_order po');
+        $this->db->join('po_total pot', 'pot.number_fk = po.number', 'left');
+        $this->db->where('po.number', $po_number);
         $query = $this->db->get();
-        return $query->row_array();
+        return $query->result_array();
     }
 
     // Get GRN data

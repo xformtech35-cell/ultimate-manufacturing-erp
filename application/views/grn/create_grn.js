@@ -90,20 +90,27 @@ $(document).ready(function() {
         var subtotal = received * price;
         var sgst_rate = parseFloat(row.find('.sgst_rate').val()) || 0;
         var cgst_rate = parseFloat(row.find('.cgst_rate').val()) || 0;
-        row.find('.subtotal').val(subtotal.toFixed(2));
+        var igst_rate = parseFloat(row.find('.igst_rate').val()) || 0;
+
         var sgst_amt = (subtotal * sgst_rate / 100);
         var cgst_amt = (subtotal * cgst_rate / 100);
+        var igst_amt = (subtotal * igst_rate / 100);
+
+        row.find('.subtotal').val(subtotal.toFixed(2));
         row.find('.sgst_amount').val(sgst_amt.toFixed(2));
         row.find('.cgst_amount').val(cgst_amt.toFixed(2));
-        var row_total = subtotal + sgst_amt + cgst_amt;
+        row.find('.igst_amount').val(igst_amt.toFixed(2));
+
+        var row_total = subtotal + sgst_amt + cgst_amt + igst_amt;
         row.find('.amount').text('₹' + row_total.toFixed(2));
         return row_total;
     }
     
-function calculateTotals() {
+    function calculateTotals() {
         var basic_total = 0;
         var total_sgst = 0;
         var total_cgst = 0;
+        var total_igst = 0;
         var grand_total = 0;
         
         $('#dynamic_field tbody tr').each(function() {
@@ -111,6 +118,7 @@ function calculateTotals() {
             basic_total += parseFloat($(this).find('.subtotal').val()) || 0;
             total_sgst += parseFloat($(this).find('.sgst_amount').val()) || 0;
             total_cgst += parseFloat($(this).find('.cgst_amount').val()) || 0;
+            total_igst += parseFloat($(this).find('.igst_amount').val()) || 0;
             grand_total += row_total;
         });
         
@@ -118,26 +126,58 @@ function calculateTotals() {
         $('#total_quotation_amount').val(grand_total.toFixed(2));
         
         $('#basic_total_display').text('Basic Total: ₹' + basic_total.toFixed(2));
-        $('#sgst_amount').text('SGST Amount: ₹' + total_sgst.toFixed(2));
-        $('#cgst_amount').text('CGST Amount: ₹' + total_cgst.toFixed(2));
-        $('#grand_total_amount').text('Grand Total: ₹' + grand_total.toFixed(2));
+        
+        if (total_igst > 0) {
+            $('#igst_amount').html('<b>IGST Amount:</b> ₹' + total_igst.toFixed(2)).show();
+            $('#igst_br').show();
+            $('#sgst_amount, #cgst_amount, #sgst_br, #cgst_br').hide();
+        } else {
+            $('#sgst_amount').html('<b>SGST Amount:</b> ₹' + total_sgst.toFixed(2)).show();
+            $('#cgst_amount').html('<b>CGST Amount:</b> ₹' + total_cgst.toFixed(2)).show();
+            $('#sgst_br, #cgst_br').show();
+            $('#igst_amount, #igst_br').hide();
+        }
+
+        $('#grand_total_amount').html('<b>Grand Total:</b> ₹' + grand_total.toFixed(2));
         
         updateAmountInWords();
     }
     
-function addRow(item) {
+    function addRow(item) {
         var quantity = parseFloat(item.quantity || 0);
         var received_quantity = parseFloat(item.received_quantity || 0);
         var pending_qty = Math.max(0, quantity - received_quantity);
+        var gst_type = item.po_gst_type || item.gst_type || 'S';
+        var gst = parseFloat(item.gst || 0);
+        var sgst = 0, cgst = 0, igst = 0;
+        
+        if (gst_type === 'I') {
+            igst = parseFloat(item.igst || item.gst || 0);
+            sgst = 0;
+            cgst = 0;
+        } else {
+            sgst = parseFloat(item.sgst || (gst / 2));
+            cgst = parseFloat(item.cgst || (gst / 2));
+            igst = 0;
+        }
+
         var row = $('<tr>');
         row.html(`
-            <td><input type="text" name="term[]" class="form-control item_name" value="${item.product_name || ''}" readonly /></td>
+            <td>
+                <input type="text" name="term[]" class="form-control item_name" value="${item.product_name || ''}" readonly />
+                <input type="hidden" name="gst_type[]" class="gst_type" value="${gst_type}" />
+                <input type="hidden" class="subtotal" value="0.00" />
+                <input type="hidden" class="sgst_amount" value="0.00" />
+                <input type="hidden" class="cgst_amount" value="0.00" />
+                <input type="hidden" class="igst_amount" value="0.00" />
+            </td>
             <td><input type="text" name="description[]" class="form-control description" value="${item.description || ''}" /></td>
             <td><input type="number" name="quantity[]" class="form-control quantity" value="${quantity}" readonly /></td>
             <td><input type="text" name="hsn[]" class="form-control hsn" value="${item.hsn_code || ''}" /></td>
-            <td><input type="number" step="0.01" name="gst_per[]" class="form-control gst_rate" value="${item.gst || 0}" /></td>
-            <td><input type="number" step="0.01" name="sgst[]" class="form-control sgst_rate" value="${(item.gst || 0)/2}" /></td>
-            <td><input type="number" step="0.01" name="cgst[]" class="form-control cgst_rate" value="${(item.gst || 0)/2}" /></td>
+            <td><input type="number" step="0.01" name="gst_per[]" class="form-control gst_rate" value="${gst}" /></td>
+            <td><input type="number" step="0.01" name="sgst[]" class="form-control sgst_rate" value="${sgst}" /></td>
+            <td><input type="number" step="0.01" name="cgst[]" class="form-control cgst_rate" value="${cgst}" /></td>
+            <td><input type="number" step="0.01" name="igst[]" class="form-control igst_rate" value="${igst}" /></td>
             <td><input type="number" step="0.01" name="received_quantity[]" class="form-control received_quantity" value="${pending_qty}" /></td>
             <td class="pending_qty">${pending_qty.toFixed(2)}</td>
             <td><input type="number" step="0.01" name="price[]" class="form-control price" value="${item.price || 0}" /></td>
@@ -145,8 +185,23 @@ function addRow(item) {
             <td><button type="button" class="btn btn-danger btn-xs remove_row">Remove</button></td>
         `);
         $('#dynamic_field tbody').append(row);
+
+        row.find('.gst_rate').change(function() {
+            var new_gst = parseFloat($(this).val()) || 0;
+            var r_gst_type = row.find('.gst_type').val();
+            if (r_gst_type === 'I') {
+                row.find('.igst_rate').val(new_gst);
+                row.find('.sgst_rate').val(0);
+                row.find('.cgst_rate').val(0);
+            } else {
+                row.find('.sgst_rate').val(new_gst / 2);
+                row.find('.cgst_rate').val(new_gst / 2);
+                row.find('.igst_rate').val(0);
+            }
+        });
+
         // Bind events
-        row.find('.quantity, .received_quantity, .price, .sgst_rate, .cgst_rate, .gst_rate').change(function() {
+        row.find('.quantity, .received_quantity, .price, .sgst_rate, .cgst_rate, .igst_rate, .gst_rate').change(function() {
             updatePendingQty(row);
             calculateRow(row);
             calculateTotals();
@@ -165,13 +220,21 @@ function addRow(item) {
     $('#add_row').click(function() {
         var row = $('<tr>');
         row.html(`
-            <td><input type="text" name="term[]" class="form-control item_name" /></td>
+            <td>
+                <input type="text" name="term[]" class="form-control item_name" />
+                <input type="hidden" name="gst_type[]" class="gst_type" value="S" />
+                <input type="hidden" class="subtotal" value="0.00" />
+                <input type="hidden" class="sgst_amount" value="0.00" />
+                <input type="hidden" class="cgst_amount" value="0.00" />
+                <input type="hidden" class="igst_amount" value="0.00" />
+            </td>
             <td><input type="text" name="description[]" class="form-control description" /></td>
             <td><input type="number" name="quantity[]" class="form-control quantity" /></td>
             <td><input type="text" name="hsn[]" class="form-control hsn" /></td>
             <td><input type="number" step="0.01" name="gst_per[]" class="form-control gst_rate" /></td>
             <td><input type="number" step="0.01" name="sgst[]" class="form-control sgst_rate" /></td>
             <td><input type="number" step="0.01" name="cgst[]" class="form-control cgst_rate" /></td>
+            <td><input type="number" step="0.01" name="igst[]" class="form-control igst_rate" /></td>
             <td><input type="number" step="0.01" name="received_quantity[]" class="form-control received_quantity" /></td>
             <td>-</td>
             <td><input type="number" step="0.01" name="price[]" class="form-control price" /></td>
@@ -179,7 +242,7 @@ function addRow(item) {
             <td><button type="button" class="btn btn-danger btn-xs remove_row">Remove</button></td>
         `);
         $('#dynamic_field tbody').append(row);
-        row.find('.received_quantity, .price, .sgst_rate, .cgst_rate').change(function() {
+        row.find('.received_quantity, .price, .sgst_rate, .cgst_rate, .igst_rate, .gst_rate').change(function() {
             calculateRow(row);
             calculateTotals();
         });

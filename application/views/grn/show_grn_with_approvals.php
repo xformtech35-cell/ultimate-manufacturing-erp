@@ -235,88 +235,111 @@ if (empty($settings)) {
 
                                     <div class="table-responsive">
                                         <table class="table table-bordered grn-grid-table" id="dynamic_field">
-                                            <tr>
-                                                <th>Sr.No.</th>
-                                                <th>Item</th>
-                                                <th>Description</th>
-                                                <th>Qty</th>
-                                                <th>Unit</th>
-                                                <th>HSN Code</th>
-                                                <th>GST</th>
-                                                <th>SGST</th>
-                                                <th>CGST</th>
-                                                <th>Received</th>
-                                                <th>Pending</th>
-                                                <th>Price</th>
-                                            </tr>
-                                            <?php
-                                            $i = 1;
-                                            $total_qty = 0;
-                                            $total_sgst = 0;
-                                            $total_cgst = 0;
-                                            $total_igst = 0;
-                                            if (!empty($show_grn)) {
-                                                foreach ($show_grn as $key) {
-                                            $total_qty += isset($key->quantity) ? (float)$key->quantity : 0;
-                                            $total_sgst += isset($key->sgst) ? (float)$key->sgst : 0;
-                                            $total_cgst += isset($key->cgst) ? (float)$key->cgst : 0;
-                                            $total_igst += isset($key->igst) ? (float)$key->igst : 0;
-                                            ?>
-                                                    <tr>
-                                                        <td><?php echo $i; ?></td>
-                                                        <td><?php echo isset($key->product_name ) ? $key->product_name . " - " . $key->item_name : ''; ?></td>
-                                                        <td><?php echo isset($key->description) ? $key->description : ''; ?></td>
-                                                        <td><?php echo isset($key->quantity) ? $key->quantity : ''; ?></td>
-                                                        <td><?php echo isset($key->unit) ? $key->unit : ''; ?></td>
-                                                        <td><?php echo isset($key->hsn_code) ? $key->hsn_code : ''; ?></td>
-                                                        <td><?php echo isset($key->gst) ? $key->gst : ''; ?></td>
-                                                        <td class="gst"><?php echo isset($key->sgst) ? number_format($key->sgst, 2) : '0.00'; ?></td>
-                                                        <td class="gst"><?php echo isset($key->cgst) ? number_format($key->cgst, 2) : '0.00'; ?></td>
-                                                        <td><?php echo isset($key->received_quantity) ? $key->received_quantity : ''; ?></td>
-                                                        <td><?php echo isset($key->pending_quantity) ? $key->pending_quantity : 0; ?></td>
-                                                        <td><?php echo isset($key->price) ? number_format($key->price, 2) : '0.00'; ?></td>
-                                                    </tr>
-                                            <?php
-                                                    $i++;
-                                                }
-                                                $grand_total = isset($grn_data_group['total']) ? (float)$grn_data_group['total'] : 0;
-                                                $total_tax = $total_sgst + $total_cgst + $total_igst;
-                                                $total_before_tax = $grand_total - $total_tax;
-                                            ?>
-                                                    <tr class="">
-                                                        <td colspan="4" class="text-right"><b>Total Qty: <?php echo number_format($total_qty, 2); ?></b></td>
-                                                        <td colspan="9" class="text-right">
-                                                            Total Before Tax ₹ <?php echo indian_number_format($total_before_tax, 2); ?>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td colspan="12" class="text-right">
-                                                            <span id="tax_amount" name="tax_amount"><b>Tax Amount:</b> ₹<?php echo indian_number_format($total_tax, 2); ?></span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr class="gst">
-                                                        <td colspan="12" class="text-right">
-                                                            <span id="sgst_amount" name="sgst_amount"><b>SGST Amount: </b>₹<?php echo indian_number_format($total_sgst, 2); ?></span><br>
-                                                        </td>
-                                                    </tr>
-                                                    <tr class="gst">
-                                                        <td colspan="12" class="text-right">
-                                                            <span id="cgst_amount" name="cgst_amount"><b>CGST Amount:</b> ₹<?php echo indian_number_format($total_cgst, 2); ?></span><br>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td colspan="12" class="text-right">
-                                                            <span class="igst igst_edit_hide_show" id="igst_amount" name="igst_amount"><b>IGST Amount:</b> ₹<?php echo indian_number_format($total_igst, 2); ?></span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td colspan="12" class="text-right"><b><span>Grand Total: <?php echo indian_number_format($grand_total, 2); ?></span></b></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td colspan="12" class="text-right" style="font-weight:bold;">
-                                                            Grand Total in Words: <?php echo number_to_word($grand_total); ?> Only
-                                                        </td>
-                                                    </tr>
+                                             <?php
+                                             $is_igst = false;
+                                             if (!empty($show_grn)) {
+                                                 foreach ($show_grn as $k) {
+                                                     if ((isset($k->gst_type) && $k->gst_type == 'I') || (!empty($k->igst) && floatval($k->igst) > 0)) {
+                                                         $is_igst = true;
+                                                         break;
+                                                     }
+                                                 }
+                                             }
+                                             ?>
+                                             <tr>
+                                                 <th>Sr.No.</th>
+                                                 <th>Item</th>
+                                                 <th>Description</th>
+                                                 <th>Qty</th>
+                                                 <th>Unit</th>
+                                                 <th>HSN Code</th>
+                                                 <th>GST</th>
+                                                 <?php if ($is_igst) { ?>
+                                                     <th>IGST</th>
+                                                 <?php } else { ?>
+                                                     <th>SGST</th>
+                                                     <th>CGST</th>
+                                                 <?php } ?>
+                                                 <th>Received</th>
+                                                 <th>Pending</th>
+                                                 <th>Price</th>
+                                             </tr>
+                                             <?php
+                                             $i = 1;
+                                             $total_qty = 0;
+                                             $total_sgst = 0;
+                                             $total_cgst = 0;
+                                             $total_igst = 0;
+                                             if (!empty($show_grn)) {
+                                                 foreach ($show_grn as $key) {
+                                             $total_qty += isset($key->quantity) ? (float)$key->quantity : 0;
+                                             $total_sgst += isset($key->sgst) ? (float)$key->sgst : 0;
+                                             $total_cgst += isset($key->cgst) ? (float)$key->cgst : 0;
+                                             $total_igst += isset($key->igst) ? (float)$key->igst : 0;
+                                             ?>
+                                                     <tr>
+                                                         <td><?php echo $i; ?></td>
+                                                         <td><?php echo isset($key->product_name ) ? $key->product_name . " - " . $key->item_name : ''; ?></td>
+                                                         <td><?php echo isset($key->description) ? $key->description : ''; ?></td>
+                                                         <td><?php echo isset($key->quantity) ? $key->quantity : ''; ?></td>
+                                                         <td><?php echo isset($key->unit) ? $key->unit : ''; ?></td>
+                                                         <td><?php echo isset($key->hsn_code) ? $key->hsn_code : ''; ?></td>
+                                                         <td><?php echo isset($key->gst) ? $key->gst : ''; ?></td>
+                                                         <?php if ($is_igst) { ?>
+                                                             <td class="gst"><?php echo isset($key->igst) ? number_format($key->igst, 2) : '0.00'; ?></td>
+                                                         <?php } else { ?>
+                                                             <td class="gst"><?php echo isset($key->sgst) ? number_format($key->sgst, 2) : '0.00'; ?></td>
+                                                             <td class="gst"><?php echo isset($key->cgst) ? number_format($key->cgst, 2) : '0.00'; ?></td>
+                                                         <?php } ?>
+                                                         <td><?php echo isset($key->received_quantity) ? $key->received_quantity : ''; ?></td>
+                                                         <td><?php echo isset($key->pending_quantity) ? $key->pending_quantity : 0; ?></td>
+                                                         <td><?php echo isset($key->price) ? number_format($key->price, 2) : '0.00'; ?></td>
+                                                     </tr>
+                                             <?php
+                                                     $i++;
+                                                 }
+                                                 $grand_total = isset($grn_data_group['total']) ? (float)$grn_data_group['total'] : 0;
+                                                 $total_tax = $total_sgst + $total_cgst + $total_igst;
+                                                 $total_before_tax = $grand_total - $total_tax;
+                                                 $col_span = $is_igst ? 11 : 12;
+                                             ?>
+                                                     <tr class="">
+                                                         <td colspan="4" class="text-right"><b>Total Qty: <?php echo number_format($total_qty, 2); ?></b></td>
+                                                         <td colspan="<?php echo $col_span - 4; ?>" class="text-right">
+                                                             Total Before Tax ₹ <?php echo indian_number_format($total_before_tax, 2); ?>
+                                                         </td>
+                                                     </tr>
+                                                     <tr>
+                                                         <td colspan="<?php echo $col_span; ?>" class="text-right">
+                                                             <span id="tax_amount" name="tax_amount"><b>Tax Amount:</b> ₹<?php echo indian_number_format($total_tax, 2); ?></span>
+                                                         </td>
+                                                     </tr>
+                                                     <?php if ($is_igst) { ?>
+                                                         <tr>
+                                                             <td colspan="<?php echo $col_span; ?>" class="text-right">
+                                                                 <span class="igst" id="igst_amount" name="igst_amount"><b>IGST Amount:</b> ₹<?php echo indian_number_format($total_igst, 2); ?></span>
+                                                             </td>
+                                                         </tr>
+                                                     <?php } else { ?>
+                                                         <tr class="gst">
+                                                             <td colspan="<?php echo $col_span; ?>" class="text-right">
+                                                                 <span id="sgst_amount" name="sgst_amount"><b>SGST Amount: </b>₹<?php echo indian_number_format($total_sgst, 2); ?></span><br>
+                                                             </td>
+                                                         </tr>
+                                                         <tr class="gst">
+                                                             <td colspan="<?php echo $col_span; ?>" class="text-right">
+                                                                 <span id="cgst_amount" name="cgst_amount"><b>CGST Amount:</b> ₹<?php echo indian_number_format($total_cgst, 2); ?></span><br>
+                                                             </td>
+                                                         </tr>
+                                                     <?php } ?>
+                                                     <tr>
+                                                         <td colspan="<?php echo $col_span; ?>" class="text-right"><b><span>Grand Total: <?php echo indian_number_format($grand_total, 2); ?></span></b></td>
+                                                     </tr>
+                                                     <tr>
+                                                         <td colspan="<?php echo $col_span; ?>" class="text-right" style="font-weight:bold;">
+                                                             Grand Total in Words: <?php echo number_to_word($grand_total); ?> Only
+                                                         </td>
+                                                     </tr>
                                             <?php
                                             } else {
                                                 echo '<tr><td colspan="12" class="text-center">No items found</td></tr>';
