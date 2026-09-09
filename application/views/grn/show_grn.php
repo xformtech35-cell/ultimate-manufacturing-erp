@@ -251,20 +251,41 @@ if (!$is_igst && !empty($grn_data_group['po_number_fk'])) {
                                             <?php
                                             $i = 1;
                                             $total_qty = 0;
+                                            $total_subtotal = 0;
                                             $total_sgst = 0;
                                             $total_cgst = 0;
                                             $total_igst = 0;
                                             if (!empty($show_grn)) {
                                                 foreach ($show_grn as $key) {
-                                             $r_qty = isset($key->received_quantity) ? (float)$key->received_quantity : (isset($key->quantity) ? (float)$key->quantity : 0);
+                                             $r_qty   = isset($key->received_quantity) ? (float)$key->received_quantity : (isset($key->quantity) ? (float)$key->quantity : 0);
                                              $r_price = isset($key->price) ? (float)$key->price : 0;
-                                             $r_gst_pct = (float)rtrim(isset($key->gst) ? $key->gst : '0', '%');
-                                             $row_igst = (isset($key->igst) && (float)$key->igst > 0) ? (float)$key->igst : ($is_igst ? (($r_qty * $r_price) * $r_gst_pct / 100) : 0);
+                                             $r_subtotal = $r_qty * $r_price;
+                                             $r_gst_pct  = (float)rtrim(isset($key->gst) ? $key->gst : '0', '%');
 
-                                             $total_qty += isset($key->quantity) ? (float)$key->quantity : 0;
-                                             $total_sgst += isset($key->sgst) ? (float)$key->sgst : 0;
-                                             $total_cgst += isset($key->cgst) ? (float)$key->cgst : 0;
-                                             $total_igst += $row_igst;
+                                             // grn.igst / sgst / cgst store the TAX RATE (e.g. 18), not the rupee amount.
+                                             // Always compute the rupee amount from rate × subtotal / 100.
+                                             $igst_rate = isset($key->igst) ? (float)$key->igst : 0;
+                                             $sgst_rate = isset($key->sgst) ? (float)$key->sgst : 0;
+                                             $cgst_rate = isset($key->cgst) ? (float)$key->cgst : 0;
+
+                                             if ($is_igst) {
+                                                 // IGST mode: use igst_rate; fallback to gst_pct if igst_rate is 0
+                                                 $effective_igst_rate = ($igst_rate > 0) ? $igst_rate : $r_gst_pct;
+                                                 $row_igst = $r_subtotal * $effective_igst_rate / 100;
+                                                 $row_sgst = 0;
+                                                 $row_cgst = 0;
+                                             } else {
+                                                 // SGST+CGST mode
+                                                 $row_igst = 0;
+                                                 $row_sgst = ($sgst_rate > 0) ? ($r_subtotal * $sgst_rate / 100) : ($r_subtotal * $r_gst_pct / 200);
+                                                 $row_cgst = ($cgst_rate > 0) ? ($r_subtotal * $cgst_rate / 100) : ($r_subtotal * $r_gst_pct / 200);
+                                             }
+
+                                             $total_qty      += isset($key->quantity) ? (float)$key->quantity : 0;
+                                             $total_subtotal += $r_subtotal;
+                                             $total_sgst     += $row_sgst;
+                                             $total_cgst     += $row_cgst;
+                                             $total_igst     += $row_igst;
                                             ?>
                                                     <tr>
                                                         <td><?php echo $i; ?></td>
@@ -274,11 +295,11 @@ if (!$is_igst && !empty($grn_data_group['po_number_fk'])) {
                                                         <td><?php echo isset($key->unit) ? $key->unit : ''; ?></td>
                                                         <td><?php echo isset($key->hsn_code) ? $key->hsn_code : ''; ?></td>
                                                         <td><?php echo isset($key->gst) ? $key->gst : ''; ?></td>
-                                                        <?php if ($is_igst) { ?>
+                                                         <?php if ($is_igst) { ?>
                                                             <td class="gst"><?php echo number_format($row_igst, 2); ?></td>
                                                         <?php } else { ?>
-                                                            <td class="gst"><?php echo isset($key->sgst) ? number_format($key->sgst, 2) : '0.00'; ?></td>
-                                                            <td class="gst"><?php echo isset($key->cgst) ? number_format($key->cgst, 2) : '0.00'; ?></td>
+                                                            <td class="gst"><?php echo number_format($row_sgst, 2); ?></td>
+                                                            <td class="gst"><?php echo number_format($row_cgst, 2); ?></td>
                                                         <?php } ?>
                                                         <td><?php echo isset($key->received_quantity) ? $key->received_quantity : 0; ?></td>
                                                         <td><?php echo isset($key->pending_quantity) ? $key->pending_quantity : 0; ?></td>
@@ -289,7 +310,12 @@ if (!$is_igst && !empty($grn_data_group['po_number_fk'])) {
                                                 }
                                                 $grand_total = isset($grn_data_group['total']) ? (float)$grn_data_group['total'] : 0;
                                                 $total_tax = $total_sgst + $total_cgst + $total_igst;
-                                                $total_before_tax = $grand_total - $total_tax;
+                                                // Use summed subtotals (received_qty × price) not grand_total - tax
+                                                $total_before_tax = $total_subtotal;
+                                                // If subtotal is 0 (old records), fall back to grand_total - tax
+                                                if ($total_before_tax <= 0 && $grand_total > 0) {
+                                                    $total_before_tax = $grand_total - $total_tax;
+                                                }
                                                 $col_span = $is_igst ? 11 : 12;
                                             ?>
                                                     <tr class="">
