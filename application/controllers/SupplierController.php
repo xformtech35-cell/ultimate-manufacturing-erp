@@ -748,49 +748,41 @@ class SupplierController extends MY_Controller
 
             //echo $amount[$i];die();
 
-            if ($item[$i] != '' && $quantity[$i] != '' && $hsn[$i] != '' && $gst_per[$i] != ''  && $price[$i] != '' && $amount[$i] != '') {
+            if ($item[$i] != '' && $quantity[$i] != '' && $price[$i] != '') {
                 $flag = 0;
-                //echo 'test';die();
-                if ($sgst == '1') {
-                    $igst1 = $igst[$i];
-                    $sgst1 = '0';
-                    $cgst1 = '0';
-                }
-                if ($igst == '1') {
-                    $igst1 = '0';
-                    $sgst1 = $sgst[$i];
-                    $cgst1 = $cgst[$i];
-                }
+                $p_qty = floatval($quantity[$i]);
+                $p_price = floatval($price[$i]);
+                $p_discount = floatval($discount[$i] ?? 0);
+                $p_gst_rate = parse_tax_rate($gst_per[$i] ?? 0);
+                $tax_calc = calculate_line_item_tax($p_qty, $p_price, $p_discount, $p_gst_rate, $gst_type);
 
                 $data[] = array(
-
                     'supplier_id' => $supplier_id,
                     'number' => $number,
                     'purchase_date' => $date,
                     'delivery_date' => $this->input->post('delivery_date'),
                     'product_name' => $item[$i],
-                    'quantity' => $quantity[$i],
-                    'discount' => $discount[$i],
-                    'unit' => $unit[$i],
-                    'hsn_code' => $hsn[$i],
-                    'gst' => $gst_per[$i],
-                    'sgst' => $sgst1,
-                    'cgst' => $cgst1,
-                    'igst' => $igst1,
+                    'quantity' => $p_qty,
+                    'discount' => $p_discount,
+                    'unit' => $unit[$i] ?? '',
+                    'hsn_code' => $hsn[$i] ?? '',
+                    'gst' => $p_gst_rate . '%',
+                    'sgst' => $tax_calc['is_igst'] ? 0 : ($p_gst_rate / 2),
+                    'cgst' => $tax_calc['is_igst'] ? 0 : ($p_gst_rate / 2),
+                    'igst' => $tax_calc['is_igst'] ? $p_gst_rate : 0,
                     'gst_type' => $gst_type,
-                    'price' => $price[$i],
-                    'amount' => $amount[$i],
+                    'price' => $p_price,
+                    'amount' => $tax_calc['taxable_subtotal'],
+                    'amount_due' => $tax_calc['line_total'],
                     'subheading' => $subheading,
-
                     'footer' => $footer,
                     'memo' => $memo,
                     'po_upload' => $data1["file_name"],
                     'reasons' => $reasons,
-                    'description' => $description[$i],
-                    'po_pending_quantity' => 'Y',
+                    'description' => $description[$i] ?? '',
+                    'po_pending_quantity' => $p_qty,
                     'uid' => $this->user_id,
                 );
-                //   print_r($data);die();
             } else {
                 $flag = 1;
             }
