@@ -154,7 +154,7 @@ class LogHistoryController extends MY_Controller
         // ---------------------------------------------------------------
         $data['all_users'] = $this->db
             ->select('user_id, username')
-            ->from($orig_prefix . 'user')
+            ->from('user')
             ->order_by('username', 'ASC')
             ->get()->result_array();
 

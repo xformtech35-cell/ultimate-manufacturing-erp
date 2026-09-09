@@ -41,11 +41,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     }
 </style>
 
-<body class="hold-transition skin-blue sidebar-mini">
-    <div class="wrapper">
-        <?php $this->load->view('admin/header_side_bar'); ?>
-        
-        <div class="content-wrapper">
+<div class="content-wrapper">
             <section class="content-header">
                 <h1>
                     <i class="fa fa-line-chart"></i> Budget Sheet Upload (Excel / PDF)
@@ -218,5 +214,3 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             }
         });
     </script>
-</body>
-</html>
