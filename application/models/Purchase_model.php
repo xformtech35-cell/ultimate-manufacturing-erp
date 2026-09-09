@@ -175,23 +175,30 @@ class Purchase_model extends CI_Model
 
             // Insert PO items
             foreach ($quotation_items as $item) {
+                $qty = floatval($item['quantity']);
+                $price = floatval($item['unit_price']);
+                $gst_pct = parse_tax_rate($item['gst_percentage'] ?? 18);
+                $tax_calc = calculate_line_item_tax($qty, $price, 0, $gst_pct, $gst_type);
+                $subtotal = $tax_calc['taxable_subtotal'];
+                $gross_total = $tax_calc['line_total'];
+
                 $po_item_data = [
                     'number' => $po_number,
                     'supplier_id' => $vendor_id,
                     'purchase_date' => date('Y-m-d'),
                     'delivery_date' => date('d-m-Y', strtotime('+15 days')),
                     'product_name' => $item['item_code'],
-                    'quantity' => $item['quantity'],
+                    'quantity' => $qty,
                     'unit' => $item['unit'] ?? 'PCS',
                     'hsn_code' => $item['hsn_code'] ?? '',
-                    'gst' => ($item['gst_percentage'] ?? 18) . '%',
-                    'sgst' => 9,
-                    'cgst' => 9,
-                    'igst' => 18,
+                    'gst' => $gst_pct . '%',
+                    'sgst' => $tax_calc['is_igst'] ? 0 : ($gst_pct / 2),
+                    'cgst' => $tax_calc['is_igst'] ? 0 : ($gst_pct / 2),
+                    'igst' => $tax_calc['is_igst'] ? $gst_pct : 0,
                     'gst_type' => $gst_type,
-                    'price' => $item['unit_price'],
-                    'amount' => $item['total_amount'],
-                    'amount_due' => $item['total_amount'],
+                    'price' => $price,
+                    'amount' => $subtotal, // Tax-exclusive base subtotal (Q * P)
+                    'amount_due' => $gross_total, // Gross total inclusive of tax
                     'reasons' => 'Converted from RFQ',
                     'description' => $item['description'],
                     'po_pending_quantity' => 'Y',

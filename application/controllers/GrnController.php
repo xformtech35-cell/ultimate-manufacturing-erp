@@ -532,6 +532,9 @@ class GrnController extends MY_Controller
         $total_accepted = 0;
         $total_rejected = 0;
 
+        $grn_total_row = $this->db->where('number_fk', $grn_number)->get('grn_total')->row_array();
+        $already_stock_updated = ($grn_total_row && intval($grn_total_row['stock_updated'] ?? 0) === 1);
+
         for ($i = 0; $i < $item_count; $i++) {
             if (!empty($product_names[$i])) {
                 $accepted = $accepted_qty[$i] ?? 0;
@@ -554,7 +557,7 @@ class GrnController extends MY_Controller
                 if ($this->grn->save_inspection_data($inspection_data)) {
                     $success_count++;
 
-                    if ($update_stock && $accepted > 0) {
+                    if ($update_stock && $accepted > 0 && !$already_stock_updated) {
                         $this->grn->update_stock_after_inspection($product_names[$i], $accepted, $this->user_id);
                         
                         // Add entry to stock ledger
@@ -591,6 +594,10 @@ class GrnController extends MY_Controller
                     $this->grn->create_inspection_log($log_data);
                 }
             }
+        }
+
+        if ($update_stock && $total_accepted > 0 && !$already_stock_updated) {
+            $this->db->where('number_fk', $grn_number)->update('grn_total', array('stock_updated' => 1));
         }
 
         $update_data = array(

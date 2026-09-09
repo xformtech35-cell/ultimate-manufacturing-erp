@@ -47,6 +47,16 @@ class RFQController extends MY_Controller
             }
         }
 
+        // Server-side approval check: PR must be Approved
+        if (!empty($pr_id)) {
+            $pr_rec = $this->db->select('approval_status')->where('pr_id', $pr_id)->get('purchase_requisition')->row_array();
+            if ($pr_rec && $pr_rec['approval_status'] !== 'Approved') {
+                $this->session->set_flashdata('ERRORMSG', 'Cannot convert to RFQ: Purchase Requisition is currently ' . $pr_rec['approval_status'] . '. Only Approved PRs can be converted to RFQ.');
+                redirect('RequisitionController/view_requisition_order?str=All');
+                return;
+            }
+        }
+
         $data = array();
 
         if ($this->input->server('REQUEST_METHOD') === 'POST') {
@@ -95,6 +105,16 @@ class RFQController extends MY_Controller
         $rfq_date = $this->input->post('rfq_date');
         $suppliers = $this->input->post('suppliers');
         $items     = $this->input->post('item_id');
+
+        // Server-side approval check: PR must be Approved
+        if (!empty($pr_id)) {
+            $pr_rec = $this->db->select('approval_status')->where('pr_id', $pr_id)->get('purchase_requisition')->row_array();
+            if ($pr_rec && $pr_rec['approval_status'] !== 'Approved') {
+                $this->session->set_flashdata('ERRORMSG', 'Cannot save RFQ: Purchase Requisition is not approved.');
+                redirect('RequisitionController/view_requisition_order?str=All');
+                return;
+            }
+        }
         $send_email = $this->input->post('send_email'); // Checkbox for email option
         $additional_cc = $this->input->post('additional_cc');
         if (is_array($additional_cc)) {

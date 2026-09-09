@@ -381,34 +381,35 @@ $delivery_display_date = !empty($po_data_group['delivery_date']) ? date('d-m-Y',
                                                             $quantity = floatval($key->quantity);
                                                             $price = floatval($key->price);
                                                             $discount_pct = floatval($key->discount);
-                                                            $line_amount = floatval($key->amount);
+                                                            $gst_rate = parse_tax_rate($key->gst);
 
-                                                            if ($line_amount <= 0) {
-                                                                // fallback when amount wasn’t set or is zero
-                                                                $line_amount = $quantity * $price * (1 - ($discount_pct / 100));
-                                                            }
-
-                                                            $gst_rate = floatval(rtrim($key->gst, '%')); // removes % sign
-                                                            $gst_amount = ($line_amount * $gst_rate) / 100;
+                                                            // Canonical tax calculation: always calculate tax on base price
+                                                            $tax_calc = calculate_line_item_tax($quantity, $price, $discount_pct, $gst_rate, $key->gst_type);
+                                                            $taxable_subtotal = $tax_calc['taxable_subtotal'];
+                                                            $gst_amount = $tax_calc['gst_amount'];
+                                                            $line_total = $tax_calc['line_total'];
 
                                                             $discount_amount = ($quantity * $price) * ($discount_pct / 100);
                                                             $discount_total += $discount_amount;
 
-                                                            if ($key->gst_type != 'I') {
+                                                            if ($tax_calc['is_igst']) {
+                                                                // IGST
+                                                                $igst_amount = $tax_calc['igst'];
+                                                                $igst_total_amt += $igst_amount;
+                                                                $sgst_amount = 0;
+                                                                $cgst_amount = 0;
+                                                                $has_igst = true;
+                                                            } else {
                                                                 // SGST & CGST
-                                                                $sgst_amount = $gst_amount / 2;
-                                                                $cgst_amount = $gst_amount / 2;
+                                                                $sgst_amount = $tax_calc['sgst'];
+                                                                $cgst_amount = $tax_calc['cgst'];
                                                                 $sgst_total_amt += $sgst_amount;
                                                                 $cgst_total_amt += $cgst_amount;
-                                                            } else {
-                                                                // IGST
-                                                                $igst_amount = $gst_amount;
-                                                                $igst_total_amt += $igst_amount;
-                                                                $has_igst = true;
+                                                                $igst_amount = 0;
                                                             }
 
-                                                            $amt += $line_amount;
-                                                            $subtotal_before_tax += $line_amount;
+                                                            $amt += $line_total;
+                                                            $subtotal_before_tax += $taxable_subtotal;
                                                             $total_qty += $quantity;
                                                         ?>
                                                             <tr>
@@ -434,7 +435,7 @@ $delivery_display_date = !empty($po_data_group['delivery_date']) ? date('d-m-Y',
 
                                                                 <td class="text-right">₹<?php echo indian_number_format($key->price, 2); ?></td>
                                                                                                                                       <td class="text-center"><?php echo indian_number_format($discount_pct, 2); ?></td>
-                                                                <td class="text-right"><strong>₹<?php echo indian_number_format($line_amount, 2); ?></strong></td>
+                                                                <td class="text-right"><strong>₹<?php echo indian_number_format($line_total, 2); ?></strong></td>
                                                             </tr>
                                                         <?php $i++;
                                                         } ?>
