@@ -72,6 +72,11 @@ class Grn extends CI_Model
     // Delete GRN by number
     public function delete_grn_by_grn_number($grn_number, $uid)
     {
+        // Before deleting, fetch the GRN items so we can restore po_pending_quantity
+        $this->db->select('po_number_fk, product_name, quantity, received_quantity');
+        $this->db->where('grn_number', $grn_number);
+        $grn_items = $this->db->get('grn')->result_array();
+
         // $this->db->where('uid', $uid);
         $this->db->where('grn_number', $grn_number);
         $this->db->delete('grn');
@@ -79,11 +84,35 @@ class Grn extends CI_Model
             $this->db->where('number_fk', $grn_number);
             // $this->db->where('uid', $uid);
             $this->db->delete('grn_total');
-            if ($this->db->affected_rows() >= '1') {
-                return TRUE;
-            } else {
-                return FALSE;
+
+            // Clean up grn_approvals if the table exists
+            if ($this->db->table_exists('grn_approvals')) {
+                $this->db->where('grn_number', $grn_number);
+                $this->db->delete('grn_approvals');
             }
+
+            // Restore po_pending_quantity = 'Y' on the PO so it re-appears in GRN create dropdown.
+            // Group by po_number_fk to handle multi-item GRNs efficiently.
+            $po_numbers_restored = array();
+            foreach ($grn_items as $item) {
+                $po_fk = $item['po_number_fk'];
+                if (!empty($po_fk) && !in_array($po_fk, $po_numbers_restored)) {
+                    $po_numbers_restored[] = $po_fk;
+                    // Check if any OTHER approved GRNs still exist for this PO
+                    $this->db->select('COUNT(*) as cnt');
+                    $this->db->where('po_number_fk', $po_fk);
+                    $remaining = $this->db->get('grn')->row_array();
+                    $remaining_count = isset($remaining['cnt']) ? (int)$remaining['cnt'] : 0;
+
+                    if ($remaining_count == 0) {
+                        // No other GRNs exist — restore full pending so PO is selectable again
+                        $this->db->where('number', $po_fk);
+                        $this->db->update('purchase_order', array('po_pending_quantity' => 'Y'));
+                    }
+                    // If other GRNs remain, leave po_pending_quantity as-is (last GRN's value)
+                }
+            }
+
             return TRUE;
         } else {
             return FALSE;
