@@ -146,7 +146,7 @@ class LogHistoryController extends MY_Controller
             $this->db->like('a.action', $filter_keyword);
         }
 
-        $this->db->order_by('a.audit_id', 'DESC');
+        $this->db->order_by('a.id', 'DESC');
         $data['activity_logs'] = $this->db->get()->result_array();
 
         // ---------------------------------------------------------------

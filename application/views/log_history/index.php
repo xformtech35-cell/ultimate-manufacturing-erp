@@ -194,7 +194,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                                                 <?php if (!empty($activity_logs)): ?>
                                                     <?php foreach ($activity_logs as $act): ?>
                                                         <tr>
-                                                            <td><?php echo $act['audit_id']; ?></td>
+                                                            <td><?php echo $act['id'] ?? $act['audit_id'] ?? ''; ?></td>
                                                             <td><strong><?php echo htmlspecialchars($act['operator_name'] ?: 'System/Guest'); ?></strong></td>
                                                             <td><span class="text-bold text-navy"><?php echo htmlspecialchars($act['action']); ?></span></td>
                                                             <?php
