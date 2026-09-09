@@ -168,7 +168,7 @@ class LogHistoryController extends MY_Controller
         // ---------------------------------------------------------------
         $sidebar_rows = $this->db
             ->select('id, title, url, permission')
-            ->from($orig_prefix . 'sidebar_menu')
+            ->from('sidebar_menu')
             ->where('url IS NOT NULL', NULL, FALSE)
             ->where("url != ''", NULL, FALSE)
             ->order_by('title', 'ASC')
