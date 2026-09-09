@@ -11,13 +11,13 @@ $(document).ready(function() {
     function applyGstMode(mode) {
         currentGstMode = mode;
         if (mode === 'I') {
-            $('#toggle_igst_btn').removeClass('btn-primary').addClass('btn-warning').text('GST (Intrastate)');
+            $('#toggle_igst_btn').removeClass('btn-primary').addClass('btn-warning').text('IGST (Interstate)');
             $('.sgst_col, .cgst_col').hide();
             $('.igst_col').show();
             $('#sgst_amount, #cgst_amount, #sgst_br, #cgst_br').hide();
             $('#igst_amount, #igst_br').show();
         } else {
-            $('#toggle_igst_btn').removeClass('btn-warning').addClass('btn-primary').text('IGST');
+            $('#toggle_igst_btn').removeClass('btn-warning').addClass('btn-primary').text('GST (Intrastate)');
             $('.igst_col').hide();
             $('.sgst_col, .cgst_col').show();
             $('#igst_amount, #igst_br').hide();
@@ -52,7 +52,10 @@ $(document).ready(function() {
     });
 
     // PO change - load items
-    $('#po_number').change(function() {
+    // stopImmediatePropagation prevents the legacy custom.js handler from ALSO
+    // firing and adding a second duplicate row with different formatting.
+    $('#po_number').on('change', function(e) {
+        e.stopImmediatePropagation();
         var po_number = $(this).val();
         if (po_number) {
             $('#po_number_fk').val(po_number);

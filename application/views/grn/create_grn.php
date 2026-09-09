@@ -43,7 +43,7 @@ if (date('m') <= 3) {
                     <div class="col-xs-12">
                         <div class="box box-info">
                             <div class="box-header">
-                                <button type="button" id="toggle_igst_btn" class="btn btn-primary" style="margin-right: 15px; font-weight: 600;">IGST</button>
+                                <button type="button" id="toggle_igst_btn" class="btn btn-primary" style="margin-right: 15px; font-weight: 600;">GST (Intrastate)</button>
                                 <h3 class="box-title" style="display: inline-block; vertical-align: middle;">Create GRN</h3>
                                 <a href="javascript:void(0);" onclick="window.history.back()" class="btn btn-primary pull-right"><i class="fa fa-close"></i> Close</a>
 
