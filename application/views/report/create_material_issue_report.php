@@ -153,18 +153,24 @@ $show_project_cols = false;
                                             <td><?php echo htmlspecialchars(isset($row->project_name) ? $row->project_name : '-'); ?></td>
                                             <?php endif; ?>
                                             <td><?php echo htmlspecialchars(isset($row->salesorder_number) ? $row->salesorder_number : '-'); ?></td>
-                                            <td>
-                                                <?php 
-                                                $boms = array_filter(array_map('trim', explode(',', isset($row->bom_numbers) ? $row->bom_numbers : '')));
-                                                if (!empty($boms)) {
-                                                    foreach ($boms as $b) {
-                                                        echo '<span class="label label-default" style="font-size:10px; margin-right:2px; display:inline-block; margin-bottom:2px;"><i class="fa fa-file-text-o"></i> ' . htmlspecialchars($b) . '</span> ';
-                                                    }
-                                                } else {
-                                                    echo '-';
-                                                }
-                                                ?>
-                                            </td>
+                                             <td>
+                                                 <?php 
+                                                 $boms = array_filter(array_map('trim', explode(',', isset($row->bom_numbers) ? $row->bom_numbers : '')));
+                                                 if (!empty($boms)) {
+                                                     $boms = array_values(array_unique($boms));
+                                                     if (count($boms) == 1) {
+                                                         echo '<span class="label label-default" style="font-size:10px; display:inline-block;"><i class="fa fa-file-text-o"></i> ' . htmlspecialchars($boms[0]) . '</span>';
+                                                     } else {
+                                                         $json_boms = htmlspecialchars(json_encode($boms), ENT_QUOTES, 'UTF-8');
+                                                         $issue_ref = htmlspecialchars(isset($row->issue_no) ? $row->issue_no : 'MIS');
+                                                         echo '<span class="label label-default" style="font-size:10px; display:inline-block; margin-right:3px;"><i class="fa fa-file-text-o"></i> ' . htmlspecialchars($boms[0]) . '</span>';
+                                                         echo '<button type="button" class="btn btn-xs btn-info view-boms-modal-btn" style="font-size:10px; padding:1px 6px; border-radius:10px;" data-boms=\'' . $json_boms . '\' data-issue="' . $issue_ref . '"><i class="fa fa-eye"></i> View (' . count($boms) . ')</button>';
+                                                     }
+                                                 } else {
+                                                     echo '-';
+                                                 }
+                                                 ?>
+                                             </td>
                                             <td><?php echo htmlspecialchars(isset($row->joborder_number) ? $row->joborder_number : '-'); ?></td>
                                             <td><code><?php echo htmlspecialchars(isset($row->item_code) ? $row->item_code : ''); ?></code></td>
                                             <td><strong><?php echo htmlspecialchars(isset($row->item_name) ? $row->item_name : ''); ?></strong></td>
@@ -208,6 +214,27 @@ $show_project_cols = false;
     </section>
 </div>
 
+<!-- Modal for Viewing Multiple BOMs -->
+<div class="modal fade" id="bomsModal" tabindex="-1" role="dialog" aria-labelledby="bomsModalLabel">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content" style="border-radius: 6px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+            <div class="modal-header" style="background-color: #3c8dbc; color: #fff; border-top-left-radius: 5px; border-top-right-radius: 5px; padding: 12px 15px;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff; opacity: 0.9;"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="bomsModalLabel" style="font-weight: bold; font-size: 15px;"><i class="fa fa-file-text-o"></i> Associated BOM Numbers</h4>
+            </div>
+            <div class="modal-body" style="background-color: #f9f9f9; padding: 20px;">
+                <p id="bomsModalSubheading" style="color: #444; font-size: 13px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px;"></p>
+                <div id="bomsModalList" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer" style="background-color: #f5f5f5; padding: 10px 15px;">
+                <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php $this->load->view('admin/footer'); ?>
 
 <script>
@@ -227,6 +254,25 @@ $(document).ready(function() {
         "language": {
             "search": "Search Material Issues:"
         }
+    });
+
+    $(document).on('click', '.view-boms-modal-btn', function() {
+        var issueNo = $(this).data('issue');
+        var bomsData = $(this).data('boms');
+        var listContainer = $('#bomsModalList');
+        
+        $('#bomsModalSubheading').html('<strong>Issue Slip:</strong> <span class="text-navy" style="font-weight:bold;">' + issueNo + '</span> &nbsp;|&nbsp; <strong>Total BOMs:</strong> <span class="badge bg-blue">' + bomsData.length + '</span>');
+        
+        var html = '';
+        $.each(bomsData, function(idx, bomNo) {
+            html += '<div style="background:#fff; border:1px solid #d2d6de; padding:8px 12px; border-radius:6px; font-size:12px; display:inline-flex; align-items:center; gap:10px; box-shadow:0 1px 3px rgba(0,0,0,0.06); margin-right:8px; margin-bottom:8px;">';
+            html += '<span><i class="fa fa-file-text-o text-blue"></i> <strong>' + bomNo + '</strong></span>';
+            html += '<a href="<?php echo base_url('BomController/show_bom/'); ?>' + encodeURIComponent(bomNo) + '" target="_blank" class="btn btn-xs btn-primary" style="padding:2px 8px; font-size:10px; border-radius:4px;"><i class="fa fa-external-link"></i> View</a>';
+            html += '</div>';
+        });
+        
+        listContainer.html(html);
+        $('#bomsModal').modal('show');
     });
 });
 </script>
