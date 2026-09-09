@@ -344,7 +344,7 @@ $_total_table_width = 1060;
                                                     <th style="width: <?php echo $_col_items; ?>; text-align: center;">Items</th>
                                                     <th style="width: <?php echo $_col_qty; ?>; text-align: right; white-space: nowrap;">Total Qty</th>
                                                     <th style="width: <?php echo $_col_status; ?>; text-align: center; white-space: nowrap;">Status</th>
-                                                    <th style="width: <?php echo $_col_actions; ?>; text-align: center; white-space: nowrap;">Action</th>
+                                                    <th class="global-sticky-col" style="width: <?php echo $_col_actions; ?>; text-align: center; white-space: nowrap;">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -369,8 +369,6 @@ $_total_table_width = 1060;
                                                         <?php elseif ($slip['status'] == 'cancelled'): ?>
                                                             <span style="background-color: #fce8e6; color: #c5221f; border: 1px solid #fad2cf; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; text-transform: uppercase; display: inline-block; line-height: 1.2;">Cancelled</span>
                                                         <?php endif; ?>
-                                                    </td>
-                                                    <td style="text-align: center;">
                                                         <?php
                                                         // Show the worst overrun status across all items in this slip
                                                         $slip_overrun = isset($slip['overrun_status']) ? $slip['overrun_status'] : 'none';
@@ -383,11 +381,11 @@ $_total_table_width = 1060;
                                                         ];
                                                         if ($slip_overrun !== 'none' && isset($ov_badges[$slip_overrun])) {
                                                             [$lbl, $cls] = $ov_badges[$slip_overrun];
-                                                            echo '<span class="label '.$cls.'" style="font-size:10px;">'.$lbl.'</span>';
+                                                            echo '<br><span class="label '.$cls.'" style="font-size:10px; margin-top:3px; display:inline-block;">'.$lbl.'</span>';
                                                         }
                                                         ?>
                                                     </td>
-                                                    <td style="text-align: center; vertical-align: middle;">
+                                                    <td class="global-sticky-col" style="text-align: center; vertical-align: middle;">
                                                         <div class="dropdown">
                                                             <button class="btn btn-primary btn-xs dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding: 2px 6px; font-size: 10px; line-height: 1.2; height: 22px; width: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 3px;">
                                                                 <span class="caret" style="margin: 0;"></span>
@@ -426,7 +424,7 @@ $_total_table_width = 1060;
                                                     <th style="width: <?php echo $_col_items; ?>; text-align: center;">Items</th>
                                                     <th style="width: <?php echo $_col_qty; ?>; text-align: right; white-space: nowrap;">Returned Qty</th>
                                                     <th style="width: <?php echo $_col_status; ?>; text-align: center; white-space: nowrap;">Status</th>
-                                                    <th style="width: <?php echo $_col_actions; ?>; text-align: center; white-space: nowrap;">Action</th>
+                                                    <th class="global-sticky-col" style="width: <?php echo $_col_actions; ?>; text-align: center; white-space: nowrap;">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -444,7 +442,7 @@ $_total_table_width = 1060;
                                                     <td style="text-align: center;">
                                                         <span style="background-color: #fef7e0; color: #b06000; border: 1px solid #fbe09c; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; text-transform: uppercase; display: inline-block; line-height: 1.2;">Returned</span>
                                                     </td>
-                                                    <td style="text-align: center; vertical-align: middle;">
+                                                    <td class="global-sticky-col" style="text-align: center; vertical-align: middle;">
                                                         <div class="dropdown">
                                                             <button class="btn btn-primary btn-xs dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding: 2px 6px; font-size: 10px; line-height: 1.2; height: 22px; width: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 3px;">
                                                                 <span class="caret" style="margin: 0;"></span>
