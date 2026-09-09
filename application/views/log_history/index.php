@@ -7,11 +7,7 @@ if (!isset($session_data_head1)) {
 defined('BASEPATH') or exit('No direct script access allowed');
 ?>
 
-<body class="hold-transition skin-blue sidebar-mini">
-    <div id="loader" class="center"></div>
-    <div class="wrapper">
-        <!-- Content Wrapper. Contains page content -->
-        <div class="content-wrapper">
+<div class="content-wrapper">
             <!-- Content Header (Page header) -->
             <section class="content-header">
                 <h1>
@@ -491,7 +487,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
                 </div>
             </section>
         </div>
-    </div>
 
     <!-- Modal for Payload Details -->
     <div class="modal fade" id="payloadModal" tabindex="-1" role="dialog" aria-labelledby="payloadModalLabel">
@@ -604,4 +599,3 @@ defined('BASEPATH') or exit('No direct script access allowed');
             }
         });
     </script>
-</body>
