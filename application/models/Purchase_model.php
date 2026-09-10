@@ -201,7 +201,7 @@ class Purchase_model extends CI_Model
                     'amount_due' => $gross_total, // Gross total inclusive of tax
                     'reasons' => 'Converted from RFQ',
                     'description' => $item['description'],
-                    'po_pending_quantity' => 'Y',
+                    'po_pending_quantity' => $qty,
                     'uid' => $user_id
                 ];
                 $this->db->insert('purchase_order', $po_item_data);
