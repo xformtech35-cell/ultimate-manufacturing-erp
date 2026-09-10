@@ -1168,12 +1168,14 @@ $(document).ready(function() {
         updateSalesOrderNumber();
     });
 
-    $('#number').on('input', function() {
-        if ($(this).val().trim() === '') {
+    $('#number').on('input keyup change', function() {
+        var typedVal = $(this).val();
+        if (typedVal.trim() === '') {
             isManualInput = false;
             updateSalesOrderNumber();
         } else {
             isManualInput = true;
+            $('#so_number_display').text(typedVal);
         }
     });
 

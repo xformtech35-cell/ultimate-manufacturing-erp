@@ -53,7 +53,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                                          <div class="col-md-12">
                                              <div class="form-group row ">
-                                                 <label class="col-sm-12 control-label"><h2> Sales Order:<b> <?php echo $salesorders_data_group['number_fk']; ?></b></h2></label>
+                                                 <label class="col-sm-12 control-label"><h2> Sales Order: <b id="so_number_display"><?php echo $salesorders_data_group['number_fk']; ?></b></h2></label>
                                              </div>
                                          </div>
 
@@ -1032,6 +1032,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             }
             if (urlProjectCode) {
                 $('#project_code').val(urlProjectCode).trigger('change', [true]);
+            }
+
+            $('#number').on('input keyup change', function() {
+                $('#so_number_display').text($(this).val());
+            });
         });
     </script>
     
