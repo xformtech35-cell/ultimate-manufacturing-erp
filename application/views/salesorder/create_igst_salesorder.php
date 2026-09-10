@@ -1060,21 +1060,25 @@ $(document).ready(function() {
         $('#customer_name').val(fullname);
 
         if (!isAutoTriggered) {
-            var selectedText = $(this).find('option:selected').text();
-            if (selectedText) {
-                var parts = selectedText.split(' - ');
-                if (parts.length >= 2) {
-                    var companyName = parts[0].trim();
-                    var clean = companyName.replace(/[^a-zA-Z0-9\s]/g, '');
-                    var words = clean.trim().split(/\s+/);
-                    var initials = '';
-                    for (var k = 0; k < words.length; k++) {
-                        if (words[k]) {
-                            initials += words[k].charAt(0).toUpperCase();
+            if (customerId) {
+                var selectedText = $(this).find('option:selected').text();
+                if (selectedText) {
+                    var parts = selectedText.split(' - ');
+                    if (parts.length >= 2) {
+                        var companyName = parts[0].trim();
+                        var clean = companyName.replace(/[^a-zA-Z0-9\s]/g, '');
+                        var words = clean.trim().split(/\s+/);
+                        var initials = '';
+                        for (var k = 0; k < words.length; k++) {
+                            if (words[k]) {
+                                initials += words[k].charAt(0).toUpperCase();
+                            }
                         }
+                        $('#customer_code').val(initials).trigger('change');
                     }
-                    $('#customer_code').val(initials).trigger('change');
                 }
+            } else {
+                $('#customer_code').val('').trigger('change');
             }
         }
 
@@ -1146,11 +1150,13 @@ $(document).ready(function() {
     }
 
     // Dynamic SO Number Prefill Logic
-    $('#system').on('input change', function() {
+    $('#system').on('input change keyup', function() {
+        isManualInput = false;
         updateSalesOrderNumber();
     });
 
     $('#customer_id').on('change', function() {
+        isManualInput = false;
         updateSalesOrderNumber();
     });
 
@@ -1179,6 +1185,7 @@ function extractSystemCode(systemName) {
     if (!systemName) return 'XX';
     var cleaned = systemName.replace(/[^a-zA-Z0-9\s]/g, ' ');
     var words = cleaned.trim().split(/\s+/);
+    if (!words.length || words[0] === '') return 'XX';
     if (words.length === 1) {
         var word = words[0];
         if (word.length >= 2) {
@@ -1225,14 +1232,27 @@ function updateSalesOrderNumber() {
     var systemVal = $('#system').val() || '';
     var systemCode = extractSystemCode(systemVal);
     
-    var clientCode = ($('#customer_code').val() || '').trim().toUpperCase();
-    if (!clientCode || clientCode === 'XXX' || /^\d+$/.test(clientCode) || /[\(\)]/.test(clientCode)) {
-        var selectedText = $('#customer_id').find('option:selected').text();
-        if (selectedText) {
-            var parts = selectedText.split(' - ');
-            if (parts.length >= 1) {
-                var companyName = parts[0].trim();
-                var clean = companyName.replace(/[^a-zA-Z0-9\s]/g, '');
+    var clientCode = 'XXX';
+    var customerId = $('#customer_id').val();
+    if (customerId) {
+        var rawCode = ($('#customer_code').val() || '').trim().toUpperCase();
+        if (rawCode && rawCode !== 'XXX' && !/^\d+$/.test(rawCode) && !/[\(\)]/.test(rawCode)) {
+            clientCode = rawCode;
+        } else {
+            var selectedOption = $('#customer_id').find('option:selected');
+            var selectedText = selectedOption.text() || '';
+            var fullname = selectedOption.data('fullname') || '';
+            var companyToParse = '';
+
+            if (fullname) {
+                companyToParse = fullname;
+            } else if (selectedText) {
+                var parts = selectedText.split(' - ');
+                companyToParse = parts[0].trim();
+            }
+
+            if (companyToParse && companyToParse !== 'Select Company') {
+                var clean = companyToParse.replace(/[^a-zA-Z0-9\s]/g, '');
                 var words = clean.trim().split(/\s+/);
                 var initials = '';
                 for (var k = 0; k < words.length; k++) {
@@ -1243,9 +1263,6 @@ function updateSalesOrderNumber() {
                 clientCode = initials || 'XXX';
             }
         }
-    }
-    if (!clientCode) {
-        clientCode = 'XXX';
     }
     
     var seq = $('#next_so_seq').val() || '1';
