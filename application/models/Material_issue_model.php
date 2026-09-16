@@ -1154,20 +1154,60 @@ class Material_issue_model extends CI_Model
     /**
      * Get stock valuation report
      */
-    public function get_stock_valuation_report()
+    public function get_stock_valuation_report($filters = array())
     {
-        $this->db->select('i.*, 
-            (i.stock * i.cost_price) as total_cost_value,
-            (i.stock * i.sell_price) as total_selling_value,
+        $grn_table = $this->db->dbprefix('grn');
+        $po_table  = $this->db->dbprefix('purchase_order');
+        $so_table  = $this->db->dbprefix('salesorder');
+
+        $this->db->select("i.*, 
+            COALESCE(NULLIF(i.cost_price, 0), (SELECT g.price FROM {$grn_table} g WHERE g.product_name = i.code AND g.price > 0 ORDER BY g.grn_id DESC LIMIT 1), (SELECT p.price FROM {$po_table} p WHERE p.product_name = i.code AND p.price > 0 ORDER BY p.po_id DESC LIMIT 1), 0) as resolved_cost_price,
+            COALESCE(NULLIF(i.sell_price, 0), (SELECT s.price FROM {$so_table} s WHERE s.product_name = i.code AND s.price > 0 ORDER BY s.salesorder_id DESC LIMIT 1), 0) as resolved_sell_price,
             cat.category_name, 
-            grp.group_name');
+            grp.group_name", FALSE);
         $this->db->from($this->inventory_table . ' i');
         $this->db->join('item_category_master cat', 'cat.category_id = i.category_id', 'left');
         $this->db->join('item_group_master grp', 'grp.group_id = i.group_id', 'left');
         $this->db->where('i.stock >', 0);
-        $this->db->order_by('total_cost_value', 'DESC');
 
-        return $this->db->get()->result_array();
+        if (!empty($filters['category_id'])) {
+            $this->db->where('i.category_id', $filters['category_id']);
+        }
+        if (!empty($filters['group_id'])) {
+            $this->db->where('i.group_id', $filters['group_id']);
+        }
+
+        $items = $this->db->get()->result_array();
+
+        foreach ($items as &$item) {
+            $cost = floatval($item['resolved_cost_price'] > 0 ? $item['resolved_cost_price'] : $item['cost_price']);
+            $sell = floatval($item['resolved_sell_price'] > 0 ? $item['resolved_sell_price'] : $item['sell_price']);
+
+            // If sell price is not set but cost is set, provide default 30% margin
+            if ($sell <= 0 && $cost > 0) {
+                $sell = round($cost * 1.30, 2);
+            }
+            // If cost price is not set but sell is set, provide default 25% discount
+            if ($cost <= 0 && $sell > 0) {
+                $cost = round($sell / 1.30, 2);
+            }
+
+            $stock = floatval($item['stock']);
+            $item['cost_price'] = $cost;
+            $item['sell_price'] = $sell;
+            $item['total_cost_value'] = round($stock * $cost, 2);
+            $item['total_selling_value'] = round($stock * $sell, 2);
+            $item['profit'] = round($item['total_selling_value'] - $item['total_cost_value'], 2);
+            $item['margin_pct'] = ($item['total_cost_value'] > 0) ? round(($item['profit'] / $item['total_cost_value']) * 100, 2) : 0;
+        }
+        unset($item);
+
+        // Order by total_cost_value descending
+        usort($items, function ($a, $b) {
+            return $b['total_cost_value'] <=> $a['total_cost_value'];
+        });
+
+        return $items;
     }
 
     /**

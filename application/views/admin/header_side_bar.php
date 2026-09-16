@@ -1699,6 +1699,9 @@ if ($currentPage == 'InventoryController') {
         });
     }
 
+    /* Safety fallback: ensure loader is always dismissed even if external resources/CDNs stall */
+    setTimeout(hideLoader, 1000);
+
     /* Show top progress bar on internal link clicks (without screen blocking) */
     document.addEventListener('click', function(e) {
         var anchor = e.target.closest('a');

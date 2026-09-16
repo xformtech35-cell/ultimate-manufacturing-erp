@@ -960,23 +960,36 @@ class MaterialIssueController extends MY_Controller
      */
     public function stock_valuation()
     {
-        $data['valuation_report'] = $this->model->get_stock_valuation_report();
+        $filters = array();
+        if ($this->input->get('category_id')) {
+            $filters['category_id'] = $this->input->get('category_id');
+        }
+        if ($this->input->get('group_id')) {
+            $filters['group_id'] = $this->input->get('group_id');
+        }
+
+        $data['valuation_report'] = $this->model->get_stock_valuation_report($filters);
+        $data['filters']          = $filters;
+        $data['categories']       = $this->model->get_categories();
+        $data['groups']           = $this->model->get_groups();
 
         // Calculate totals
         $total_cost = 0;
         $total_selling = 0;
 
         foreach ($data['valuation_report'] as $item) {
-            $total_cost += $item['total_cost_value'];
-            $total_selling += $item['total_selling_value'];
+            $total_cost += floatval($item['total_cost_value']);
+            $total_selling += floatval($item['total_selling_value']);
         }
 
-        $data['total_cost_value'] = $total_cost;
+        $data['total_cost_value']    = $total_cost;
         $data['total_selling_value'] = $total_selling;
+        $data['total_profit']        = $total_selling - $total_cost;
+        $data['profit_margin']       = ($total_cost > 0) ? (($total_selling - $total_cost) / $total_cost * 100) : 0;
 
-        $this->load->view('admin/header_side_bar');
+        $session_data_head = $this->session->userdata('session_data_head');
+        $this->load->view('admin/header_side_bar', is_array($session_data_head) ? $session_data_head : array());
         $this->load->view('material_issue/stock_valuation', $data);
-       
     }
 
     /**
