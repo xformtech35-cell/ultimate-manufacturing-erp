@@ -215,15 +215,15 @@ $address_json = json_encode($addresses);
     $headers = [
         'Sr.No.',
         'Customer Code',
-        'Reg. Date',
         'Company Name',
         'Contact Person',
         'PAN No',
         'GST No',
         'Email',
         'Mobile',
-        'State Code',
-        'Address'
+        'Address',
+        'Reg. Date',
+        'State Code'
     ];
 
     $column = 'A';
@@ -263,15 +263,15 @@ $address_json = json_encode($addresses);
     foreach ($customers as $customer) {
         $sheet->setCellValue('A' . $row, $sr_no);
         $sheet->setCellValue('B' . $row, $customer->c_code ?? '');
-        $sheet->setCellValue('C' . $row, !empty($customer->created_date) ? date('d-m-Y', strtotime($customer->created_date)) : '');
-        $sheet->setCellValue('D' . $row, $customer->company_name ?? '');
-        $sheet->setCellValue('E' . $row, $customer->fullname ?? '');
-        $sheet->setCellValue('F' . $row, $customer->pancard ?? '');
-        $sheet->setCellValue('G' . $row, $customer->gst ?? '');
-        $sheet->setCellValue('H' . $row, $customer->email ?? '');
-        $sheet->setCellValue('I' . $row, $customer->mobile ?? '');
-        $sheet->setCellValue('J' . $row, $customer->state_code ?? '');
-        $sheet->setCellValue('K' . $row, $customer->address ?? '');
+        $sheet->setCellValue('C' . $row, $customer->company_name ?? '');
+        $sheet->setCellValue('D' . $row, $customer->fullname ?? '');
+        $sheet->setCellValue('E' . $row, $customer->pancard ?? '');
+        $sheet->setCellValue('F' . $row, $customer->gst ?? '');
+        $sheet->setCellValue('G' . $row, $customer->email ?? '');
+        $sheet->setCellValue('H' . $row, $customer->mobile ?? '');
+        $sheet->setCellValue('I' . $row, $customer->address ?? '');
+        $sheet->setCellValue('J' . $row, !empty($customer->created_date) ? date('d-m-Y', strtotime($customer->created_date)) : '');
+        $sheet->setCellValue('K' . $row, $customer->state_code ?? '');
 
         $row++;
         $sr_no++;
@@ -336,13 +336,14 @@ $address_json = json_encode($addresses);
                     <tr>
                         <th>Sr.No.</th>
                         <th>Code</th>
-                        <th>Reg. Date</th>
                         <th>Company Name</th>
                         <th>Contact Person</th>
                         <th>PAN No</th>
                         <th>TAX No</th>
                         <th>Email</th>
                         <th>Mobile</th>
+                        <th>Address</th>
+                        <th>Reg. Date</th>
                         <th>State Code</th>
                     </tr>
                 </thead>
@@ -354,13 +355,14 @@ $address_json = json_encode($addresses);
             $html .= '<tr>
                 <td>' . $sr_no . '</td>
                 <td>' . ($customer->c_code ?? '') . '</td>
-                <td>' . $reg_date . '</td>
                 <td>' . ($customer->company_name ?? '') . '</td>
                 <td>' . ($customer->fullname ?? '') . '</td>
                 <td>' . ($customer->pancard ?? '') . '</td>
                 <td>' . ($customer->gst ?? '') . '</td>
                 <td>' . ($customer->email ?? '') . '</td>
                 <td>' . ($customer->mobile ?? '') . '</td>
+                <td>' . ($customer->address ?? '') . '</td>
+                <td>' . $reg_date . '</td>
                 <td>' . ($customer->state_code ?? '') . '</td>
             </tr>';
             $sr_no++;

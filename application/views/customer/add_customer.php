@@ -82,27 +82,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                                 <div class="row" style="margin-bottom: 15px;">
                                     <div class="col-sm-12" style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
-                                        <!-- FY Selector Dropdown -->
-                                        <div style="display: inline-flex; align-items: center; margin-right: 10px;">
-                                            <span style="font-weight: 600; font-size: 12px; color: #444; margin-right: 6px;">
-                                                <i class="fa fa-calendar"></i> Financial Year:
-                                            </span>
-                                            <select class="form-control input-sm" style="width: auto; display: inline-block; font-weight: 700; border-color: #3c8dbc; color: #1a6496;" 
-                                                    onchange="location.href='<?php echo base_url('CustomerController/index?fy='); ?>' + this.value;">
-                                                <option value="all" <?php echo (!$is_fy_active) ? 'selected' : ''; ?>>All FY (All Data)</option>
-                                                <?php 
-                                                $cur_m = (int)date('n');
-                                                $cur_y = (int)date('Y');
-                                                $def_y = ($cur_m >= 4) ? $cur_y : ($cur_y - 1);
-                                                for ($y = $def_y; $y >= 2020; $y--) {
-                                                    $lbl = 'FY ' . $y . '-' . substr($y + 1, -2);
-                                                    $s = ($is_fy_active && (string)$y === (string)$fy_year) ? 'selected' : '';
-                                                    echo "<option value=\"$y\" $s>$lbl</option>";
-                                                }
-                                                ?>
-                                            </select>
-                                        </div>
-
                                         <?php if ($is_fy_active): ?>
                                         <div class="btn-group" role="group" aria-label="Customer Filters">
                                             <a href="<?php echo base_url('CustomerController/index?customer_filter=registered'); ?>" 
@@ -131,7 +110,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             </span>
                                         </div>
                                         <span class="text-muted" style="margin-left: 10px; font-size: 12px; display: inline-block;">
-                                            <i class="fa fa-info-circle text-info"></i> Currently viewing all records. Select a year above or from the dropdown to view <strong>Registered in FY</strong> or <strong>Active in FY</strong>.
+                                            <i class="fa fa-info-circle text-info"></i> Currently viewing all records. Use the <strong>Financial Year</strong> selector in the top header to filter by <strong>Registered in FY</strong> or <strong>Active in FY</strong>.
                                         </span>
                                         <?php endif; ?>
                                     </div>
@@ -152,12 +131,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                     <?php } 
                                 } ?>
 
-                                <table id="example3" class="table table-bordered table-striped">
+                                 <table id="example3" class="table table-bordered table-striped">
                                     <thead>
                                         <tr>
                                             <th>Sr.No.</th>
                                             <th>Code</th>
-                                            <th>Reg. Date</th>
                                             <th>Company Name</th>
                                             <th>Name</th>
                                             <th>GST No</th>
@@ -165,6 +143,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             <th>Email</th>
                                             <th>Mobile</th>
                                             <th>Address</th>
+                                            <th>Reg. Date</th>
                                             <th>State Code</th>
                                             <th>Actions</th>
                                         </tr>
@@ -196,7 +175,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             <tr>
                                                 <td><?php echo $i; ?></td>
                                                 <td><?php echo $key->c_code; ?></td>
-                                                <td><span class="label label-default" style="font-size: 11px;"><?php echo $regDateFormatted; ?></span></td>
                                                 <td><?php echo $key->company_name; ?></td>
                                                 <td><?php echo $key->fullname; ?></td>
                                                 <td><?php echo $key->gst; ?></td>
@@ -209,6 +187,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                         <?php echo htmlspecialchars($shortAddress); ?>
                                                     </a>
                                                  </td>
+                                                <td><span class="label label-default" style="font-size: 11px;"><?php echo $regDateFormatted; ?></span></td>
                                                 <td><?php echo $key->state_code; ?></td>
                                                 <td>
                                                     <a href="<?php echo base_url() . 'CustomerController/get_customer_by_id/' . $key->customer_id; ?>" class="btn btn-primary"><i class="fa fa-pencil-square"></i></a>
