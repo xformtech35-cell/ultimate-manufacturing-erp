@@ -80,9 +80,30 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 $cnt_act = $counts['active'] ?? 0;
                                 ?>
 
-                                <?php if ($is_fy_active): ?>
                                 <div class="row" style="margin-bottom: 15px;">
-                                    <div class="col-sm-12">
+                                    <div class="col-sm-12" style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                        <!-- FY Selector Dropdown -->
+                                        <div style="display: inline-flex; align-items: center; margin-right: 10px;">
+                                            <span style="font-weight: 600; font-size: 12px; color: #444; margin-right: 6px;">
+                                                <i class="fa fa-calendar"></i> Financial Year:
+                                            </span>
+                                            <select class="form-control input-sm" style="width: auto; display: inline-block; font-weight: 700; border-color: #3c8dbc; color: #1a6496;" 
+                                                    onchange="location.href='<?php echo base_url('CustomerController/index?fy='); ?>' + this.value;">
+                                                <option value="all" <?php echo (!$is_fy_active) ? 'selected' : ''; ?>>All FY (All Data)</option>
+                                                <?php 
+                                                $cur_m = (int)date('n');
+                                                $cur_y = (int)date('Y');
+                                                $def_y = ($cur_m >= 4) ? $cur_y : ($cur_y - 1);
+                                                for ($y = $def_y; $y >= 2020; $y--) {
+                                                    $lbl = 'FY ' . $y . '-' . substr($y + 1, -2);
+                                                    $s = ($is_fy_active && (string)$y === (string)$fy_year) ? 'selected' : '';
+                                                    echo "<option value=\"$y\" $s>$lbl</option>";
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
+
+                                        <?php if ($is_fy_active): ?>
                                         <div class="btn-group" role="group" aria-label="Customer Filters">
                                             <a href="<?php echo base_url('CustomerController/index?customer_filter=registered'); ?>" 
                                                class="btn btn-sm <?php echo ($cur_filter === 'registered') ? 'btn-primary' : 'btn-default'; ?>" style="font-weight: 600;">
@@ -100,12 +121,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                 <span class="badge" style="<?php echo ($cur_filter === 'all') ? 'background:#fff; color:#337ab7;' : 'background:#777; color:#fff;'; ?> margin-left:4px;"><?php echo $cnt_all; ?></span>
                                             </a>
                                         </div>
-                                        <span class="text-muted" style="margin-left: 15px; font-size: 12px; display: inline-block; vertical-align: middle;">
-                                            <i class="fa fa-info-circle text-info"></i> Viewing for <strong><?php echo $fy_label; ?></strong>. Switch FY in top bar to select another year.
+                                        <span class="text-muted" style="margin-left: 10px; font-size: 12px; display: inline-block;">
+                                            <i class="fa fa-info-circle text-info"></i> Viewing for <strong><?php echo $fy_label; ?></strong>
                                         </span>
+                                        <?php else: ?>
+                                        <div class="btn-group" role="group">
+                                            <span class="btn btn-sm btn-primary" style="font-weight: 600; cursor: default;">
+                                                <i class="fa fa-users"></i> All Customers <span class="badge" style="background:#fff; color:#337ab7; margin-left:4px;"><?php echo $cnt_all; ?></span>
+                                            </span>
+                                        </div>
+                                        <span class="text-muted" style="margin-left: 10px; font-size: 12px; display: inline-block;">
+                                            <i class="fa fa-info-circle text-info"></i> Currently viewing all records. Select a year above or from the dropdown to view <strong>Registered in FY</strong> or <strong>Active in FY</strong>.
+                                        </span>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
-                                <?php endif; ?>
 
                                 <?php if ($this->session->flashdata('IMPORT_ERRORS')) { 
                                     $errors = $this->session->flashdata('IMPORT_ERRORS');
