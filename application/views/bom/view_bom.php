@@ -341,6 +341,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         if ($.fn.DataTable && !$.fn.DataTable.isDataTable('#example0')) {
             $('#example0').DataTable({
                 "pageLength": 25,
+                "order": [],
                 "dom": "<'row'<'col-sm-6'l><'col-sm-6 text-right'f>>" +
                        "<'row'<'col-sm-12'tr>>" +
                        "<'row'<'col-sm-5'i><'col-sm-7'p>>",

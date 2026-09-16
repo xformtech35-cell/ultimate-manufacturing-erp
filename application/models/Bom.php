@@ -110,7 +110,7 @@ Class Bom extends CI_Model {
         if (!empty($fy_year) && $fy_year !== 'all') {
             $fy_from = $fy_year . '-04-01';
             $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
-            $fy_where_ba = " AND ba.action_date >= {$this->db->escape($fy_from)} AND ba.action_date <= {$this->db->escape($fy_to)}";
+            $fy_where_ba = " AND bt.date >= {$this->db->escape($fy_from)} AND bt.date <= {$this->db->escape($fy_to)}";
             $fy_where_bt = " AND bt.date >= {$this->db->escape($fy_from)} AND bt.date <= {$this->db->escape($fy_to)}";
         }
 
@@ -124,7 +124,7 @@ Class Bom extends CI_Model {
                     SELECT 
                         bt.id                      AS bom_total_id,
                         bt.number_fk               AS number,
-                        ba.action_date             AS date,
+                        bt.date                    AS date,
                         CASE 
                             WHEN ba.status = 'approved' THEN 4
                             WHEN ba.status = 'rejected' THEN 5
@@ -142,13 +142,21 @@ Class Bom extends CI_Model {
                         c.company_name,
                         c.fullname,
                         u.username                 AS prepare_by,
-                        ba.action_by               AS approved_by_name,
-                        ba.action_date             AS sort_date
-                    FROM {$prefix}bom_approvals ba
+                        ba.action_by               AS approved_by_name
+                    FROM (
+                        SELECT ba1.*
+                        FROM {$prefix}bom_approvals ba1
+                        INNER JOIN (
+                            SELECT MAX(approval_id) AS max_app_id
+                            FROM {$prefix}bom_approvals
+                            WHERE status IN ('approved', 'rejected')
+                            GROUP BY bom_number
+                        ) latest_ba ON ba1.approval_id = latest_ba.max_app_id
+                    ) ba
                     JOIN {$prefix}bom_total bt ON bt.number_fk = ba.bom_number
                     LEFT JOIN {$prefix}customer c ON c.customer_id = bt.customer_id_fk
                     LEFT JOIN {$prefix}user u ON u.user_id = bt.uid
-                    WHERE ba.status IN ('approved', 'rejected') {$fy_where_ba}
+                    WHERE 1=1 {$fy_where_ba}
 
                     UNION ALL
 
@@ -169,8 +177,7 @@ Class Bom extends CI_Model {
                         c.company_name,
                         c.fullname,
                         u.username                 AS prepare_by,
-                        u2.username                AS approved_by_name,
-                        bt.date                    AS sort_date
+                        u2.username                AS approved_by_name
                     FROM {$prefix}bom_total bt
                     LEFT JOIN {$prefix}customer c ON c.customer_id = bt.customer_id_fk
                     LEFT JOIN {$prefix}user u ON u.user_id = bt.uid
@@ -180,7 +187,7 @@ Class Bom extends CI_Model {
                     ) {$fy_where_bt}
                 ) sub
                 {$status_where}
-                ORDER BY sub.sort_date DESC, sub.bom_total_id DESC";
+                ORDER BY sub.bom_total_id DESC";
     }
 
     public function get_boms($uid) {
