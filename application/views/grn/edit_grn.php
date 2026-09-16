@@ -75,8 +75,8 @@ if (empty($grn_data_group)) {
                                         <div class="col-md-3">
                                             <div class="form-group row">
                                                 <label for="inputEmail3" class="col-sm-4 control-label">PO No.<span style="color: red;">*</span></label>
-                                                <div class="col-sm-8">
-                                                    <input type="text" class="form-control input-sm" id="po_number_display" value="<?php echo isset($grn_data_group['po_number']) ? $grn_data_group['po_number'] : ''; ?>" readonly>
+                                                    <?php $edit_po_no = !empty($grn_data_group['po_number_fk']) ? $grn_data_group['po_number_fk'] : (!empty($grn_data_group['po_number']) ? $grn_data_group['po_number'] : ''); ?>
+                                                    <input type="text" class="form-control input-sm" id="po_number_display" name="po_number_fk" value="<?php echo htmlspecialchars($edit_po_no); ?>" readonly>
                                                 </div>
                                             </div>
 

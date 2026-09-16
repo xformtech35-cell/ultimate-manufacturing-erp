@@ -358,7 +358,7 @@ $users = isset($users) && is_array($users) ? $users : array();
                                                             <td class="text-center"><?php echo $item->quantity; ?></td>
                                                             <td class="text-center"><?php echo $item->received_quantity; ?></td>
                                                             <td>
-                                                                <input type="number" class="form-control"
+                                                                <input type="number" step="any" class="form-control accepted_quantity"
                                                                     name="accepted_quantity[]"
                                                                     min="0"
                                                                     max="<?php echo $item->received_quantity; ?>"
@@ -366,7 +366,7 @@ $users = isset($users) && is_array($users) ? $users : array();
                                                                     required>
                                                             </td>
                                                             <td>
-                                                                <input type="number" class="form-control"
+                                                                <input type="number" step="any" class="form-control rejected_quantity"
                                                                     name="rejected_quantity[]"
                                                                     min="0"
                                                                     max="<?php echo $item->received_quantity; ?>"
@@ -508,16 +508,117 @@ $users = isset($users) && is_array($users) ? $users : array();
                 });
             }
 
-            /* ── Qty validation: accepted + rejected ≤ delivered ── */
-            $('input[name="accepted_quantity[]"], input[name="rejected_quantity[]"]').on('input', function() {
-                var row         = $(this).closest('tr');
-                var deliveredQty = parseInt(row.find('td:nth-child(3)').text()) || 0;
-                var acceptedQty  = parseInt(row.find('input[name="accepted_quantity[]"]').val()) || 0;
-                var rejectedQty  = parseInt(row.find('input[name="rejected_quantity[]"]').val()) || 0;
+            /* ── Auto-sync Accepted Qty and Rejected Qty (Bidirectional) ── */
+            function getDeliveredQty(row) {
+                var hiddenVal = parseFloat(row.find('input[name="quantity[]"]').val());
+                if (!isNaN(hiddenVal)) return hiddenVal;
+                var textVal = parseFloat(row.find('td:nth-child(3)').text().trim());
+                return !isNaN(textVal) ? textVal : 0;
+            }
 
-                if (acceptedQty + rejectedQty > deliveredQty) {
-                    alert('Accepted + Rejected quantity cannot exceed delivered quantity!');
-                    $(this).val('');
+            function roundQty(num) {
+                return Math.round((num + Number.EPSILON) * 1000) / 1000;
+            }
+
+            // When Accepted Qty changes -> Auto update Rejected Qty
+            $(document).on('input', 'input[name="accepted_quantity[]"]', function() {
+                var row = $(this).closest('tr');
+                var delivered = getDeliveredQty(row);
+                var rawVal = $(this).val();
+
+                if (rawVal === '') {
+                    return; // Allow typing
+                }
+
+                var accepted = parseFloat(rawVal);
+                if (isNaN(accepted) || accepted < 0) {
+                    accepted = 0;
+                    $(this).val(0);
+                } else if (accepted > delivered) {
+                    alert('Accepted quantity cannot exceed delivered quantity (' + delivered + ')!');
+                    accepted = delivered;
+                    $(this).val(delivered);
+                }
+
+                var rejected = roundQty(Math.max(0, delivered - accepted));
+                row.find('input[name="rejected_quantity[]"]').val(rejected);
+
+                // If rejected is 0, clear rejection reason; if > 0, highlight reason if empty
+                var $reason = row.find('select[name="rejection_reason[]"]');
+                if (rejected === 0) {
+                    $reason.val('').css('border', '');
+                }
+            });
+
+            // When Rejected Qty changes -> Auto update Accepted Qty
+            $(document).on('input', 'input[name="rejected_quantity[]"]', function() {
+                var row = $(this).closest('tr');
+                var delivered = getDeliveredQty(row);
+                var rawVal = $(this).val();
+
+                if (rawVal === '') {
+                    return; // Allow typing
+                }
+
+                var rejected = parseFloat(rawVal);
+                if (isNaN(rejected) || rejected < 0) {
+                    rejected = 0;
+                    $(this).val(0);
+                } else if (rejected > delivered) {
+                    alert('Rejected quantity cannot exceed delivered quantity (' + delivered + ')!');
+                    rejected = delivered;
+                    $(this).val(delivered);
+                }
+
+                var accepted = roundQty(Math.max(0, delivered - rejected));
+                row.find('input[name="accepted_quantity[]"]').val(accepted);
+
+                var $reason = row.find('select[name="rejection_reason[]"]');
+                if (rejected === 0) {
+                    $reason.val('').css('border', '');
+                }
+            });
+
+            // On change/blur: ensure empty fields are cleanly restored
+            $(document).on('change blur', 'input[name="accepted_quantity[]"]', function() {
+                var row = $(this).closest('tr');
+                var delivered = getDeliveredQty(row);
+                if ($(this).val() === '') {
+                    var rejected = parseFloat(row.find('input[name="rejected_quantity[]"]').val()) || 0;
+                    var accepted = roundQty(Math.max(0, delivered - rejected));
+                    $(this).val(accepted);
+                }
+            });
+
+            $(document).on('change blur', 'input[name="rejected_quantity[]"]', function() {
+                var row = $(this).closest('tr');
+                var delivered = getDeliveredQty(row);
+                if ($(this).val() === '') {
+                    var accepted = parseFloat(row.find('input[name="accepted_quantity[]"]').val()) || 0;
+                    var rejected = roundQty(Math.max(0, delivered - accepted));
+                    $(this).val(rejected);
+                }
+            });
+
+            // Form submit validation: ensure rejection reason is selected if rejected qty > 0
+            $('#inspectionForm').on('submit', function(e) {
+                var missingReason = false;
+                $('#inspectionItemsTable tbody tr').each(function() {
+                    var rejected = parseFloat($(this).find('input[name="rejected_quantity[]"]').val()) || 0;
+                    var $reason = $(this).find('select[name="rejection_reason[]"]');
+                    if (rejected > 0 && !$reason.val()) {
+                        missingReason = true;
+                        $reason.css('border', '1px solid red').focus();
+                        return false; // break
+                    } else {
+                        $reason.css('border', '');
+                    }
+                });
+
+                if (missingReason) {
+                    alert('Please select a Rejection Reason for all items with a rejected quantity.');
+                    e.preventDefault();
+                    return false;
                 }
             });
         });

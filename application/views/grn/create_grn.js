@@ -52,12 +52,37 @@ $(document).ready(function() {
     });
 
     // PO change - load items
-    // stopImmediatePropagation prevents the legacy custom.js handler from ALSO
-    // firing and adding a second duplicate row with different formatting.
-    $('#po_number').on('change', function(e) {
-        e.stopImmediatePropagation();
-        var po_number = $(this).val();
-        if (po_number) {
+    var lastSelectedPo = '';
+
+    function syncPoDisplay(text) {
+        var po_number = $('#po_number').val();
+        var selectedText = text || $('#po_number').find('option:selected').text() || po_number;
+        if (po_number && selectedText) {
+            // 1. Direct Select2 container ID
+            $('#select2-po_number-container')
+                .text(selectedText)
+                .attr('title', selectedText)
+                .removeClass('select2-selection__placeholder');
+
+            // 2. Class-based siblings/descendants
+            $('#po_number')
+                .nextAll('.select2, .select2-container')
+                .find('.select2-selection__rendered')
+                .text(selectedText)
+                .attr('title', selectedText)
+                .removeClass('select2-selection__placeholder');
+        }
+    }
+
+    function onPoChange(e) {
+        if (e && e.stopPropagation) {
+            e.stopPropagation();
+        }
+        var po_number = $('#po_number').val();
+        syncPoDisplay();
+
+        if (po_number && po_number !== lastSelectedPo) {
+            lastSelectedPo = po_number;
             $('#po_number_fk').val(po_number);
             var baseGrn = $('#grn_number').val().split('/(')[0];
             var match = po_number.match(/\/\(([0-9]+\/[0-9]+)\)$/);
@@ -79,9 +104,29 @@ $(document).ready(function() {
                         addRow(item);
                     });
                     calculateTotals();
+
+                    syncPoDisplay();
+                    setTimeout(syncPoDisplay, 100);
                 }
             }, 'json');
+        } else if (!po_number) {
+            lastSelectedPo = '';
+            $('#po_number_fk').val('');
+            $('#supplier_id').val('');
+            $('#dynamic_field tbody').empty();
+            calculateTotals();
         }
+    }
+
+    $('#po_number').on('change', onPoChange);
+    $('#po_number').on('select2:select', function(e) {
+        var data = e.params ? e.params.data : null;
+        var text = (data && data.text) ? data.text : $(this).find('option:selected').text();
+        syncPoDisplay(text);
+        onPoChange(e);
+        setTimeout(function() {
+            syncPoDisplay(text);
+        }, 50);
     });
     
     // Amount to words function
