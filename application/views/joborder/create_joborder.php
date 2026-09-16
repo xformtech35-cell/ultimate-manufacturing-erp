@@ -1332,7 +1332,29 @@ function addNewRow() {
 
 // Delete row from the table
 function deleteRow(rowId) {
-    $('#' + rowId).remove();
+    var $tbody = $('#table-body').length ? $('#table-body') : $('#dynamic_field tbody');
+    var $allRows = $tbody.find('tr');
+
+    if ($allRows.length <= 1) {
+        // Reset the only remaining row instead of removing it
+        if (typeof resetRow1 === 'function') {
+            resetRow1();
+        } else {
+            var $row = $('#' + rowId);
+            $row.find('select.product_name_auto').val('').trigger('change');
+            $row.find('input[name="product_code[]"]').val('');
+            $row.find('input[name="quantity[]"]').val('1');
+            $row.find('select.item_search_unit').val('').trigger('change');
+            $row.find('input[name="tag_no[]"]').val('');
+            $row.find('select[name="stores_remark[]"]').val('');
+            $row.find('input[name="price[]"]').val('');
+            $row.find('textarea[name="description[]"]').val('');
+            $row.find('textarea[name="scope[]"]').val('');
+            $row.find('textarea[name="remark[]"]').val('');
+        }
+    } else {
+        $('#' + rowId).remove();
+    }
     updateTotalQty();
     updateHeadingAssociations();
     renderPagination();
@@ -1654,9 +1676,30 @@ $(document).on('click', '.move-row-down', function(e) {
     }
 });
 
-// Remove heading row
+// Remove heading / item row
 $(document).on('click', '.btn_remove', function() {
-    $(this).closest('tr').remove();
+    var $tbody = $('#table-body').length ? $('#table-body') : $('#dynamic_field tbody');
+    var $allRows = $tbody.find('tr');
+    var $row = $(this).closest('tr');
+
+    if ($allRows.length <= 1) {
+        if (typeof resetRow1 === 'function') {
+            resetRow1();
+        } else {
+            $row.find('select.product_name_auto').val('').trigger('change');
+            $row.find('input[name="product_code[]"]').val('');
+            $row.find('input[name="quantity[]"]').val('1');
+            $row.find('select.item_search_unit').val('').trigger('change');
+            $row.find('input[name="tag_no[]"]').val('');
+            $row.find('select[name="stores_remark[]"]').val('');
+            $row.find('input[name="price[]"]').val('');
+            $row.find('textarea[name="description[]"]').val('');
+            $row.find('textarea[name="scope[]"]').val('');
+            $row.find('textarea[name="remark[]"]').val('');
+        }
+    } else {
+        $row.remove();
+    }
     updateHeadingAssociations();
     updateTotalQty();
 });

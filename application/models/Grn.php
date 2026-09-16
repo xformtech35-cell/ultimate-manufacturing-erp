@@ -299,6 +299,12 @@ class Grn extends CI_Model
     // Add customer
     public function add_customer($data_customer)
     {
+        if (empty($data_customer['c_code'])) {
+            if (!isset($this->customer)) {
+                $this->load->model('Customer', 'customer');
+            }
+            $data_customer['c_code'] = $this->customer->get_next_customer_code();
+        }
         return $this->db->insert('customer', $data_customer);
     }
 

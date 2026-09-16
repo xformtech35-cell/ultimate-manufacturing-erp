@@ -49,8 +49,17 @@ class CustomerController extends MY_Controller {
 $address_json = json_encode($addresses);
         $state_code = $this->input->post('state_code');
 
-        $c_code = $this->customer->get_last_customer_code($this->user_id);
-        $c_code = $c_code + 3000;
+        $posted_c_code = trim($this->input->post('c_code'));
+        if (!empty($posted_c_code) && is_numeric($posted_c_code)) {
+            $existing_code = $this->db->where('c_code', $posted_c_code)->get('customer')->row();
+            if (!$existing_code) {
+                $c_code = $posted_c_code;
+            } else {
+                $c_code = $this->customer->get_next_customer_code();
+            }
+        } else {
+            $c_code = $this->customer->get_next_customer_code();
+        }
         
         $data_customer = array('company_name' => $company_name, 'fullname' => $fullname, 'pancard' => $pancard,
             'gst' => $gst, 'email' => $email, 'mobile' => $mobile, 'address' => $address_json,
@@ -67,9 +76,22 @@ $address_json = json_encode($addresses);
         }
     }
 
+    public function get_next_customer_code() {
+        try {
+            if (!isset($this->customer)) {
+                $this->load->model('customer');
+            }
+            $next_code = $this->customer->get_next_customer_code();
+            echo intval($next_code);
+        } catch (Exception $e) {
+            echo "3001";
+        }
+    }
+
     public function edit_customer() {
         $customer_id = $this->input->post('customer_id');
         $company_name = $this->input->post('company_name');
+        $c_code = trim($this->input->post('c_code'));
         $fullname = $this->input->post('fullname');
         $pancard = $this->input->post('pancard');
         $gst = $this->input->post('gst');
@@ -78,9 +100,24 @@ $address_json = json_encode($addresses);
         $address = $this->input->post('address');
         $state_code = $this->input->post('state_code');
 
+        if (!empty($c_code)) {
+            $existing_code = $this->db->where('c_code', $c_code)
+                                      ->where('customer_id !=', $customer_id)
+                                      ->get('customer')
+                                      ->row();
+            if ($existing_code) {
+                $this->session->set_flashdata('INFOMSG', "Customer Code '{$c_code}' is already used by another company ({$existing_code->company_name})!");
+                redirect('CustomerController/get_customer_by_id/' . $customer_id);
+                return;
+            }
+        }
+
         $data_customer = array('company_name' => $company_name, 'fullname' => $fullname, 'pancard' => $pancard,
             'gst' => $gst, 'email' => $email, 'mobile' => $mobile,
             'address' => $address, 'state_code' => $state_code);
+        if (!empty($c_code)) {
+            $data_customer['c_code'] = $c_code;
+        }
         $result = $this->customer->edit_customer($data_customer, $customer_id,$this->user_id);
 
         if ($result == TRUE) {
@@ -528,8 +565,7 @@ $address_json = json_encode($addresses);
                     }
 
                     // Get next customer code
-                    $c_code = $this->customer->get_last_customer_code($this->user_id);
-                    $c_code = $c_code + 3000;
+                    $c_code = $this->customer->get_next_customer_code();
 
                     // Prepare data
                     $customer_data = [

@@ -399,5 +399,27 @@ $_has_project_master = isset($session_data_head1['permission']) && in_array('Pro
                 myFunction1('item_name1');
             }, 300);
         <?php } ?>
+
+        // Prevent deleting the only row and reset its values instead
+        $(document).off('click', '#dynamic_field .btn_remove').on('click', '#dynamic_field .btn_remove', function(e) {
+            var $tbody = $('#dynamic_field tbody').length ? $('#dynamic_field tbody') : $('#dynamic_field');
+            var $allRows = $tbody.find('tr').filter(function() {
+                return $(this).find('select[name="item_code[]"], input[name="item_code[]"]').length > 0;
+            });
+            var $row = $(this).closest('tr');
+
+            if ($allRows.length <= 1) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                $row.find('select.product_name_auto').val('').trigger('change');
+                $row.find('input[name="hsn[]"]').val('');
+                $row.find('input[name="quantity[]"]').val('1');
+                $row.find('select.item_search_unit').val('').trigger('change');
+                $row.find('input[name="estimated_cost[]"]').val('');
+                $row.find('input[name="specification[]"]').val('');
+                $row.find('textarea[name="description[]"]').val('');
+                return false;
+            }
+        });
     });
     </script>

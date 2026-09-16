@@ -17,10 +17,14 @@ Class Customer extends CI_Model {
     public function add_customer($data_customer) {
         
         $dataOpp = array(
-            'opp_name' => $data_customer['company_name'],
+            'opp_name' => isset($data_customer['company_name']) ? $data_customer['company_name'] : '',
         );
         
         //$this->crm->insert('opportunity', $dataOpp);
+
+        if (empty($data_customer['c_code'])) {
+            $data_customer['c_code'] = $this->get_next_customer_code();
+        }
         
         return $this->db->insert('customer', $data_customer);
     }
@@ -97,13 +101,26 @@ Class Customer extends CI_Model {
     }
     
     
-      public function get_last_customer_code($uid) {
-        $this->db->select('COUNT(c_code)');
+    public function get_last_customer_code($uid = null) {
+        $this->db->select('MAX(CAST(c_code AS UNSIGNED)) as max_code');
         $this->db->from('customer');
-        //$this->db->where('uid', $uid);
+        $this->db->where('c_code !=', '');
+        $this->db->where('c_code IS NOT NULL', null, false);
         $query = $this->db->get();
         $result = $query->row_array();
-        return $result['COUNT(c_code)'];
+        $max_code = isset($result['max_code']) ? $result['max_code'] : null;
+        if (empty($max_code) || $max_code == null) {
+            return 0;
+        }
+        return intval($max_code);
+    }
+
+    public function get_next_customer_code() {
+        $last_code = $this->get_last_customer_code();
+        if ($last_code == 0) {
+            return 3001;
+        }
+        return $last_code + 1;
     }
 
 }

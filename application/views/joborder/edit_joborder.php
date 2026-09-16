@@ -1118,7 +1118,24 @@ $(document).on('click', '.move-row-down', function(e) {
 
 // Delete specific row helper
 function deleteRow(rowId) {
-    $('#' + rowId).remove();
+    var $tbody = $('#table-body').length ? $('#table-body') : $('#dynamic_field tbody');
+    var $allRows = $tbody.find('tr');
+
+    if ($allRows.length <= 1) {
+        var $row = $('#' + rowId);
+        $row.find('select.product_name_auto').val('').trigger('change');
+        $row.find('input[name="product_code[]"]').val('');
+        $row.find('input[name="quantity[]"]').val('1');
+        $row.find('select.item_search_unit').val('').trigger('change');
+        $row.find('input[name="tag_no[]"]').val('');
+        $row.find('select[name="stores_remark[]"]').val('');
+        $row.find('input[name="price[]"]').val('');
+        $row.find('textarea[name="description[]"]').val('');
+        $row.find('textarea[name="scope[]"]').val('');
+        $row.find('textarea[name="remark[]"]').val('');
+    } else {
+        $('#' + rowId).remove();
+    }
     updateTotalQty();
     updateHeadingAssociations();
 }

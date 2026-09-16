@@ -1424,9 +1424,37 @@ $(document).on('click', '.move-row-down', function(e) {
 // Remove row functionality (local helper for heading rows and newly added rows)
 $(document).on('click', '.btn-remove-so-row', function(e) {
     e.preventDefault();
-    $(this).closest('tr').remove();
+    var $tbody = $('#table-body').length ? $('#table-body') : $('#dynamic_field tbody');
+    var $allRows = $tbody.find('tr');
+    var $row = $(this).closest('tr');
+
+    if ($allRows.length <= 1) {
+        // Reset the only remaining row instead of removing it
+        $row.find('select.product_name_auto').val('').trigger('change');
+        $row.find('input[name="hsn[]"]').val('');
+        $row.find('input[name="quantity[]"]').val('1');
+        $row.find('select.item_search_unit').val('').trigger('change');
+        $row.find('input[name="gst_per[]"]').val('');
+        $row.find('input[name="sgst[]"]').val('');
+        $row.find('input[name="cgst[]"]').val('');
+        $row.find('input[name="igst[]"]').val('');
+        $row.find('input[name="price[]"]').val('0.00');
+        $row.find('input[name="discount[]"]').val('');
+        $row.find('input[name="amount[]"]').val('0.00');
+        $row.find('input[name="amount_temp[]"]').val('0.00');
+        $row.find('input[name="gst_amount[]"]').val('0.00');
+        $row.find('input[name="tag_no[]"]').val('');
+        $row.find('textarea[name="description[]"]').val('');
+        $row.find('span[id^="span_amount"]').text('₹0.00');
+    } else {
+        $row.remove();
+    }
+
     if (typeof calculateSum1 === 'function') {
         calculateSum1();
+    }
+    if (typeof updateTotalBeforeTax === 'function') {
+        updateTotalBeforeTax();
     }
     updateHeadingAssociations();
 });

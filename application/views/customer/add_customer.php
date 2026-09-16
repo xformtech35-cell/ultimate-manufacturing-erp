@@ -185,6 +185,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 <form class="form-horizontal form_overlay" method="post" action="<?php echo base_url(); ?>CustomerController/add_customer" enctype="multipart/form-data">
                     <div class="modal-body">
                         <div class="card-body">
+                            <div class="form-group row">
+                                <label for="ac_c_code" class="col-sm-4 control-label">Customer Code</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control" name="c_code" id="ac_c_code" placeholder="Auto-generated" readonly style="background:#f5f5f5;">
+                                </div>
+                            </div>
                             <div class="form-group row required">
                                 <label for="company_name" class="col-sm-4 control-label">Company Name</label>
                                 <div class="col-sm-7">
@@ -366,6 +372,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             $('#state_code').val(gstNo.substring(0, 2));
         });
         // ==================== NEW CODE END ====================
+
+        // Auto-fetch next customer code when Add Customer modal opens
+        $('#myModal').on('show.bs.modal', function () {
+            $.ajax({
+                type: 'GET',
+                url: '<?php echo base_url(); ?>CustomerController/get_next_customer_code',
+                dataType: 'text',
+                success: function (data) {
+                    var code = $.trim(data);
+                    if (code && !isNaN(code)) {
+                        $('#ac_c_code').val(code);
+                    }
+                }
+            });
+        });
     });
     </script>
 </body>

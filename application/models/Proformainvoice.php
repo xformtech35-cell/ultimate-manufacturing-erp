@@ -11,6 +11,12 @@ Class Proformainvoice extends CI_Model {
     public function add_customer($data_customer, $gst_check_customer) {
         
          if($gst_check_customer == 'gst_check_customer'){
+           if (empty($data_customer['c_code'])) {
+               if (!isset($this->customer)) {
+                   $this->load->model('Customer', 'customer');
+               }
+               $data_customer['c_code'] = $this->customer->get_next_customer_code();
+           }
            return $this->db->insert('customer', $data_customer);
         }else{
              return $this->db->insert('supplier', $data_customer);

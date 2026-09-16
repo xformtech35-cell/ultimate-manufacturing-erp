@@ -1327,7 +1327,27 @@ function importBOMRows(items) {
 
 // Global backup remove row handler
 $(document).off('click', '.btn-remove-bom-row').on('click', '.btn-remove-bom-row', function() {
-    $(this).closest('tr').remove();
+    var $tbody = $('#table-body').length ? $('#table-body') : $('#dynamic_field tbody');
+    var $allRows = $tbody.find('tr');
+    var $row = $(this).closest('tr');
+
+    if ($allRows.length <= 1) {
+        // Reset the only remaining row instead of removing it
+        $row.find('select.bom_item_search_name').val('').trigger('change');
+        $row.find('input[name="product_code[]"]').val('');
+        $row.find('input[name="item_name_display[]"]').val('');
+        $row.find('input[name="quantity[]"]').val('1');
+        $row.find('select.bom_item_search_unit').val('').trigger('change');
+        $row.find('input[name="tag_no[]"]').val('');
+        $row.find('select[name="stores_remark[]"]').val('');
+        $row.find('textarea[name="description[]"]').val('');
+        $row.find('textarea[name="scope[]"]').val('');
+        $row.find('textarea[name="remark[]"]').val('');
+        $row.find('.path-text').text('None');
+    } else {
+        $row.remove();
+    }
+
     updateHeadingAssociations();
     updatePagination();
 });

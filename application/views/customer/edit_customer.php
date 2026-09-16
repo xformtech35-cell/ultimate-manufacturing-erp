@@ -85,6 +85,17 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         </div>
 
                                         <div class="form-group row">
+                                            <label for="c_code" class="col-sm-3 control-label">Customer Code</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control input-sm" name="c_code" id="c_code" value="<?php
+                                                if (isset($customer) && !empty($customer['c_code'])) {
+                                                    echo htmlspecialchars($customer['c_code']);
+                                                }
+                                                ?>">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
                                             <label for="inputEmail3" class="col-sm-3 control-label">Customer Name</label>
                                             <div class="col-sm-9">
                                                 <input type="text" class="form-control input-sm"  name="fullname" id="fullname" value="<?php
