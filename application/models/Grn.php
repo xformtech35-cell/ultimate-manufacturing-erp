@@ -393,6 +393,7 @@ class Grn extends CI_Model
                       s.company_name,
                       gi.quality_rating,
                       gi.packaging_condition,
+                      gi.rejection_reason,
                       gi.inspection_notes,
                       gi.batch_number,
                       gi.expiry_date,

@@ -146,6 +146,7 @@ if (date('m') <= 3) {
                                                 <th>Pending</th>
                                                 <th>Price/Unit</th>
                                                 <th>Amount</th>
+                                                <th>Action</th>
                                             </thead>
                                             <tbody>
                                                 <tr>

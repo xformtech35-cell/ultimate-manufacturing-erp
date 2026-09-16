@@ -141,7 +141,7 @@ if (empty($grn_data_group)) {
                                                                 <input type="text" class="form-control input-sm" name="quantity[]" value="<?php echo isset($key->quantity) ? $key->quantity : 0; ?>" onkeypress="return isNumberKey(event)">
                                                             </td>
                                                             <td><?php echo isset($key->hsn_code) ? $key->hsn_code : ''; ?></td>
-                                                            <td><?php echo isset($key->gst) ? $key->gst : ''; ?></td>
+                                                            <td><?php echo (isset($key->gst) && $key->gst !== '') ? (strpos($key->gst, '%') !== false ? $key->gst : $key->gst . ' %') : ''; ?></td>
                                                             <td>
                                                                 <input type="text" class="form-control input-sm" name="received_quantity[]" value="<?php echo isset($key->received_quantity) ? $key->received_quantity : 0; ?>" onkeypress="return isNumberKey(event)">
                                                             </td>

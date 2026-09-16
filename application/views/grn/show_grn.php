@@ -304,7 +304,7 @@ if (!$is_igst && !empty($grn_data_group['po_number_fk'])) {
                                                         <td><?php echo isset($key->quantity) ? $key->quantity : 0; ?></td>
                                                         <td><?php echo isset($key->unit) ? $key->unit : ''; ?></td>
                                                         <td><?php echo isset($key->hsn_code) ? $key->hsn_code : ''; ?></td>
-                                                        <td><?php echo isset($key->gst) ? $key->gst : ''; ?></td>
+                                                        <td><?php echo (isset($key->gst) && $key->gst !== '') ? (strpos($key->gst, '%') !== false ? $key->gst : $key->gst . ' %') : ''; ?></td>
                                                          <?php if ($is_igst) { ?>
                                                             <td class="gst"><?php echo number_format($row_igst, 2); ?></td>
                                                         <?php } else { ?>

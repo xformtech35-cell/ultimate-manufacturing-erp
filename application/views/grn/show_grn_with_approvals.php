@@ -327,7 +327,7 @@ if (empty($settings)) {
                                                           <td><?php echo isset($key->quantity) ? $key->quantity : ''; ?></td>
                                                           <td><?php echo isset($key->unit) ? $key->unit : ''; ?></td>
                                                           <td><?php echo isset($key->hsn_code) ? $key->hsn_code : ''; ?></td>
-                                                          <td><?php echo isset($key->gst) ? $key->gst : ''; ?></td>
+                                                          <td><?php echo (isset($key->gst) && $key->gst !== '') ? (strpos($key->gst, '%') !== false ? $key->gst : $key->gst . ' %') : ''; ?></td>
                                                           <?php if ($is_igst) { ?>
                                                               <td class="gst"><?php echo number_format($row_igst, 2); ?></td>
                                                          <?php } else { ?>

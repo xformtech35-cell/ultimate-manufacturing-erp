@@ -209,7 +209,7 @@ class GrnController extends MY_Controller
                     'product_name' => $p_name,
                     'quantity' => $p_qty,
                     'hsn_code' => isset($hsn[$i]) ? $hsn[$i] : '',
-                    'gst' => isset($gst_per[$i]) ? $gst_per[$i] : '0',
+                    'gst' => isset($gst_per[$i]) ? trim(str_replace('%', '', $gst_per[$i])) : '0',
                     'sgst' => isset($sgst[$i]) ? $sgst[$i] : '0',
                     'cgst' => isset($cgst[$i]) ? $cgst[$i] : '0',
                     'igst' => isset($igst[$i]) ? $igst[$i] : '0',
@@ -525,6 +525,14 @@ class GrnController extends MY_Controller
         $storage_locations = $this->input->post('storage_location');
         $item_notes = $this->input->post('inspection_notes');
 
+        // Self-healing schema checks for grn_inspection and grn_inspection_log
+        if (!$this->db->field_exists('rejection_reason', 'grn_inspection')) {
+            $this->db->query("ALTER TABLE `{$this->db->dbprefix}grn_inspection` ADD COLUMN `rejection_reason` VARCHAR(255) NULL AFTER `rejected_quantity`");
+        }
+        if (!$this->db->field_exists('rejection_reason', 'grn_inspection_log')) {
+            $this->db->query("ALTER TABLE `{$this->db->dbprefix}grn_inspection_log` ADD COLUMN `rejection_reason` VARCHAR(255) NULL AFTER `rejected_quantity`");
+        }
+
         $this->db->trans_start();
 
         $success_count = 0;
@@ -546,6 +554,7 @@ class GrnController extends MY_Controller
                     'inspected_quantity' => $quantities[$i] ?? 0,
                     'accepted_quantity' => $accepted,
                     'rejected_quantity' => $rejected,
+                    'rejection_reason' => $rejection_reasons[$i] ?? NULL,
                     'quality_rating' => $quality_ratings[$i] ?? 'GOOD',
                     'packaging_condition' => $packaging_conditions[$i] ?? 'INTACT',
                     'inspection_notes' => $item_notes[$i] ?? NULL,
@@ -584,6 +593,7 @@ class GrnController extends MY_Controller
                         'inspected_quantity' => $quantities[$i] ?? 0,
                         'accepted_quantity' => $accepted,
                         'rejected_quantity' => $rejected,
+                        'rejection_reason' => $rejection_reasons[$i] ?? NULL,
                         'quality_rating' => $quality_ratings[$i] ?? 'GOOD',
                         'packaging_condition' => $packaging_conditions[$i] ?? 'INTACT',
                         'inspection_notes' => $item_notes[$i] ?? NULL,
@@ -708,11 +718,21 @@ class GrnController extends MY_Controller
             }
         } else {
             // Inspection type: read latest inspection log
+            $has_rej_col = $this->db->field_exists('rejection_reason', 'grn_inspection_log');
+            $select_fields = 'item_code, accepted_quantity, rejected_quantity, inspected_quantity, inspection_notes';
+            if ($has_rej_col) {
+                $select_fields .= ', rejection_reason';
+            } else {
+                $select_fields .= ', NULL as rejection_reason';
+            }
+
+            $order_col = $this->db->field_exists('inspection_id', 'grn_inspection_log') ? 'inspection_id' : 'id';
+
             $inspection_items = $this->db
-                ->select('item_code, accepted_quantity, rejected_quantity, inspected_quantity, inspection_notes, rejection_reason')
+                ->select($select_fields)
                 ->from('grn_inspection_log')
                 ->where('grn_number', $grn_number)
-                ->order_by('id', 'desc')
+                ->order_by($order_col, 'desc')
                 ->get()->result_array();
         }
 

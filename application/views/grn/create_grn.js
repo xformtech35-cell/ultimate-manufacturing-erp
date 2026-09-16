@@ -181,7 +181,8 @@ $(document).ready(function() {
         var received = parseFloat(row.find('.received_quantity').val()) || 0;
         var price = parseFloat(row.find('.price').val()) || 0;
         var subtotal = received * price;
-        var gst_rate = parseFloat(row.find('.gst_rate').val()) || 0;
+        var raw_gst = row.find('.gst_rate').val() || '0';
+        var gst_rate = parseFloat(raw_gst.toString().replace(/[^0-9.]/g, '')) || 0;
         var r_gst_type = row.find('.gst_type').val() || currentGstMode;
 
         var sgst_amt = 0;
@@ -248,6 +249,7 @@ $(document).ready(function() {
         var pending_qty = Math.max(0, quantity - received_quantity);
         var gst_type = item.po_gst_type || item.gst_type || currentGstMode || 'S';
         var gst = parseFloat(item.gst || 0);
+        var gst_display = gst + ' %';
 
         var row = $('<tr>');
         row.html(`
@@ -259,7 +261,7 @@ $(document).ready(function() {
             <td><input type="text" name="description[]" class="form-control description" value="${item.description || ''}" /></td>
             <td><input type="number" name="quantity[]" class="form-control quantity" value="${quantity}" readonly /></td>
             <td><input type="text" name="hsn[]" class="form-control hsn" value="${item.hsn_code || ''}" /></td>
-            <td><input type="number" step="0.01" name="gst_per[]" class="form-control gst_rate" value="${gst}" /></td>
+            <td><input type="text" name="gst_per[]" class="form-control gst_rate" value="${gst_display}" /></td>
             <td class="sgst_col"><input type="text" readonly name="sgst[]" class="form-control sgst_amount" value="0.00" /></td>
             <td class="cgst_col"><input type="text" readonly name="cgst[]" class="form-control cgst_amount" value="0.00" /></td>
             <td class="igst_col"><input type="text" readonly name="igst[]" class="form-control igst_amount" value="0.00" /></td>
@@ -276,11 +278,27 @@ $(document).ready(function() {
         applyGstMode(currentGstMode);
 
         // Bind events
-        row.find('.quantity, .received_quantity, .price, .gst_rate').on('input change', function() {
+        row.find('.quantity, .received_quantity, .price').on('input change', function() {
             updatePendingQty(row);
             calculateRow(row);
             calculateTotals();
         });
+        row.find('.gst_rate').on('input change', function() {
+            calculateRow(row);
+            calculateTotals();
+        });
+        row.find('.gst_rate').on('blur', function() {
+            var val = $(this).val().replace(/[^0-9.]/g, '');
+            var num = parseFloat(val) || 0;
+            $(this).val(num + ' %');
+            calculateRow(row);
+            calculateTotals();
+        });
+        row.find('.gst_rate').on('focus', function() {
+            var val = $(this).val().replace(/[^0-9.]/g, '');
+            $(this).val(val);
+        });
+
         updatePendingQty(row);
         calculateRow(row); // Initial calc
     }
@@ -305,7 +323,7 @@ $(document).ready(function() {
             <td><input type="text" name="description[]" class="form-control description" /></td>
             <td><input type="number" name="quantity[]" class="form-control quantity" /></td>
             <td><input type="text" name="hsn[]" class="form-control hsn" /></td>
-            <td><input type="number" step="0.01" name="gst_per[]" class="form-control gst_rate" value="0" /></td>
+            <td><input type="text" name="gst_per[]" class="form-control gst_rate" value="0 %" /></td>
             <td class="sgst_col"><input type="text" readonly name="sgst[]" class="form-control sgst_amount" value="0.00" /></td>
             <td class="cgst_col"><input type="text" readonly name="cgst[]" class="form-control cgst_amount" value="0.00" /></td>
             <td class="igst_col"><input type="text" readonly name="igst[]" class="form-control igst_amount" value="0.00" /></td>
@@ -320,10 +338,25 @@ $(document).ready(function() {
         `);
         $('#dynamic_field tbody').append(row);
         applyGstMode(currentGstMode);
-        row.find('.quantity, .received_quantity, .price, .gst_rate').on('input change', function() {
+        row.find('.quantity, .received_quantity, .price').on('input change', function() {
             updatePendingQty(row);
             calculateRow(row);
             calculateTotals();
+        });
+        row.find('.gst_rate').on('input change', function() {
+            calculateRow(row);
+            calculateTotals();
+        });
+        row.find('.gst_rate').on('blur', function() {
+            var val = $(this).val().replace(/[^0-9.]/g, '');
+            var num = parseFloat(val) || 0;
+            $(this).val(num + ' %');
+            calculateRow(row);
+            calculateTotals();
+        });
+        row.find('.gst_rate').on('focus', function() {
+            var val = $(this).val().replace(/[^0-9.]/g, '');
+            $(this).val(val);
         });
     });
     
