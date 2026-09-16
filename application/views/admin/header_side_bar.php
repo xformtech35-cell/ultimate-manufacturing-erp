@@ -13,6 +13,8 @@ $user_email = $res['user_email'] ?? 'admin@uwsenvirotech.com';
 $username   = $res['username'] ?? 'Admin';
 $user_id    = $res['user_id'] ?? 1;
 $settings   = (isset($session_data_head['settings']) && is_array($session_data_head['settings'])) ? $session_data_head['settings'] : array();
+$currentPage = $this->router->fetch_class();
+$page = $this->router->fetch_method();
 
 $ci =& get_instance();
 if (isset($ci->db) && $ci->db->table_exists('settings')) {
@@ -635,16 +637,16 @@ $password = $session_data_head['password_str'] ?? '';
                 </li>
 
 
-                <!-- Approval Notifications Bell (Deletion + Inventory Updates) -->
+                <!-- Module-Scoped Approval Notifications Bell -->
                 <li class="dropdown notifications-menu" id="del-approval-notif-menu">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="Approval Requests" onclick="loadPendingDelRequests();">
                         <i class="fa fa-bell-o" style="font-size:18px;"></i>
-                        <span class="label label-danger" id="del-approval-badge" style="display:none;position:absolute;top:9px;right:7px;font-size:10px;padding:2px 5px;border-radius:50%;">0</span>
+                        <span class="label label-danger" id="del-approval-badge" style="display:none !important;position:absolute;top:9px;right:7px;font-size:10px;padding:2px 5px;border-radius:50%;"></span>
                     </a>
                     <ul class="dropdown-menu" style="width:340px;padding:0;">
                         <li class="header" style="background:#f9f9f9;padding:10px 15px;font-weight:700;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
-                            <span><i class="fa fa-bell text-orange"></i> Approval Requests</span>
-                            <span class="label label-danger" id="del-approval-header-count">0 Pending</span>
+                            <span id="del-approval-title"><i class="fa fa-bell text-orange"></i> Approval Requests</span>
+                            <span class="label label-danger" id="del-approval-header-count" style="display:none;">0 Pending</span>
                         </li>
                         <li>
                             <ul class="menu" id="del-approval-list" style="max-height:320px;overflow-y:auto;list-style:none;padding:0;margin:0;">
@@ -652,25 +654,42 @@ $password = $session_data_head['password_str'] ?? '';
                             </ul>
                         </li>
                         <li class="footer" style="background:#f9f9f9;padding:8px;border-top:1px solid #eee;text-align:center;">
-                            <a href="<?php echo base_url('InventoryApprovalController/index'); ?>" style="color:#3c8dbc;font-weight:600;font-size:12px;"><i class="fa fa-check-square-o"></i> View Inventory Approvals Dashboard</a>
+                            <a id="del-approval-footer-link" href="<?php echo base_url('InventoryApprovalController/index'); ?>" style="color:#3c8dbc;font-weight:600;font-size:12px;"><i class="fa fa-check-square-o"></i> <span id="del-approval-footer-text">View Approvals Dashboard</span></a>
                         </li>
                     </ul>
                 </li>
                 <script>
+                var currentModuleController = '<?php echo htmlspecialchars($currentPage ?? ""); ?>';
                 function updateDelBadgeCount() {
                     if (typeof jQuery !== 'undefined') {
                         jQuery.ajax({
                             url: '<?php echo base_url("InventoryApprovalController/get_pending_count_ajax"); ?>',
                             type: 'GET',
+                            data: { controller: currentModuleController },
                             dataType: 'json',
                             success: function(res) {
                                 var total = (res && res.count) ? parseInt(res.count) : 0;
+                                var hasModule = res && res.has_module !== false;
+                                if (!hasModule) {
+                                    jQuery('#del-approval-notif-menu').hide();
+                                    return;
+                                }
+                                if (res && res.title) {
+                                    jQuery('#del-approval-title').html('<i class="fa fa-bell text-orange"></i> ' + res.title);
+                                }
+                                if (res && res.url) {
+                                    jQuery('#del-approval-footer-link').attr('href', res.url);
+                                }
+                                if (res && res.footer_text) {
+                                    jQuery('#del-approval-footer-text').text(res.footer_text);
+                                }
                                 if (total > 0) {
-                                    jQuery('#del-approval-badge').text(total).show();
-                                    jQuery('#del-approval-header-count').text(total + ' Pending');
+                                    jQuery('#del-approval-notif-menu').show();
+                                    jQuery('#del-approval-badge').text(total).attr('style', 'display:inline-block !important;position:absolute;top:9px;right:7px;font-size:10px;padding:2px 5px;border-radius:50%;');
+                                    jQuery('#del-approval-header-count').text(total + ' Pending').show();
                                 } else {
-                                    jQuery('#del-approval-badge').hide();
-                                    jQuery('#del-approval-header-count').text('0 Pending');
+                                    jQuery('#del-approval-badge').text('').attr('style', 'display:none !important;').hide();
+                                    jQuery('#del-approval-header-count').text('0 Pending').hide();
                                 }
                             }
                         });
@@ -681,6 +700,7 @@ $password = $session_data_head['password_str'] ?? '';
                         jQuery.ajax({
                             url: '<?php echo base_url("InventoryApprovalController/get_pending_html_ajax"); ?>',
                             type: 'GET',
+                            data: { controller: currentModuleController },
                             success: function(html) {
                                 jQuery('#del-approval-list').html(html);
                             }
@@ -1238,25 +1258,68 @@ if ($currentPage == 'InventoryController') {
                             echo '<i class="' . $item['icon'] . '"></i> ';
                             echo '<span>' . $item['title'] . '</span>';
                             
-                            if (isset($item['badge'])) {
-                                $pending_count = 0;
-                                if ($item['badge']['type'] == 'po_approvals') {
-                                    $session_user_email = $ci->session->userdata('session_data_head')['result']['user_email'] ?? '';
-                                    $session_role_name  = $ci->session->userdata('session_data_head')['result']['role_name'] ?? '';
-                                    if (strtolower($session_role_name) === 'admin') {
-                                        $pending_count = $ci->db->where('status', 'pending')->count_all_results('po_approvals');
+                            // Module-specific sidebar badges for approval and alert items
+                            $badge_count = 0;
+                            $item_url = $item['url'] ?? '';
+                            $session_user_email = $ci->session->userdata('session_data_head')['result']['user_email'] ?? '';
+                            $session_role_name  = $ci->session->userdata('session_data_head')['result']['role_name'] ?? '';
+                            $session_user_id    = (int)($ci->session->userdata('session_data_head')['result']['user_id'] ?? 0);
+                            $is_admin_check     = (strtolower($session_role_name) === 'admin' || $session_user_id === 1);
+
+                            if ($item_url === 'SupplierController/po_approvals') {
+                                if ($ci->db->table_exists('po_approvals')) {
+                                    if ($is_admin_check) {
+                                        $badge_count = $ci->db->where('status', 'pending')->count_all_results('po_approvals');
                                     } else {
                                         $ci->load->model('purchase_model');
-                                        $pending_count = $ci->purchase_model->get_pending_count($session_user_email);
+                                        $badge_count = $ci->purchase_model->get_pending_count($session_user_email);
                                     }
-                                } elseif ($item['badge']['type'] == 'grn_approvals') {
+                                }
+                            } elseif ($item_url === 'GrnController/grn_approvals') {
+                                if ($ci->db->table_exists('grn_approvals')) {
                                     $ci->load->model('grn');
-                                    $pending_approvals = $ci->grn->get_pending_grn_approvals($ci->session->userdata('session_data_head')['result']['user_email'] ?? '');
-                                    $pending_count = is_array($pending_approvals) ? count($pending_approvals) : 0;
+                                    $pending_approvals = $ci->grn->get_pending_grn_approvals($session_user_email);
+                                    $badge_count = is_array($pending_approvals) ? count($pending_approvals) : 0;
                                 }
-                                if ($pending_count > 0) {
-                                    echo '<span class="pull-right-container"><small class="label pull-right bg-red">' . $pending_count . '</small></span>';
+                            } elseif ($item_url === 'InventoryApprovalController/index') {
+                                $cnt = 0;
+                                if ($is_admin_check) {
+                                    if ($ci->db->table_exists('inventory_approval_requests')) {
+                                        $cnt += $ci->db->where('status', 'pending')->count_all_results('inventory_approval_requests');
+                                    }
+                                    if ($ci->db->table_exists('item_delete_requests')) {
+                                        $cnt += $ci->db->where('status', 'pending')->count_all_results('item_delete_requests');
+                                    }
+                                } else {
+                                    if ($ci->db->table_exists('inventory_approval_requests')) {
+                                        $cnt += $ci->db->where('requested_by', $session_user_id)->where('status', 'pending')->count_all_results('inventory_approval_requests');
+                                    }
                                 }
+                                $badge_count = $cnt;
+                            } elseif ($item_url === 'BomController/bom_approval_dashboard') {
+                                if ($ci->db->table_exists('bom_approvals')) {
+                                    if ($is_admin_check) {
+                                        $badge_count = $ci->db->where('status', 'pending')->count_all_results('bom_approvals');
+                                    } else {
+                                        $ci->load->model('bom');
+                                        $pending_boms = $ci->bom->get_pending_bom_approvals_for_role($session_role_name, $session_user_id);
+                                        $badge_count = is_array($pending_boms) ? count($pending_boms) : 0;
+                                    }
+                                }
+                            } elseif ($item_url === 'SalesOrderController/so_approval_dashboard') {
+                                $ci->load->model('salesorder');
+                                if (method_exists($ci->salesorder, 'get_pending_salesorders')) {
+                                    $pending_sos = $ci->salesorder->get_pending_salesorders($session_user_id, 'pending');
+                                    $badge_count = is_array($pending_sos) ? count($pending_sos) : 0;
+                                }
+                            } elseif ($item_url === 'MaterialIssueController/low_stock') {
+                                if ($ci->db->table_exists('inventory')) {
+                                    $badge_count = $ci->db->where('stock <=', 5)->count_all_results('inventory');
+                                }
+                            }
+
+                            if ($badge_count > 0) {
+                                echo '<span class="pull-right-container"><small class="label pull-right bg-red">' . (int)$badge_count . '</small></span>';
                             }
                             echo '</a>';
                         }

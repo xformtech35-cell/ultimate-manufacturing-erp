@@ -363,6 +363,31 @@ class InventoryApprovalController extends MY_Controller
     /**
      * AJAX: Combined pending count (inventory updates + item deletions) for the bell badge
      */
+    private function _resolve_module($controller)
+    {
+        $controller = trim($controller ?: '');
+        $map = [
+            'BomController'                 => 'engineering',
+            'EngineeringController'         => 'engineering',
+            'SupplierController'            => 'purchase',
+            'RFQController'                 => 'purchase',
+            'RequisitionController'         => 'purchase',
+            'PoamendmentController'         => 'purchase',
+            'InventoryController'           => 'store',
+            'InventoryApprovalController'   => 'store',
+            'MaterialIssueController'       => 'store',
+            'DeliveryChallanController'     => 'store',
+            'ItemCategoryController'        => 'store',
+            'ItemGroupController'           => 'store',
+            'GrnController'                 => 'store',
+            'SalesOrderController'          => 'sales',
+            'OrderConfirmationController'   => 'sales',
+            'QualityController'             => 'quality',
+            'Home'                          => 'dashboard'
+        ];
+        return $map[$controller] ?? 'none';
+    }
+
     public function get_pending_count_ajax()
     {
         $session_data = $this->session->userdata('session_data_head');
@@ -370,36 +395,121 @@ class InventoryApprovalController extends MY_Controller
         $role_name    = strtolower($res['role_name'] ?? '');
         $role_id      = (int)($res['role_id'] ?? $res['role'] ?? 0);
         $user_id      = (int)($res['user_id'] ?? 0);
+        $user_email   = $res['user_email'] ?? '';
         $is_admin     = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
 
+        $controller   = $this->input->get('controller');
+        $module       = $controller ? $this->_resolve_module($controller) : 'store';
+
+        if ($module === 'none') {
+            header('Content-Type: application/json');
+            echo json_encode(['count' => 0, 'has_module' => false]);
+            return;
+        }
+
         $count = 0;
-        if ($is_admin) {
-            // Pending inventory update/delete requests
-            if ($this->db->table_exists('inventory_approval_requests')) {
-                $count += $this->db->where('status', 'pending')->count_all_results('inventory_approval_requests');
+        $title = 'Approval Requests';
+        $url = base_url('InventoryApprovalController/index');
+        $footer_text = 'View Approvals Dashboard';
+
+        if ($module === 'engineering') {
+            $title = 'BOM Approval Requests';
+            $url = base_url('BomController/bom_approval_dashboard');
+            $footer_text = 'View BOM Approvals Dashboard';
+            if ($this->db->table_exists('bom_approvals')) {
+                if ($is_admin) {
+                    $count = $this->db->where('status', 'pending')->count_all_results('bom_approvals');
+                } else {
+                    $this->load->model('bom');
+                    $pending_boms = $this->bom->get_pending_bom_approvals_for_role($res['role_name'] ?? '', $user_id);
+                    $count = is_array($pending_boms) ? count($pending_boms) : 0;
+                }
             }
-            // Pending item deletion requests (legacy)
-            if ($this->db->table_exists('item_delete_requests')) {
-                $count += $this->db->where('status', 'pending')->count_all_results('item_delete_requests');
+        } elseif ($module === 'purchase') {
+            $title = 'PO Approval Requests';
+            $url = base_url('SupplierController/po_approvals');
+            $footer_text = 'View PO Approvals Dashboard';
+            if ($this->db->table_exists('po_approvals')) {
+                if ($is_admin) {
+                    $count = $this->db->where('status', 'pending')->count_all_results('po_approvals');
+                } else {
+                    $this->load->model('purchase_model');
+                    $count = $this->purchase_model->get_pending_count($user_email);
+                }
+            }
+        } elseif ($module === 'sales') {
+            $title = 'Sales Order Approvals';
+            $url = base_url('SalesOrderController/so_approval_dashboard');
+            $footer_text = 'View SO Approvals Dashboard';
+            $this->load->model('salesorder');
+            if (method_exists($this->salesorder, 'get_pending_salesorders')) {
+                $pending_sos = $this->salesorder->get_pending_salesorders($user_id, 'pending');
+                $count = is_array($pending_sos) ? count($pending_sos) : 0;
+            }
+        } elseif ($module === 'quality') {
+            $title = 'GRN Quality Approvals';
+            $url = base_url('GrnController/grn_approvals');
+            $footer_text = 'View Quality Approvals';
+            if ($this->db->table_exists('grn_approvals')) {
+                $this->load->model('grn');
+                $pending_grns = $this->grn->get_pending_grn_approvals($user_email);
+                $count = is_array($pending_grns) ? count($pending_grns) : 0;
+            }
+        } elseif ($module === 'dashboard') {
+            $title = 'Pending Approvals Overview';
+            $url = base_url('ApprovalMatrixController/index');
+            $footer_text = 'View Approval Matrix';
+            if ($is_admin) {
+                if ($this->db->table_exists('inventory_approval_requests')) {
+                    $count += $this->db->where('status', 'pending')->count_all_results('inventory_approval_requests');
+                }
+                if ($this->db->table_exists('item_delete_requests')) {
+                    $count += $this->db->where('status', 'pending')->count_all_results('item_delete_requests');
+                }
+                if ($this->db->table_exists('po_approvals')) {
+                    $count += $this->db->where('status', 'pending')->count_all_results('po_approvals');
+                }
+                if ($this->db->table_exists('bom_approvals')) {
+                    $count += $this->db->where('status', 'pending')->count_all_results('bom_approvals');
+                }
             }
         } else {
-            // Non-admin: count their own unreviewed requests
-            if ($this->db->table_exists('inventory_approval_requests')) {
-                $count += $this->db->where('requested_by', $user_id)->where('status', 'pending')->count_all_results('inventory_approval_requests');
-            }
-            if ($this->db->table_exists('item_delete_requests')) {
-                $this->db->where('requested_by', $user_id);
-                if ($this->db->field_exists('user_notified', 'item_delete_requests')) {
-                    $this->db->where('user_notified', 0);
-                } else {
-                    $this->db->where('status', 'pending');
+            // 'store' module (Inventory, Material Issue, GRN, etc.)
+            $title = 'Inventory Approvals';
+            $url = base_url('InventoryApprovalController/index');
+            $footer_text = 'View Inventory Approvals Dashboard';
+            if ($is_admin) {
+                if ($this->db->table_exists('inventory_approval_requests')) {
+                    $count += $this->db->where('status', 'pending')->count_all_results('inventory_approval_requests');
                 }
-                $count += $this->db->count_all_results('item_delete_requests');
+                if ($this->db->table_exists('item_delete_requests')) {
+                    $count += $this->db->where('status', 'pending')->count_all_results('item_delete_requests');
+                }
+            } else {
+                if ($this->db->table_exists('inventory_approval_requests')) {
+                    $count += $this->db->where('requested_by', $user_id)->where('status', 'pending')->count_all_results('inventory_approval_requests');
+                }
+                if ($this->db->table_exists('item_delete_requests')) {
+                    $this->db->where('requested_by', $user_id);
+                    if ($this->db->field_exists('user_notified', 'item_delete_requests')) {
+                        $this->db->where('user_notified', 0);
+                    } else {
+                        $this->db->where('status', 'pending');
+                    }
+                    $count += $this->db->count_all_results('item_delete_requests');
+                }
             }
         }
 
         header('Content-Type: application/json');
-        echo json_encode(['count' => (int)$count]);
+        echo json_encode([
+            'count'       => (int)$count,
+            'has_module'  => true,
+            'module'      => $module,
+            'title'       => $title,
+            'url'         => $url,
+            'footer_text' => $footer_text
+        ]);
     }
 
     /**
@@ -412,9 +522,129 @@ class InventoryApprovalController extends MY_Controller
         $role_name    = strtolower($res['role_name'] ?? '');
         $role_id      = (int)($res['role_id'] ?? $res['role'] ?? 0);
         $user_id      = (int)($res['user_id'] ?? 0);
+        $user_email   = $res['user_email'] ?? '';
         $is_admin     = ($role_name === 'admin' || $role_id === 1 || $user_id === 1);
 
+        $controller   = $this->input->get('controller');
+        $module       = $controller ? $this->_resolve_module($controller) : 'store';
+
         $html = '';
+
+        if ($module === 'engineering') {
+            if ($this->db->table_exists('bom_approvals')) {
+                $this->load->model('bom');
+                $list = $is_admin
+                    ? $this->db->where('status', 'pending')->order_by('created_at', 'DESC')->limit(8)->get('bom_approvals')->result_array()
+                    : ($this->bom->get_pending_bom_approvals_for_role($res['role_name'] ?? '', $user_id) ?: []);
+                
+                foreach ($list as $b) {
+                    $bom_no = is_object($b) ? ($b->bom_number ?? 'BOM') : ($b['bom_number'] ?? 'BOM');
+                    $bom_date = is_object($b) ? ($b->created_at ?? date('Y-m-d H:i:s')) : ($b['created_at'] ?? date('Y-m-d H:i:s'));
+                    $time_ago = $this->_time_ago_inv($bom_date);
+                    $dash_url = base_url('BomController/bom_approval_dashboard');
+                    $html .= "
+                    <li style=\"border-bottom:1px solid #f0f0f0;\">
+                        <a href=\"{$dash_url}\" style=\"white-space:normal;padding:8px 12px;display:flex;align-items:center;gap:10px;text-decoration:none;\">
+                            <span style=\"background:#00a65a;color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex-shrink:0;\"><i class=\"fa fa-list-alt\"></i></span>
+                            <div style=\"flex:1;\">
+                                <strong style=\"color:#00a65a;font-size:12px;\">BOM Approval (Pending)</strong>
+                                <div style=\"font-size:12px;color:#333;\"><strong>" . htmlspecialchars($bom_no) . "</strong></div>
+                                <div style=\"font-size:11px;color:#777;\">{$time_ago}</div>
+                            </div>
+                        </a>
+                    </li>";
+                }
+            }
+            if (empty($html)) {
+                $html = '<li><a href="#" style="text-align:center;color:#999;padding:15px 0;display:block;">No pending BOM approvals</a></li>';
+            }
+            echo $html;
+            return;
+        }
+
+        if ($module === 'purchase') {
+            if ($this->db->table_exists('po_approvals')) {
+                $this->load->model('purchase_model');
+                $po_list = $this->db->where('status', 'pending')->order_by('created_at', 'DESC')->limit(8)->get('po_approvals')->result_array();
+                foreach ($po_list as $po) {
+                    $po_num = is_object($po) ? ($po->po_number ?? ('PO #' . ($po->po_id_fk ?? ''))) : ($po['po_number'] ?? ('PO #' . ($po['po_id_fk'] ?? '')));
+                    $po_date = is_object($po) ? ($po->created_at ?? date('Y-m-d H:i:s')) : ($po['created_at'] ?? date('Y-m-d H:i:s'));
+                    $time_ago = $this->_time_ago_inv($po_date);
+                    $dash_url = base_url('SupplierController/po_approvals');
+                    $html .= "
+                    <li style=\"border-bottom:1px solid #f0f0f0;\">
+                        <a href=\"{$dash_url}\" style=\"white-space:normal;padding:8px 12px;display:flex;align-items:center;gap:10px;text-decoration:none;\">
+                            <span style=\"background:#3c8dbc;color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex-shrink:0;\"><i class=\"fa fa-shopping-cart\"></i></span>
+                            <div style=\"flex:1;\">
+                                <strong style=\"color:#3c8dbc;font-size:12px;\">PO Approval (Pending)</strong>
+                                <div style=\"font-size:12px;color:#333;\"><strong>" . htmlspecialchars($po_num) . "</strong></div>
+                                <div style=\"font-size:11px;color:#777;\">{$time_ago}</div>
+                            </div>
+                        </a>
+                    </li>";
+                }
+            }
+            if (empty($html)) {
+                $html = '<li><a href="#" style="text-align:center;color:#999;padding:15px 0;display:block;">No pending PO approvals</a></li>';
+            }
+            echo $html;
+            return;
+        }
+
+        if ($module === 'sales') {
+            $this->load->model('salesorder');
+            $pending_sos = method_exists($this->salesorder, 'get_pending_salesorders') ? $this->salesorder->get_pending_salesorders($user_id, 'pending') : [];
+            if (!empty($pending_sos)) {
+                $dash_url = base_url('SalesOrderController/so_approval_dashboard');
+                foreach (array_slice($pending_sos, 0, 8) as $so) {
+                    $so_num = is_object($so) ? ($so->sales_order_number ?? 'Sales Order') : ($so['sales_order_number'] ?? 'Sales Order');
+                    $so_date = is_object($so) ? ($so->created_date ?? date('Y-m-d H:i:s')) : ($so['created_date'] ?? date('Y-m-d H:i:s'));
+                    $time_ago = $this->_time_ago_inv($so_date);
+                    $html .= "
+                    <li style=\"border-bottom:1px solid #f0f0f0;\">
+                        <a href=\"{$dash_url}\" style=\"white-space:normal;padding:8px 12px;display:flex;align-items:center;gap:10px;text-decoration:none;\">
+                            <span style=\"background:#00c0ef;color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex-shrink:0;\"><i class=\"fa fa-file-text-o\"></i></span>
+                            <div style=\"flex:1;\">
+                                <strong style=\"color:#00c0ef;font-size:12px;\">SO Approval (Pending)</strong>
+                                <div style=\"font-size:12px;color:#333;\"><strong>" . htmlspecialchars($so_num) . "</strong></div>
+                                <div style=\"font-size:11px;color:#777;\">{$time_ago}</div>
+                            </div>
+                        </a>
+                    </li>";
+                }
+            }
+            if (empty($html)) {
+                $html = '<li><a href="#" style="text-align:center;color:#999;padding:15px 0;display:block;">No pending SO approvals</a></li>';
+            }
+            echo $html;
+            return;
+        }
+
+        if ($module === 'quality') {
+            $this->load->model('grn');
+            $grn_list = $this->grn->get_pending_grn_approvals($user_email);
+            if (!empty($grn_list)) {
+                $dash_url = base_url('GrnController/grn_approvals');
+                foreach (array_slice($grn_list, 0, 8) as $g) {
+                    $grn_num = is_object($g) ? ($g->grn_number ?? 'GRN') : ($g['grn_number'] ?? 'GRN');
+                    $html .= "
+                    <li style=\"border-bottom:1px solid #f0f0f0;\">
+                        <a href=\"{$dash_url}\" style=\"white-space:normal;padding:8px 12px;display:flex;align-items:center;gap:10px;text-decoration:none;\">
+                            <span style=\"background:#dd4b39;color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex-shrink:0;\"><i class=\"fa fa-check-circle\"></i></span>
+                            <div style=\"flex:1;\">
+                                <strong style=\"color:#dd4b39;font-size:12px;\">GRN Quality Inspection (Pending)</strong>
+                                <div style=\"font-size:12px;color:#333;\"><strong>" . htmlspecialchars($grn_num) . "</strong></div>
+                            </div>
+                        </a>
+                    </li>";
+                }
+            }
+            if (empty($html)) {
+                $html = '<li><a href="#" style="text-align:center;color:#999;padding:15px 0;display:block;">No pending quality approvals</a></li>';
+            }
+            echo $html;
+            return;
+        }
 
         if ($is_admin) {
             // Pending inventory update requests
