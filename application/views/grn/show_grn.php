@@ -237,7 +237,7 @@ if (!$is_igst && !empty($grn_data_group['po_number_fk'])) {
                                                 <th>Qty</th>
                                                 <th>Unit</th>
                                                 <th>HSN Code</th>
-                                                <th>GST</th>
+                                                <th>Tax</th>
                                                 <?php if ($is_igst) { ?>
                                                     <th>IGST</th>
                                                 <?php } else { ?>
@@ -262,23 +262,33 @@ if (!$is_igst && !empty($grn_data_group['po_number_fk'])) {
                                              $r_subtotal = $r_qty * $r_price;
                                              $r_gst_pct  = (float)rtrim(isset($key->gst) ? $key->gst : '0', '%');
 
-                                             // grn.igst / sgst / cgst store the TAX RATE (e.g. 18), not the rupee amount.
-                                             // Always compute the rupee amount from rate × subtotal / 100.
-                                             $igst_rate = isset($key->igst) ? (float)$key->igst : 0;
-                                             $sgst_rate = isset($key->sgst) ? (float)$key->sgst : 0;
-                                             $cgst_rate = isset($key->cgst) ? (float)$key->cgst : 0;
+                                             // Compute tax amounts: support both stored rupee amount and percentage calculation
+                                             $igst_val = isset($key->igst) ? (float)$key->igst : 0;
+                                             $sgst_val = isset($key->sgst) ? (float)$key->sgst : 0;
+                                             $cgst_val = isset($key->cgst) ? (float)$key->cgst : 0;
 
                                              if ($is_igst) {
-                                                 // IGST mode: use igst_rate; fallback to gst_pct if igst_rate is 0
-                                                 $effective_igst_rate = ($igst_rate > 0) ? $igst_rate : $r_gst_pct;
-                                                 $row_igst = $r_subtotal * $effective_igst_rate / 100;
+                                                 $expected_igst = $r_subtotal * $r_gst_pct / 100;
+                                                 if ($igst_val > 0 && abs($igst_val - $expected_igst) < 0.05) {
+                                                     $row_igst = $igst_val;
+                                                 } else {
+                                                     $row_igst = $expected_igst;
+                                                 }
                                                  $row_sgst = 0;
                                                  $row_cgst = 0;
                                              } else {
-                                                 // SGST+CGST mode
                                                  $row_igst = 0;
-                                                 $row_sgst = ($sgst_rate > 0) ? ($r_subtotal * $sgst_rate / 100) : ($r_subtotal * $r_gst_pct / 200);
-                                                 $row_cgst = ($cgst_rate > 0) ? ($r_subtotal * $cgst_rate / 100) : ($r_subtotal * $r_gst_pct / 200);
+                                                 $expected_half = $r_subtotal * ($r_gst_pct / 2) / 100;
+                                                 if ($sgst_val > 0 && abs($sgst_val - $expected_half) < 0.05) {
+                                                     $row_sgst = $sgst_val;
+                                                 } else {
+                                                     $row_sgst = $expected_half;
+                                                 }
+                                                 if ($cgst_val > 0 && abs($cgst_val - $expected_half) < 0.05) {
+                                                     $row_cgst = $cgst_val;
+                                                 } else {
+                                                     $row_cgst = $expected_half;
+                                                 }
                                              }
 
                                              $total_qty      += isset($key->quantity) ? (float)$key->quantity : 0;

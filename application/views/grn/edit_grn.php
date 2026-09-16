@@ -118,7 +118,7 @@ if (empty($grn_data_group)) {
                                                     <th>Description</th>
                                                     <th>Quantity</th>
                                                     <th>HSN Code</th>
-                                                    <th>GST</th>
+                                                    <th>Tax</th>
                                                     <th>Received</th>
                                                     <th>Pending</th>
                                                     <th>Price/Unit</th>

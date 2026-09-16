@@ -138,7 +138,7 @@ if (date('m') <= 3) {
                                                 <th>Description</th>
                                                 <th>Quantity</th>
                                                 <th>HSN Code</th>
-                                                <th>GST</th>
+                                                <th>Tax</th>
                                                 <th class="sgst_col">SGST</th>
                                                 <th class="cgst_col">CGST</th>
                                                 <th class="igst_col" style="display:none;">IGST</th>
