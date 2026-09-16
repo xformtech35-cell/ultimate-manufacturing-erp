@@ -26,6 +26,10 @@ Class Customer extends CI_Model {
             $data_customer['c_code'] = $this->get_next_customer_code();
         }
         
+        if (empty($data_customer['created_date'])) {
+            $data_customer['created_date'] = date('Y-m-d H:i:s');
+        }
+
         return $this->db->insert('customer', $data_customer);
     }
 
@@ -38,6 +42,82 @@ Class Customer extends CI_Model {
         }
         $query = $this->db->get();
         return $query->result();
+    }
+
+    public function get_customer_filtered($filter = 'all', $fy_year = null, $uid = null, $limit = 0) {
+        $this->db->select('*');
+        $this->db->from('customer');
+
+        if (!empty($fy_year) && $fy_year !== 'all') {
+            $fy_from = $fy_year . '-04-01 00:00:00';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $fy_from_date = $fy_year . '-04-01';
+            $fy_to_date   = ($fy_year + 1) . '-03-31';
+
+            if ($filter === 'registered') {
+                $this->db->where('customer.created_date >=', $fy_from);
+                $this->db->where('customer.created_date <=', $fy_to);
+            } elseif ($filter === 'active') {
+                $prefix = $this->db->dbprefix;
+                $this->db->where("customer.customer_id IN (
+                    SELECT customer_id_fk FROM {$prefix}salesorder_total WHERE date >= '{$fy_from_date}' AND date <= '{$fy_to_date}' AND customer_id_fk IS NOT NULL
+                    UNION
+                    SELECT customer_id FROM {$prefix}quotation WHERE date >= '{$fy_from_date}' AND date <= '{$fy_to_date}' AND customer_id IS NOT NULL
+                    UNION
+                    SELECT customer_id_fk FROM {$prefix}invoice_total WHERE date >= '{$fy_from_date}' AND date <= '{$fy_to_date}' AND customer_id_fk IS NOT NULL
+                    UNION
+                    SELECT customer_id_fk FROM {$prefix}joborder_total WHERE date >= '{$fy_from_date}' AND date <= '{$fy_to_date}' AND customer_id_fk IS NOT NULL
+                    UNION
+                    SELECT customer_id_fk FROM {$prefix}delivery_challan_total WHERE date >= '{$fy_from_date}' AND date <= '{$fy_to_date}' AND customer_id_fk IS NOT NULL
+                )", NULL, FALSE);
+            }
+        }
+
+        $this->db->order_by("customer_id", "desc");
+        if ($limit > 0) {
+            $this->db->limit($limit);
+        }
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    public function get_customer_filter_counts($fy_year = null) {
+        $counts = [
+            'all'        => $this->db->count_all('customer'),
+            'registered' => 0,
+            'active'     => 0,
+        ];
+
+        if (!empty($fy_year) && $fy_year !== 'all') {
+            $fy_from = $fy_year . '-04-01 00:00:00';
+            $fy_to   = ($fy_year + 1) . '-03-31 23:59:59';
+            $fy_from_date = $fy_year . '-04-01';
+            $fy_to_date   = ($fy_year + 1) . '-03-31';
+
+            // Registered count
+            $this->db->from('customer');
+            $this->db->where('created_date >=', $fy_from);
+            $this->db->where('created_date <=', $fy_to);
+            $counts['registered'] = $this->db->count_all_results();
+
+            // Active count
+            $prefix = $this->db->dbprefix;
+            $active_query = $this->db->query("SELECT COUNT(DISTINCT cust_id) as cnt FROM (
+                SELECT customer_id_fk as cust_id FROM {$prefix}salesorder_total WHERE date >= '{$fy_from_date}' AND date <= '{$fy_to_date}' AND customer_id_fk IS NOT NULL
+                UNION
+                SELECT customer_id as cust_id FROM {$prefix}quotation WHERE date >= '{$fy_from_date}' AND date <= '{$fy_to_date}' AND customer_id IS NOT NULL
+                UNION
+                SELECT customer_id_fk as cust_id FROM {$prefix}invoice_total WHERE date >= '{$fy_from_date}' AND date <= '{$fy_to_date}' AND customer_id_fk IS NOT NULL
+                UNION
+                SELECT customer_id_fk as cust_id FROM {$prefix}joborder_total WHERE date >= '{$fy_from_date}' AND date <= '{$fy_to_date}' AND customer_id_fk IS NOT NULL
+                UNION
+                SELECT customer_id_fk as cust_id FROM {$prefix}delivery_challan_total WHERE date >= '{$fy_from_date}' AND date <= '{$fy_to_date}' AND customer_id_fk IS NOT NULL
+            ) t");
+            $r = $active_query->row();
+            $counts['active'] = (int)($r->cnt ?? 0);
+        }
+
+        return $counts;
     }
 
     public function customer_check($company_name, $uid) {

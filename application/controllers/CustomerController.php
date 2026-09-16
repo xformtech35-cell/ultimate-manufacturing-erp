@@ -28,7 +28,22 @@ class CustomerController extends MY_Controller {
     }
 
     public function index() {
-        $data['result'] = $this->customer->get_customer($this->user_id);
+        $fy_year = $this->session->userdata('fy_year');
+        $customer_filter = $this->input->get('customer_filter');
+
+        if (empty($customer_filter)) {
+            if (!empty($fy_year) && $fy_year !== 'all') {
+                $customer_filter = 'registered';
+            } else {
+                $customer_filter = 'all';
+            }
+        }
+
+        $data['result'] = $this->customer->get_customer_filtered($customer_filter, $fy_year, $this->user_id);
+        $data['counts'] = $this->customer->get_customer_filter_counts($fy_year);
+        $data['fy_year'] = $fy_year;
+        $data['customer_filter'] = $customer_filter;
+
         $session_data_head = $this->session->userdata('session_data_head');
         $this->load->view('admin/header_side_bar', $session_data_head);
         $this->load->view('customer/add_customer', $data);
@@ -63,7 +78,8 @@ $address_json = json_encode($addresses);
         
         $data_customer = array('company_name' => $company_name, 'fullname' => $fullname, 'pancard' => $pancard,
             'gst' => $gst, 'email' => $email, 'mobile' => $mobile, 'address' => $address_json,
-            'state_code' => $state_code, 'uid' => $this->user_id, 'c_code' => $c_code);
+            'state_code' => $state_code, 'uid' => $this->user_id, 'c_code' => $c_code,
+            'created_date' => date('Y-m-d H:i:s'));
         $result = $this->customer->customer_check($company_name, $this->user_id);   
 
         if ($result == FALSE) {
@@ -185,13 +201,13 @@ $address_json = json_encode($addresses);
 
     // Insert heading at row 1
     $sheet->setCellValue('A1', $heading);
-    $sheet->mergeCells('A1:J1'); // Merge across all columns (A to J)
+    $sheet->mergeCells('A1:K1'); // Merge across all columns (A to K)
     $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
     $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
     // Insert subheading at row 2
     $sheet->setCellValue('A2', $subheading);
-    $sheet->mergeCells('A2:J2');
+    $sheet->mergeCells('A2:K2');
     $sheet->getStyle('A2')->getFont()->setItalic(true)->setSize(10);
     $sheet->getStyle('A2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
@@ -199,6 +215,7 @@ $address_json = json_encode($addresses);
     $headers = [
         'Sr.No.',
         'Customer Code',
+        'Reg. Date',
         'Company Name',
         'Contact Person',
         'PAN No',
@@ -229,10 +246,15 @@ $address_json = json_encode($addresses);
             ],
         ],
     ];
-    $sheet->getStyle('A3:J3')->applyFromArray($headerStyleArray);
+    $sheet->getStyle('A3:K3')->applyFromArray($headerStyleArray);
 
-    // Get customer data
-    $customers = $this->customer->get_customer($this->user_id);
+    // Get customer data with active FY filter
+    $fy_year = $this->session->userdata('fy_year');
+    $customer_filter = $this->input->get('customer_filter');
+    if (empty($customer_filter)) {
+        $customer_filter = (!empty($fy_year) && $fy_year !== 'all') ? 'registered' : 'all';
+    }
+    $customers = $this->customer->get_customer_filtered($customer_filter, $fy_year, $this->user_id);
 
     // Add data rows starting from row 4
     $row = 4;
@@ -241,21 +263,22 @@ $address_json = json_encode($addresses);
     foreach ($customers as $customer) {
         $sheet->setCellValue('A' . $row, $sr_no);
         $sheet->setCellValue('B' . $row, $customer->c_code ?? '');
-        $sheet->setCellValue('C' . $row, $customer->company_name ?? '');
-        $sheet->setCellValue('D' . $row, $customer->fullname ?? '');
-        $sheet->setCellValue('E' . $row, $customer->pancard ?? '');
-        $sheet->setCellValue('F' . $row, $customer->gst ?? '');
-        $sheet->setCellValue('G' . $row, $customer->email ?? '');
-        $sheet->setCellValue('H' . $row, $customer->mobile ?? '');
-        $sheet->setCellValue('I' . $row, $customer->state_code ?? '');
-        $sheet->setCellValue('J' . $row, $customer->address ?? '');
+        $sheet->setCellValue('C' . $row, !empty($customer->created_date) ? date('d-m-Y', strtotime($customer->created_date)) : '');
+        $sheet->setCellValue('D' . $row, $customer->company_name ?? '');
+        $sheet->setCellValue('E' . $row, $customer->fullname ?? '');
+        $sheet->setCellValue('F' . $row, $customer->pancard ?? '');
+        $sheet->setCellValue('G' . $row, $customer->gst ?? '');
+        $sheet->setCellValue('H' . $row, $customer->email ?? '');
+        $sheet->setCellValue('I' . $row, $customer->mobile ?? '');
+        $sheet->setCellValue('J' . $row, $customer->state_code ?? '');
+        $sheet->setCellValue('K' . $row, $customer->address ?? '');
 
         $row++;
         $sr_no++;
     }
 
     // Auto size columns (based on the widest content in each column)
-    foreach (range('A', 'J') as $col) {
+    foreach (range('A', 'K') as $col) {
         $sheet->getColumnDimension($col)->setAutoSize(true);
     }
 
@@ -280,8 +303,13 @@ $address_json = json_encode($addresses);
 
         require_once APPPATH . '../vendor/autoload.php';
 
-        // Get customer data
-        $customers = $this->customer->get_customer($this->user_id);
+        // Get customer data with active FY filter
+        $fy_year = $this->session->userdata('fy_year');
+        $customer_filter = $this->input->get('customer_filter');
+        if (empty($customer_filter)) {
+            $customer_filter = (!empty($fy_year) && $fy_year !== 'all') ? 'registered' : 'all';
+        }
+        $customers = $this->customer->get_customer_filtered($customer_filter, $fy_year, $this->user_id);
 
         // Create HTML content
         $html = '<!DOCTYPE html>
@@ -308,6 +336,7 @@ $address_json = json_encode($addresses);
                     <tr>
                         <th>Sr.No.</th>
                         <th>Code</th>
+                        <th>Reg. Date</th>
                         <th>Company Name</th>
                         <th>Contact Person</th>
                         <th>PAN No</th>
@@ -321,9 +350,11 @@ $address_json = json_encode($addresses);
 
         $sr_no = 1;
         foreach ($customers as $customer) {
+            $reg_date = !empty($customer->created_date) ? date('d-m-Y', strtotime($customer->created_date)) : '';
             $html .= '<tr>
                 <td>' . $sr_no . '</td>
                 <td>' . ($customer->c_code ?? '') . '</td>
+                <td>' . $reg_date . '</td>
                 <td>' . ($customer->company_name ?? '') . '</td>
                 <td>' . ($customer->fullname ?? '') . '</td>
                 <td>' . ($customer->pancard ?? '') . '</td>
@@ -578,7 +609,8 @@ $address_json = json_encode($addresses);
                         'state_code' => $row[6] ?? '',
                         'address' => $row[7] ?? '',
                         'uid' => $this->user_id,
-                        'c_code' => $c_code
+                        'c_code' => $c_code,
+                        'created_date' => date('Y-m-d H:i:s')
                     ];
 
                     // Insert customer

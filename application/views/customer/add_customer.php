@@ -51,23 +51,62 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <div class="box-header">
                                 <h3 class="box-title">Customer Details</h3>
                                 <div class="pull-right">
-
-                                    <a href="<?php echo base_url('CustomerController/export_customers'); ?>" class="btn btn-success btn-sm" style="margin-left: 5px;">
+                                    <?php 
+                                    $cur_filter = $customer_filter ?? 'all'; 
+                                    $export_query = ($cur_filter !== 'all') ? ('?customer_filter=' . $cur_filter) : '';
+                                    ?>
+                                    <a href="<?php echo base_url('CustomerController/export_customers' . $export_query); ?>" class="btn btn-success btn-sm" style="margin-left: 5px;">
                                         <i class="fa fa-file-excel-o"></i> Export Excel
                                     </a>
-                                    <a href="<?php echo base_url('CustomerController/export_customers_pdf'); ?>" class="btn btn-danger btn-sm" style="margin-left: 5px;">
+                                    <a href="<?php echo base_url('CustomerController/export_customers_pdf' . $export_query); ?>" class="btn btn-danger btn-sm" style="margin-left: 5px;">
                                         <i class="fa fa-file-pdf-o"></i> Export PDF
                                     </a>
                                     <a href="<?php echo base_url('CustomerController/import_customers_view'); ?>" class="btn btn-info btn-sm" style="margin-left: 5px;">
                                         <i class="fa fa-upload"></i> Import
                                     </a>
-                                                                        <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#myModal">
+                                    <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#myModal">
                                         <i class="glyphicon glyphicon-plus"></i> Add Customer
                                     </button>
                                 </div>
                             </div>
                             <div class="box-body">
                              
+                                <?php 
+                                $fy_year = $this->session->userdata('fy_year');
+                                $is_fy_active = (!empty($fy_year) && $fy_year !== 'all');
+                                $fy_label = $is_fy_active ? ('FY ' . $fy_year . '-' . substr($fy_year + 1, -2)) : 'All Financial Years';
+                                $cnt_all = $counts['all'] ?? count($result);
+                                $cnt_reg = $counts['registered'] ?? 0;
+                                $cnt_act = $counts['active'] ?? 0;
+                                ?>
+
+                                <?php if ($is_fy_active): ?>
+                                <div class="row" style="margin-bottom: 15px;">
+                                    <div class="col-sm-12">
+                                        <div class="btn-group" role="group" aria-label="Customer Filters">
+                                            <a href="<?php echo base_url('CustomerController/index?customer_filter=registered'); ?>" 
+                                               class="btn btn-sm <?php echo ($cur_filter === 'registered') ? 'btn-primary' : 'btn-default'; ?>" style="font-weight: 600;">
+                                                <i class="fa fa-calendar-check-o"></i> Registered in <?php echo $fy_label; ?> 
+                                                <span class="badge" style="<?php echo ($cur_filter === 'registered') ? 'background:#fff; color:#337ab7;' : 'background:#777; color:#fff;'; ?> margin-left:4px;"><?php echo $cnt_reg; ?></span>
+                                            </a>
+                                            <a href="<?php echo base_url('CustomerController/index?customer_filter=active'); ?>" 
+                                               class="btn btn-sm <?php echo ($cur_filter === 'active') ? 'btn-primary' : 'btn-default'; ?>" style="font-weight: 600;">
+                                                <i class="fa fa-line-chart"></i> Active (Transactions) in <?php echo $fy_label; ?> 
+                                                <span class="badge" style="<?php echo ($cur_filter === 'active') ? 'background:#fff; color:#337ab7;' : 'background:#777; color:#fff;'; ?> margin-left:4px;"><?php echo $cnt_act; ?></span>
+                                            </a>
+                                            <a href="<?php echo base_url('CustomerController/index?customer_filter=all'); ?>" 
+                                               class="btn btn-sm <?php echo ($cur_filter === 'all') ? 'btn-primary' : 'btn-default'; ?>" style="font-weight: 600;">
+                                                <i class="fa fa-users"></i> All Customers 
+                                                <span class="badge" style="<?php echo ($cur_filter === 'all') ? 'background:#fff; color:#337ab7;' : 'background:#777; color:#fff;'; ?> margin-left:4px;"><?php echo $cnt_all; ?></span>
+                                            </a>
+                                        </div>
+                                        <span class="text-muted" style="margin-left: 15px; font-size: 12px; display: inline-block; vertical-align: middle;">
+                                            <i class="fa fa-info-circle text-info"></i> Viewing for <strong><?php echo $fy_label; ?></strong>. Switch FY in top bar to select another year.
+                                        </span>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
+
                                 <?php if ($this->session->flashdata('IMPORT_ERRORS')) { 
                                     $errors = $this->session->flashdata('IMPORT_ERRORS');
                                     if(!empty($errors)) { ?>
@@ -88,6 +127,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         <tr>
                                             <th>Sr.No.</th>
                                             <th>Code</th>
+                                            <th>Reg. Date</th>
                                             <th>Company Name</th>
                                             <th>Name</th>
                                             <th>GST No</th>
@@ -121,10 +161,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             
                                             $shortAddress = (strlen($fullAddressString) > 50) ? substr($fullAddressString, 0, 47) . '...' : $fullAddressString;
                                             $addressJson = htmlspecialchars(json_encode($addressList), ENT_QUOTES);
+                                            $regDateFormatted = !empty($key->created_date) ? date('d-M-Y', strtotime($key->created_date)) : '-';
                                         ?>
                                             <tr>
                                                 <td><?php echo $i; ?></td>
                                                 <td><?php echo $key->c_code; ?></td>
+                                                <td><span class="label label-default" style="font-size: 11px;"><?php echo $regDateFormatted; ?></span></td>
                                                 <td><?php echo $key->company_name; ?></td>
                                                 <td><?php echo $key->fullname; ?></td>
                                                 <td><?php echo $key->gst; ?></td>
