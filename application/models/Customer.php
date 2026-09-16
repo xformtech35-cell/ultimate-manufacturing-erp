@@ -55,11 +55,11 @@ Class Customer extends CI_Model {
             $fy_to_date   = ($fy_year + 1) . '-03-31';
 
             if ($filter === 'registered') {
-                $this->db->where('customer.created_date >=', $fy_from);
-                $this->db->where('customer.created_date <=', $fy_to);
+                $this->db->where('created_date >=', $fy_from);
+                $this->db->where('created_date <=', $fy_to);
             } elseif ($filter === 'active') {
                 $prefix = $this->db->dbprefix;
-                $this->db->where("customer.customer_id IN (
+                $this->db->where("customer_id IN (
                     SELECT customer_id_fk FROM {$prefix}salesorder_total WHERE date >= '{$fy_from_date}' AND date <= '{$fy_to_date}' AND customer_id_fk IS NOT NULL
                     UNION
                     SELECT customer_id FROM {$prefix}quotation WHERE date >= '{$fy_from_date}' AND date <= '{$fy_to_date}' AND customer_id IS NOT NULL
