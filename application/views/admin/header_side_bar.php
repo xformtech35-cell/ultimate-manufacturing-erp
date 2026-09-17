@@ -691,6 +691,9 @@ $password = $session_data_head['password_str'] ?? '';
                                     jQuery('#del-approval-badge').text('').attr('style', 'display:none !important;').hide();
                                     jQuery('#del-approval-header-count').text('0 Pending').hide();
                                 }
+                            },
+                            error: function() {
+                                // Gracefully ignore network/server errors
                             }
                         });
                     }
@@ -703,6 +706,9 @@ $password = $session_data_head['password_str'] ?? '';
                             data: { controller: currentModuleController },
                             success: function(html) {
                                 jQuery('#del-approval-list').html(html);
+                            },
+                            error: function() {
+                                jQuery('#del-approval-list').html('<li><a href="#" style="text-align:center;color:#999;padding:15px 0;display:block;">No pending approvals</a></li>');
                             }
                         });
                     }
@@ -1307,10 +1313,14 @@ if ($currentPage == 'InventoryController') {
                                     }
                                 }
                             } elseif ($item_url === 'SalesOrderController/so_approval_dashboard') {
-                                $ci->load->model('salesorder');
-                                if (method_exists($ci->salesorder, 'get_pending_salesorders')) {
-                                    $pending_sos = $ci->salesorder->get_pending_salesorders($session_user_id, 'pending');
-                                    $badge_count = is_array($pending_sos) ? count($pending_sos) : 0;
+                                try {
+                                    $ci->load->model('salesorder');
+                                    if (method_exists($ci->salesorder, 'get_pending_salesorders')) {
+                                        $pending_sos = $ci->salesorder->get_pending_salesorders($session_user_id, 'pending');
+                                        $badge_count = is_array($pending_sos) ? count($pending_sos) : 0;
+                                    }
+                                } catch (\Throwable $e) {
+                                    $badge_count = 0;
                                 }
                             } elseif ($item_url === 'MaterialIssueController/low_stock') {
                                 if ($ci->db->table_exists('inventory')) {

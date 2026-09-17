@@ -635,7 +635,7 @@ public function get_pending_salesorders($uid, $status_filter = 'pending')
         $this->db->where('salesorder_total.date <=', $fy_to);
     }
 
-    $this->db->select('salesorder_total.id, salesorder_total.project_code, customer.company_name as customer_name, customer.fullname, salesorder_total.number_fk as number, COALESCE(q.gst_type, "S") as gst_type, salesorder_total.date, salesorder_total.basic_total, salesorder_total.total, salesorder_total.status, salesorder_total.remarks, u1.username as created_by_name, u2.username as approved_by_name');
+    $this->db->select('salesorder_total.id, salesorder_total.project_code, customer.company_name as customer_name, customer.fullname, salesorder_total.number_fk as number, COALESCE(MAX(q.gst_type), "S") as gst_type, salesorder_total.date, salesorder_total.basic_total, salesorder_total.total, salesorder_total.status, salesorder_total.remarks, u1.username as created_by_name, u2.username as approved_by_name');
     $this->db->from('salesorder_total');
     $this->db->join('user u1', 'u1.user_id = salesorder_total.uid', 'left');
     $this->db->join('user u2', 'u2.user_id = salesorder_total.approved_by', 'left');
