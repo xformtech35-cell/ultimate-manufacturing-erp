@@ -945,7 +945,7 @@ class Invoice extends CI_Model
 
     public function get_item_name($uid)
     {
-        $this->db->select('inventory_id, code');
+        $this->db->select('inventory_id, code, item_name');
         $this->db->from('inventory');
         //$this->db->where('uid', $uid);
         $query = $this->db->get();

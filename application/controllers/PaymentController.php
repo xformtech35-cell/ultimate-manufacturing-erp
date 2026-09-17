@@ -97,9 +97,16 @@ class PaymentController extends MY_Controller {
     }
 
     public function ledger_report() {
-        $data['result'] = $this->supplier->get_supplier($this->user_id);
+        $suppliers = $this->supplier->get_supplier($this->user_id);
+        if (is_array($suppliers)) {
+            usort($suppliers, function($a, $b) {
+                $na = is_object($a) ? ($a->company_name ?? '') : ($a['company_name'] ?? '');
+                $nb = is_object($b) ? ($b->company_name ?? '') : ($b['company_name'] ?? '');
+                return strcasecmp($na, $nb);
+            });
+        }
+        $data['result'] = $suppliers;
         $data['company_name'] = $this->invoice->get_company_name($this->user_id);
-        $data['item_name'] = $this->invoice->get_item_name($this->user_id);
         $session_data_head = $this->session->userdata('session_data_head');
         $this->load->view('admin/header_side_bar', $session_data_head);
         $this->load->view('payment_history/ledger_report', $data);
