@@ -110,6 +110,18 @@ require_once(APPPATH . '/third_party/amount_convert.php');
                 <th style="background-color: #444444; color: white; width:10%" >Date</th>
                 <th style="background-color: #444444; color: white; width:15%">Particular Name</th>
                 <th style="background-color: #444444; color: white; width:10%">Voucher Type</th>
+
+        <div style="padding-left:75px;">
+            <b>From : </b><?php print_r($from_date) ?>
+            <b>To : </b><?php print_r($to_date) ?>
+        </div>
+
+        <table> 
+            <tr>
+                <th style="background-color: #444444; color: white">Sr.No.</th>
+                <th style="background-color: #444444; color: white; width:10%" >Date</th>
+                <th style="background-color: #444444; color: white; width:15%">Particular Name</th>
+                <th style="background-color: #444444; color: white; width:10%">Voucher Type</th>
                 <th style="background-color: #444444; color: white; width:15%"> Voucher No</th>
                 
                 <th style="background-color: #444444; color: white">Debit</th>
@@ -118,19 +130,40 @@ require_once(APPPATH . '/third_party/amount_convert.php');
 
             <?php
             $i = 0;
-            $grand_total = 0;
-            $paid_amount = 0;
-            $balance_amount = 0.0;
-            $credit_amount = 0.0;
+            $grand_total = 0.0;   // Total Debit (Invoices + Dr Opening Balance)
+            $credit_amount = 0.0; // Total Credit (Receipts / Customer Payments)
             
             foreach ((array) $ledger as $key) {
-                // Skip empty entries
                 if (empty($key)) {
                     continue;
                 }
-                $voucher_type = isset($key['type']) ? strtolower(trim($key['type'])) : '';
-                $is_receipt_voucher = in_array($voucher_type, array('receipt', 'rcpt', 'rept'));
-                $is_opening_balance = !empty($key['is_opening_balance']) || $voucher_type == 'opening balance';
+                $is_opening_balance = !empty($key['is_opening_balance']);
+                $voucher_type = isset($key['type']) ? $key['type'] : '';
+                $particulars = isset($key['particulars']) ? $key['particulars'] : '-';
+                
+                // Format voucher number
+                $voucher_no = '-';
+                if (!$is_opening_balance) {
+                    if (!empty($key['invoice_number'])) {
+                        $voucher_no = $key['invoice_number'];
+                    } elseif (!empty($key['invoice_no'])) {
+                        $voucher_no = $key['invoice_no'];
+                    }
+                }
+
+                // Debit column: Sales invoices and Dr Opening Balance
+                $debit_value = 0.0;
+                if (!empty($key['total']) && (float)$key['total'] > 0) {
+                    $debit_value = (float)$key['total'];
+                    $grand_total += $debit_value;
+                }
+
+                // Credit column: Payments received & Receipts
+                $credit_value = 0.0;
+                if (!empty($key['invocie_pay_amount']) && (float)$key['invocie_pay_amount'] > 0) {
+                    $credit_value = (float)$key['invocie_pay_amount'];
+                    $credit_amount += $credit_value;
+                }
                 ?>
 
                 <tr> 
@@ -138,49 +171,10 @@ require_once(APPPATH . '/third_party/amount_convert.php');
 
                     <td>
                         <?php 
-                        if (isset($key['invoice_date']) && !empty($key['invoice_date'])) {
-                            // Handle different date formats
-                            $originalDate = $key['invoice_date'];
-                            // Check if it's already in d-m-Y format or needs conversion
-                            if (strpos($originalDate, '-') !== false) {
-                                $parts = explode('-', $originalDate);
-                                // If it's Y-m-d format (like 2026-03-14)
-                                if (strlen($parts[0]) == 4) {
-                                    echo $parts[2] . '-' . $parts[1] . '-' . $parts[0];
-                                } else {
-                                    // Already in d-m-Y format
-                                    echo $originalDate;
-                                }
-                            } else {
-                                echo $originalDate;
-                            }
-                        }
-                        ?>
-                    </td>
-
-                      <td>
-                <?php
-                        // Check for particulars in different possible keys
-                        if (isset($key['particulars']) && !empty($key['particulars'])) {
-
-                            if($key['particulars']  == "Dr Opening_Balance"){
-                                echo "Dr Opening Balance";
-
-                            }else if($key['particulars']  == "Dr GST_Sales"){
-                                echo "Dr GST Sales";
-                            }
-                            
-                            else{
-                            echo $key['particulars'];  
-                            }
-                        } elseif (isset($key['description'])) {
-                            echo $key['description'];
-                        } elseif ($is_opening_balance) {
-                            echo "Opening Balance";
-                        } elseif ($is_receipt_voucher) {
-                            echo "Receipt";
-                        } elseif (!empty($key['invocie_pay_amount']) && empty($key['total'])) {
-                            echo "Payment ";
+                        if (isset($key['display_date'])) {
+                            echo $key['display_date'];
+                        } elseif (isset($key['invoice_date']) && !empty($key['invoice_date'])) {
+                            echo date('d-m-Y', strtotime($key['invoice_date']));
                         } else {
                             echo '-';
                         }
@@ -188,87 +182,24 @@ require_once(APPPATH . '/third_party/amount_convert.php');
                     </td>
 
                     <td>
-                        <?php
-                        // Check for 'type' key or alternative keys
-                         if(isset($key['particulars']) && $key['particulars'] == "Dr Opening_Balance"){
-
-                        }else{
-                        if (isset($key['type']) && !empty($key['type'])) {
-                            echo $key['type'];
-                        } elseif (isset($key['invoice_type'])) {
-                            echo $key['invoice_type'];
-                        } else {
-                            // Determine type based on available data
-                            if (!empty($key['total']) && $key['total'] > 0 && empty($key['invocie_pay_amount'])) {
-                                echo "Sales";
-                            } elseif (empty($key['total']) && !empty($key['invocie_pay_amount'])) {
-                                echo "Payment";
-                            } else {
-                                echo '-';
-                            }
-                        }
-                        }
-                        ?>
+                        <?php echo htmlspecialchars($particulars); ?>
                     </td>
 
                     <td>
-                        <?php
-                        // Check for invoice number in different possible keys
-
-                        if(isset($key['particulars']) && $key['particulars'] == "Dr Opening_Balance"){
-                        }else{
-
-
-                         if (isset($key['invoice_number']) && !empty($key['invoice_number'])) {
-                            echo $key['invoice_number'];
-                        } elseif (isset($key['invoice_no']) && !empty($key['invoice_no'])) {
-                            echo $key['invoice_no'];
-                        } else {
-                            echo '-';
-                        }
-                        }
-                       
-
-
-
-                        ?>
-                    </td>
-
-                  
-
-                    <td>
-                        <?php
-                        // Debit column - show sales invoices and payments (excluding receipts)
-                        $debit_value = 0;
-                        if (isset($key['total']) && !empty($key['total']) && $key['total'] > 0) {
-                            $debit_value += (double)$key['total'];
-                            $grand_total += (double)$key['total'];
-                        }
-
-                        if (isset($key['invocie_pay_amount']) && !empty($key['invocie_pay_amount']) &&
-                            !$is_receipt_voucher && !$is_opening_balance) {
-                            $debit_value += (double)$key['invocie_pay_amount'];
-                            $paid_amount += (double)$key['invocie_pay_amount'];
-                        }
-
-                        echo indian_number_format((float)$debit_value, 2) . "";
-                        ?>
+                        <?php echo htmlspecialchars($voucher_type); ?>
                     </td>
 
                     <td>
-                        <?php
-                        // Credit column - show receipts only (Rcpt/Rept), excluding opening balance
-                        $credit_value = 0;
-                        if (($is_receipt_voucher) && !empty($key['invocie_pay_amount'])) {
-                            $credit_value += (double)$key['invocie_pay_amount'];
-                            $credit_amount += $credit_value;
-                        }
-
-                        echo indian_number_format((float)$credit_value, 2) . "";
-                        ?>
+                        <?php echo htmlspecialchars($voucher_no); ?>
                     </td>
 
+                    <td>
+                        <?php echo ($debit_value > 0) ? indian_number_format($debit_value, 2) : '0.00'; ?>
+                    </td>
 
+                    <td>
+                        <?php echo ($credit_value > 0) ? indian_number_format($credit_value, 2) : '0.00'; ?>
+                    </td>
                 </tr>  
 
                 <?php
@@ -276,57 +207,70 @@ require_once(APPPATH . '/third_party/amount_convert.php');
             }
             ?>
             
-            <!-- Summary Rows -->
-            <tr>
+            <!-- Summary Row -->
+            <tr style="background-color: #f9f9f9;">
                 <td colspan="5" style="text-align: right;">
                     <b>Total</b>
                 </td>
                 <td>
-                    <b><?php echo indian_number_format((float)($grand_total + $paid_amount), 2); ?></b>
+                    <b><?php echo indian_number_format($grand_total, 2); ?></b>
                 </td>
                 <td>
-                    <b><?php echo indian_number_format((float)$credit_amount, 2); ?></b>
+                    <b><?php echo indian_number_format($credit_amount, 2); ?></b>
                 </td>
             </tr>
-<!-- Balance Row -->
-<tr>
-    <?php
-    $total_debit = (float)$grand_total + $paid_amount;
-    $balance = $total_debit - $credit_amount;
-    if ($balance > 0) {
-        // Positive amount - show in 7th column
-        ?>
-        <td colspan="5" style="text-align: right;"><b>Closing Balance</b></td>
-        <td></td>  <!-- Empty 6th column -->
-        <td><b><?php echo indian_number_format($balance, 2); ?></b></td>
-        <?php
-    } else {
-        // Negative amount - show in 6th column
-        ?>
-        <td colspan="5" style="text-align: right;"><b>Closing Balance</b></td>
-        <td><b><?php echo indian_number_format($balance, 2); ?></b></td>
-        <td></td>  <!-- Empty 7th column -->
-        <?php
-    }
-    ?>
-</tr>
 
+            <!-- Closing Balance Row -->
             <tr>
+                <?php
+                $total_debit = (float)$grand_total;
+                $total_credit = (float)$credit_amount;
+
+                if ($total_debit > $total_credit) {
+                    $closing_balance = $total_debit - $total_credit;
+                    $closing_type = 'DR';
+                    $balance_label = 'Closing Balance (Receivable / Dr)';
+                    $closing_debit_display = '';
+                    $closing_credit_display = indian_number_format($closing_balance, 2);
+                } elseif ($total_credit > $total_debit) {
+                    $closing_balance = $total_credit - $total_debit;
+                    $closing_type = 'CR';
+                    $balance_label = 'Closing Balance (Advance Received / Cr)';
+                    $closing_debit_display = indian_number_format($closing_balance, 2);
+                    $closing_credit_display = '';
+                } else {
+                    $closing_balance = 0.0;
+                    $closing_type = '';
+                    $balance_label = 'Closing Balance (Settled)';
+                    $closing_debit_display = '0.00';
+                    $closing_credit_display = '0.00';
+                }
+                ?>
+                <td colspan="5" style="text-align: right;"><b><?php echo $balance_label; ?></b></td>
+                <td><b><?php echo $closing_debit_display; ?></b></td>
+                <td><b><?php echo $closing_credit_display; ?></b></td>
+            </tr>
+
+            <!-- Total Tally Row (Both Columns Equal) -->
+            <tr style="background-color: #eef2f7;">
                 <td colspan="5" style="text-align: right;">
-                    
+                    <b>Total Balanced</b>
                 </td>
-<td colspan="1">
-    <?php 
-    $bigger_amount = max($total_debit, $credit_amount);
-    echo indian_number_format((float)$bigger_amount, 2); 
-    ?>
-</td>
-<td colspan="1">
-    <?php 
-    $bigger_amount = max($total_debit, $credit_amount);
-    echo indian_number_format((float)$bigger_amount, 2); 
-    ?>
-</td>
+                <td>
+                    <b>
+                        <?php 
+                        $bigger_amount = max($total_debit, $total_credit);
+                        echo indian_number_format($bigger_amount, 2); 
+                        ?>
+                    </b>
+                </td>
+                <td>
+                    <b>
+                        <?php 
+                        echo indian_number_format($bigger_amount, 2); 
+                        ?>
+                    </b>
+                </td>
             </tr>
         </table> 
     </body>

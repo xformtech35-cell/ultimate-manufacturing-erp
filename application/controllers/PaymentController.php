@@ -116,120 +116,159 @@ class PaymentController extends MY_Controller {
         $from_date1 = $this->input->post('from_date');
         $to_date1 = $this->input->post('to_date');
         $company_name = $this->input->post('company_name');
-        $from_date = date('Y-m-d', strtotime($from_date1));
-        $to_date = date('Y-m-d', strtotime($to_date1));
 
-        $data['from_date'] = $from_date1;
-        $data['to_date'] = $to_date1;
+        if (empty($company_name)) {
+            $this->session->set_flashdata('INFOMSG', 'Please select a customer first.');
+            redirect('PaymentController/ledger_report');
+            return;
+        }
+
+        $from_date = !empty($from_date1) ? date('Y-m-d', strtotime($from_date1)) : date('Y-04-01');
+        $to_date   = !empty($to_date1)   ? date('Y-m-d', strtotime($to_date1))   : date('Y-m-d');
+
+        $data['from_date'] = !empty($from_date1) ? $from_date1 : date('01-04-Y');
+        $data['to_date']   = !empty($to_date1)   ? $to_date1   : date('d-m-Y');
         $data['company_id'] = $company_name;
 
-        $data['company_name'] = '';
-        $data['address'] = '';
-        $data['gst'] = '';
+        // Fetch customer profile directly so header info is always complete
+        $this->load->model('Customer', 'customer');
+        $customer_details = $this->customer->get_customer_by_id($company_name);
+        $data['company_name'] = isset($customer_details['company_name']) ? $customer_details['company_name'] : '';
+        $data['address']      = isset($customer_details['address'])      ? $customer_details['address']      : '';
+        $data['gst']          = isset($customer_details['gst'])          ? $customer_details['gst']          : '';
 
-        $invoice = $this->payment->get_gst_ledger($from_date, $to_date, $company_name);
-
-
-        $payments = $this->payment->get_payment_ledger($from_date, $to_date, $company_name);
-
-        $payment_in = $this->payment->get_purchase_gst_ledger_payment_in($from_date, $to_date, $company_name);
+        $invoice         = $this->payment->get_gst_ledger($from_date, $to_date, $company_name);
+        $payments        = $this->payment->get_payment_ledger($from_date, $to_date, $company_name);
+        $payment_in      = $this->payment->get_purchase_gst_ledger_payment_in($from_date, $to_date, $company_name);
         $opening_balance = $this->payment->get_customer_opening_balance($company_name, $from_date, $this->user_id);
 
+        $ledger_array = array();
 
-        $ledger_array1 = array();
-        $ledger_array2 = array();
-        $ledger_array3 = array();
-        $ledger_array4 = array();
-
-        if ($opening_balance && (double)$opening_balance->opening_balance_amount != 0) {
-            $ledger_array4[] = array(
-                "invoice_date" => $from_date,
-                "total" => $opening_balance->opening_balance_amount,
-                "invocie_pay_amount" => '',
-                "invoice_number" => $opening_balance->balance_id,
-                "invoice_no" => '',
-                'type' => 'Opening Balance',
-                'particulars' => 'Dr Opening Balance',
-                'is_opening_balance' => true
-            );
-        }
-
-        //     Declare two dates 
-        $Date1 = $from_date1;
-        $Date2 = $to_date1;
-
-// Declare an empty array 
-        $array = array();
-
-// Use strtotime function 
-        $Variable1 = strtotime($Date1);
-        $Variable2 = strtotime($Date2);
-
-// Use for loop to store dates into array 
-// 86400 sec = 24 hrs = 60*60*24 = 1 day 
-        for ($currentDate = $Variable1; $currentDate <= $Variable2; $currentDate += (86400)) {
-
-            $Store = date('Y-m-d', $currentDate);
-            $array[] = $Store;
-        }
-
-        foreach ($array as $date) {
-
-            // $current_date1 = $date->format("d-m-Y");
-            $timestamp = strtotime($date);
-
-            // Creating new date format from that timestamp
-            $current_date1 = date("d-m-Y", $timestamp);
-            $i = 1;
-
-            foreach ($invoice as $key) {
-
-               
-                if (date('d-m-Y', strtotime($key->invoice_date)) == $current_date1) {
-              
-                    $address = $key->address;
-                    $data['company_name'] = $key->company_name;
-                    $data['address'] = $key->address;
-                    $data['gst'] = $key->gst;
-
-                    // echo $key->company_name;
-                    // die();
-
-                    $ledger_array1[] = array("invoice_date" => date('d-m-Y', strtotime($key->invoice_date)), "invoice_number" => $key->invoice_number, "total" => $key->total, "invocie_pay_amount" => '', "company_name" => $key->company_name, "address" =>$key->address, "balance" => $key->balance,
-                    'type' => 'Sales', 'particulars' => 'Cr Sales'
+        // 1. Opening Balance (Dr Opening Balance for Customer)
+        if ($opening_balance && (float)$opening_balance->opening_balance_amount != 0) {
+            $ob_amount = (float)$opening_balance->opening_balance_amount;
+            if ($ob_amount < 0) {
+                log_message('error', "Negative opening balance detected for customer $company_name: $ob_amount. Rejected.");
+            } else {
+                $ledger_array[] = array(
+                    "invoice_date"       => $from_date,
+                    "display_date"       => date('d-m-Y', strtotime($from_date)),
+                    "total"              => $ob_amount, // Debit
+                    "invocie_pay_amount" => '',
+                    "invoice_number"     => $opening_balance->balance_id,
+                    "invoice_no"         => '',
+                    'type'               => 'Opening Balance',
+                    'particulars'        => 'Dr Opening Balance',
+                    'is_opening_balance' => true,
+                    'sort_date'          => $from_date
                 );
-                }
-
-                $i++;
-            }
-            foreach ($payments as $key1) {
-
-                if ($key1->invoice_pay_date == $current_date1) {
-
-                    $ledger_array2[] = array("invoice_date" => $key1->invoice_pay_date, "total" => '', "invocie_pay_amount" => $key1->invocie_pay_amount, "invoice_number" => '', "company_name" => '', "address" => '');
-                }
-            }
-
-            foreach ($payment_in as $key1) {
-
-                if (date('d-m-Y', strtotime($key1->payment_date)) == $current_date1) {
-                    $voucher_type = !empty($key1->bank_voucher_type) ? $key1->bank_voucher_type : 'Receipt';
-                    $particular_prefix = (strtolower($voucher_type) == 'payment') ? 'Dr ' : 'Cr ';
-                    $ledger_array3[] = array("invoice_date" => $key1->payment_date, "total" => '', "invocie_pay_amount" => $key1->payment, "invoice_number" => $key1->payment_id, "invoice_no" => '', 'type' => $voucher_type, 'particulars' => $particular_prefix . $key1->payment_bank );
-                }
             }
         }
 
+        // 2. Sales Invoices (Debit)
+        if (!empty($invoice) && is_array($invoice)) {
+            foreach ($invoice as $key) {
+                $inv_total = (float)$key->total;
+                if ($inv_total < 0) {
+                    log_message('error', "Negative invoice amount detected for invoice {$key->invoice_number}: $inv_total. Skipped.");
+                    continue;
+                }
+                $inv_date = $key->invoice_date;
+                $ledger_array[] = array(
+                    "invoice_date"       => $inv_date,
+                    "display_date"       => date('d-m-Y', strtotime($inv_date)),
+                    "invoice_number"     => $key->invoice_number,
+                    "invoice_no"         => '',
+                    "total"              => $inv_total,
+                    "invocie_pay_amount" => '',
+                    "company_name"       => $key->company_name,
+                    "address"            => $key->address,
+                    "balance"            => (float)$key->balance,
+                    'type'               => 'Sales',
+                    'particulars'        => 'Sales Invoice',
+                    'is_opening_balance' => false,
+                    'sort_date'          => $inv_date
+                );
+            }
+        }
 
+        // 3. Invoice Payments (Credit)
+        if (!empty($payments) && is_array($payments)) {
+            foreach ($payments as $key1) {
+                $pay_amount = (float)$key1->invocie_pay_amount;
+                if ($pay_amount < 0) {
+                    log_message('error', "Negative invoice payment amount detected: $pay_amount. Skipped.");
+                    continue;
+                }
+                if ($pay_amount == 0) {
+                    continue;
+                }
+                $p_date = date('Y-m-d', strtotime($key1->invoice_pay_date));
+                $bank_info = !empty($key1->bank_name) ? ' (' . $key1->bank_name . ')' : '';
+                $inv_fk = !empty($key1->invoice_number_fk) ? $key1->invoice_number_fk : '';
+                $ledger_array[] = array(
+                    "invoice_date"       => $p_date,
+                    "display_date"       => date('d-m-Y', strtotime($key1->invoice_pay_date)),
+                    "total"              => '',
+                    "invocie_pay_amount" => $pay_amount,
+                    "invoice_number"     => $inv_fk,
+                    "invoice_no"         => '',
+                    'type'               => 'Receipt',
+                    'particulars'        => 'Payment Received' . $bank_info,
+                    'is_opening_balance' => false,
+                    'sort_date'          => $p_date
+                );
+            }
+        }
 
+        // 4. Bank Receipts / Payment In
+        if (!empty($payment_in) && is_array($payment_in)) {
+            foreach ($payment_in as $key1) {
+                $pay_amount = (float)$key1->payment;
+                if ($pay_amount < 0) {
+                    log_message('error', "Negative payment_in amount detected: $pay_amount. Skipped.");
+                    continue;
+                }
+                if ($pay_amount == 0) {
+                    continue;
+                }
+                $p_date = $key1->payment_date;
+                $v_type = !empty($key1->bank_voucher_type) ? $key1->bank_voucher_type : 'Receipt';
+                $bank_name = !empty($key1->payment_bank) ? ' (' . $key1->payment_bank . ')' : '';
+                $is_refund = (strtolower($v_type) === 'payment');
 
+                $ledger_array[] = array(
+                    "invoice_date"       => $p_date,
+                    "display_date"       => date('d-m-Y', strtotime($p_date)),
+                    "total"              => $is_refund ? $pay_amount : '',
+                    "invocie_pay_amount" => $is_refund ? '' : $pay_amount,
+                    "invoice_number"     => $key1->payment_id,
+                    "invoice_no"         => '',
+                    'type'               => $v_type,
+                    'particulars'        => ($is_refund ? 'Dr Refund' : 'Cr Receipt') . $bank_name,
+                    'is_opening_balance' => false,
+                    'sort_date'          => $p_date
+                );
+            }
+        }
 
-        $data['ledger'] = array_merge($ledger_array4, $ledger_array1, $ledger_array2, $ledger_array3);
+        // 5. Chronological Sort (Opening Balance first, then by date, then Sales before Receipts)
+        usort($ledger_array, function($a, $b) {
+            if (!empty($a['is_opening_balance']) && empty($b['is_opening_balance'])) return -1;
+            if (empty($a['is_opening_balance']) && !empty($b['is_opening_balance'])) return 1;
 
-        // var_dump( $data['ledger']);
+            $da = strtotime($a['sort_date']);
+            $db = strtotime($b['sort_date']);
+            if ($da === $db) {
+                $priority = ['Opening Balance' => 0, 'Sales' => 1, 'Payment' => 2, 'Receipt' => 3];
+                $pa = $priority[$a['type']] ?? 4;
+                $pb = $priority[$b['type']] ?? 4;
+                return $pa - $pb;
+            }
+            return $da - $db;
+        });
 
-        // die();
-        $session_data_head = $this->session->userdata('session_data_head');
+        $data['ledger'] = $ledger_array;
 
         if ($this->input->post('download_pdf')) {
             $data['is_pdf'] = true;
@@ -291,133 +330,170 @@ class PaymentController extends MY_Controller {
         $this->load->view('payment_history/non_gst_ledger_report_view', $data);
     }
 
-      //Purchase Ledger
+    //Purchase Ledger
     public function get_purchse_ledger() {
+        $from_date1 = $this->input->post('from_date');
+        $to_date1 = $this->input->post('to_date');
+        $supplier_name = $this->input->post('supplier_name');
 
-    $from_date1 = $this->input->post('from_date');
-    $to_date1 = $this->input->post('to_date');
-    $supplier_name = $this->input->post('supplier_name');
-
-    $from_date = date('Y-m-d', strtotime($from_date1));
-    $to_date = date('Y-m-d', strtotime($to_date1));
-    $data['from_date'] = $from_date1;
-    $data['to_date'] = $to_date1;
-
-    $data['company_name'] = '';
-    $data['address'] = '';
-    $data['gst'] = '';
-
-    $supplier_details = $this->supplier->get_supplier_by_id($supplier_name);
-    if (!empty($supplier_details)) {
-        $data['company_name'] = isset($supplier_details['company_name']) ? $supplier_details['company_name'] : '';
-        $data['address'] = isset($supplier_details['address']) ? $supplier_details['address'] : '';
-        $data['gst'] = isset($supplier_details['gst']) ? $supplier_details['gst'] : '';
-    }
-
-    $invoice = $this->payment->get_purchse_bill_ledger($from_date, $to_date, $supplier_name);
-    $payments = $this->payment->get_purchse_bill_payment_history($from_date, $to_date, $supplier_name);
-    $payment_out = $this->payment->get_purchase_gst_ledger_payment_out($from_date, $to_date, $supplier_name);
-    $opening_balance = $this->payment->get_supplier_opening_balance($supplier_name, $from_date, $this->user_id);
-
-    $ledger_array = array(); // Single array for all entries
-
-    // Add opening balance if exists
-    if ($opening_balance && (double)$opening_balance->opening_balance_amount != 0) {
-        $ledger_array[] = array(
-            "invoice_date" => $from_date, // Keep as Y-m-d for sorting
-            "display_date" => date('d-m-Y', strtotime($from_date)), // For display
-            "total" => $opening_balance->opening_balance_amount,
-            "invocie_pay_amount" => '',
-            "invoice_number" => $opening_balance->balance_id,
-            "invoice_no" => '',
-            'type' => 'Opening Balance',
-            'particulars' => 'Dr Opening Balance',
-            'is_opening_balance' => true,
-            'sort_date' => $from_date // For sorting
-        );
-    }
-
-    // Add invoice entries (Purchase bills)
-    foreach ($invoice as $key) {
-        $data['company_name'] = $key->company_name;
-        $data['address'] = $key->address;
-        $data['gst'] = $key->gst;
-
-        $invoice_date = $key->date;
-        $ledger_array[] = array(
-            "invoice_date" => $invoice_date,
-            "display_date" => date('d-m-Y', strtotime($invoice_date)),
-            "invoice_number" => $key->number,
-            "invoice_no" => $key->invoice_no,
-            "total" => $key->total,
-            "invocie_pay_amount" => '',
-            'type' => 'Prch',
-            'particulars' => 'Dr Purchase',
-            'sort_date' => $invoice_date
-        );
-    }
-
-    // Add payment entries (from purchase bill payment history)
-    foreach ($payments as $key1) {
-        $payment_date = $key1->purchase_pay_date;
-        $ledger_array[] = array(
-            "invoice_date" => $payment_date,
-            "display_date" => date('d-m-Y', strtotime($payment_date)),
-            "total" => '',
-            "invocie_pay_amount" => $key1->purchase_pay_amount,
-            "invoice_number" => '',
-            "invoice_no" => '',
-            'type' => 'Payment',
-            'particulars' => 'Cr Payment',
-            'sort_date' => $payment_date
-        );
-    }
-
-    // Add GST/payment out entries
-    foreach ($payment_out as $key1) {
-        $payment_date = $key1->payment_date;
-        $voucher_type = !empty($key1->bank_voucher_type) ? $key1->bank_voucher_type : 'Payment';
-        $particular_prefix = (strtolower($voucher_type) == 'payment') ? 'Dr ' : 'Cr ';
-        
-        $ledger_array[] = array(
-            "invoice_date" => $payment_date,
-            "display_date" => date('d-m-Y', strtotime($payment_date)),
-            "total" => '',
-            "invocie_pay_amount" => $key1->payment,
-            "invoice_number" => $key1->payment_id,
-            "invoice_no" => '',
-            'type' => $voucher_type,
-            'particulars' => $particular_prefix . $key1->payment_bank,
-            'sort_date' => $payment_date
-        );
-    }
-
-    // Sort the ledger array by date (invoice_date) in ascending order
-    usort($ledger_array, function($a, $b) {
-        $date_a = strtotime($a['sort_date']);
-        $date_b = strtotime($b['sort_date']);
-        
-        if ($date_a == $date_b) {
-            // If same date, maintain order: Opening Balance first, then Purchases, then Payments
-            $priority = [
-                'Opening Balance' => 0,
-                'Prch' => 1,
-                'Payment' => 2,
-                'Receipt' => 2
-            ];
-            
-            $priority_a = $priority[$a['type']] ?? 3;
-            $priority_b = $priority[$b['type']] ?? 3;
-            
-            return $priority_a - $priority_b;
+        if (empty($supplier_name)) {
+            $this->session->set_flashdata('INFOMSG', 'Please select a supplier first.');
+            redirect('PaymentController/ledger_report');
+            return;
         }
-        
-        return $date_a - $date_b;
-    });
 
-    $data['ledger'] = $ledger_array;
+        $from_date = !empty($from_date1) ? date('Y-m-d', strtotime($from_date1)) : date('Y-04-01');
+        $to_date   = !empty($to_date1)   ? date('Y-m-d', strtotime($to_date1))   : date('Y-m-d');
 
-    $this->load->view('payment_history/purchase_ledger_report', $data);
-}
+        $data['from_date'] = !empty($from_date1) ? $from_date1 : date('01-04-Y');
+        $data['to_date']   = !empty($to_date1)   ? $to_date1   : date('d-m-Y');
 
+        $data['company_name'] = '';
+        $data['address'] = '';
+        $data['gst'] = '';
+
+        $supplier_details = $this->supplier->get_supplier_by_id($supplier_name);
+        if (!empty($supplier_details)) {
+            $data['company_name'] = isset($supplier_details['company_name']) ? $supplier_details['company_name'] : '';
+            $data['address']      = isset($supplier_details['address'])      ? $supplier_details['address']      : '';
+            $data['gst']          = isset($supplier_details['gst'])          ? $supplier_details['gst']          : '';
+        }
+
+        $invoice         = $this->payment->get_purchse_bill_ledger($from_date, $to_date, $supplier_name);
+        $payments        = $this->payment->get_purchse_bill_payment_history($from_date, $to_date, $supplier_name);
+        $payment_out     = $this->payment->get_purchase_gst_ledger_payment_out($from_date, $to_date, $supplier_name);
+        $opening_balance = $this->payment->get_supplier_opening_balance($supplier_name, $from_date, $this->user_id);
+
+        $ledger_array = array();
+
+        // 1. Supplier Opening Balance (Credit in Vendor Ledger)
+        if ($opening_balance && (float)$opening_balance->opening_balance_amount != 0) {
+            $ob_amount = (float)$opening_balance->opening_balance_amount;
+            if ($ob_amount < 0) {
+                log_message('error', "Negative opening balance detected for supplier $supplier_name: $ob_amount. Rejected.");
+            } else {
+                $ledger_array[] = array(
+                    "invoice_date"       => $from_date,
+                    "display_date"       => date('d-m-Y', strtotime($from_date)),
+                    "total"              => $ob_amount, // Shows in Credit
+                    "invocie_pay_amount" => '',
+                    "invoice_number"     => $opening_balance->balance_id,
+                    "invoice_no"         => '',
+                    'type'               => 'Opening Balance',
+                    'particulars'        => 'Cr Opening Balance',
+                    'is_opening_balance' => true,
+                    'sort_date'          => $from_date
+                );
+            }
+        }
+
+        // 2. Purchase Bills (Credit)
+        if (!empty($invoice) && is_array($invoice)) {
+            foreach ($invoice as $key) {
+                $bill_total = (float)$key->total;
+                if ($bill_total < 0) {
+                    log_message('error', "Negative purchase bill amount detected for bill {$key->number}: $bill_total. Skipped.");
+                    continue;
+                }
+                $inv_date = $key->date;
+                $ledger_array[] = array(
+                    "invoice_date"       => $inv_date,
+                    "display_date"       => date('d-m-Y', strtotime($inv_date)),
+                    "invoice_number"     => $key->number,
+                    "invoice_no"         => $key->invoice_no,
+                    "total"              => $bill_total,
+                    "invocie_pay_amount" => '',
+                    'type'               => 'Prch',
+                    'particulars'        => 'Purchase Bill',
+                    'is_opening_balance' => false,
+                    'sort_date'          => $inv_date
+                );
+            }
+        }
+
+        // 3. Purchase Bill Payments (Debit)
+        if (!empty($payments) && is_array($payments)) {
+            foreach ($payments as $key1) {
+                $pay_amount = (float)$key1->purchase_pay_amount;
+                if ($pay_amount < 0) {
+                    log_message('error', "Negative purchase payment amount detected: $pay_amount. Skipped.");
+                    continue;
+                }
+                if ($pay_amount == 0) {
+                    continue;
+                }
+                $p_date = date('Y-m-d', strtotime($key1->purchase_pay_date));
+                $ledger_array[] = array(
+                    "invoice_date"       => $p_date,
+                    "display_date"       => date('d-m-Y', strtotime($key1->purchase_pay_date)),
+                    "total"              => '',
+                    "invocie_pay_amount" => $pay_amount,
+                    "invoice_number"     => !empty($key1->purchase_number_fk) ? $key1->purchase_number_fk : '',
+                    "invoice_no"         => '',
+                    'type'               => 'Payment',
+                    'particulars'        => 'Payment Made',
+                    'is_opening_balance' => false,
+                    'sort_date'          => $p_date
+                );
+            }
+        }
+
+        // 4. Bank Payments Out (Debit)
+        if (!empty($payment_out) && is_array($payment_out)) {
+            foreach ($payment_out as $key1) {
+                $pay_amount = (float)$key1->payment;
+                if ($pay_amount < 0) {
+                    log_message('error', "Negative payment_out amount detected: $pay_amount. Skipped.");
+                    continue;
+                }
+                if ($pay_amount == 0) {
+                    continue;
+                }
+                $p_date = $key1->payment_date;
+                $v_type = !empty($key1->bank_voucher_type) ? $key1->bank_voucher_type : 'Payment';
+                $bank_name = !empty($key1->payment_bank) ? ' (' . $key1->payment_bank . ')' : '';
+                $is_refund = (strtolower($v_type) === 'receipt');
+
+                $ledger_array[] = array(
+                    "invoice_date"       => $p_date,
+                    "display_date"       => date('d-m-Y', strtotime($p_date)),
+                    "total"              => $is_refund ? $pay_amount : '',
+                    "invocie_pay_amount" => $is_refund ? '' : $pay_amount,
+                    "invoice_number"     => $key1->payment_id,
+                    "invoice_no"         => '',
+                    'type'               => $v_type,
+                    'particulars'        => ($is_refund ? 'Cr Refund' : 'Dr Payment') . $bank_name,
+                    'is_opening_balance' => false,
+                    'sort_date'          => $p_date
+                );
+            }
+        }
+
+        // 5. Chronological Sort (Opening Balance first, then by date)
+        usort($ledger_array, function($a, $b) {
+            if (!empty($a['is_opening_balance']) && empty($b['is_opening_balance'])) return -1;
+            if (empty($a['is_opening_balance']) && !empty($b['is_opening_balance'])) return 1;
+
+            $date_a = strtotime($a['sort_date']);
+            $date_b = strtotime($b['sort_date']);
+
+            if ($date_a == $date_b) {
+                $priority = [
+                    'Opening Balance' => 0,
+                    'Prch'            => 1,
+                    'Payment'         => 2,
+                    'Receipt'         => 3
+                ];
+                $priority_a = $priority[$a['type']] ?? 4;
+                $priority_b = $priority[$b['type']] ?? 4;
+                return $priority_a - $priority_b;
+            }
+
+            return $date_a - $date_b;
+        });
+
+        $data['ledger'] = $ledger_array;
+
+        $this->load->view('payment_history/purchase_ledger_report', $data);
+    }
 }

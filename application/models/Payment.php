@@ -71,49 +71,38 @@ Class Payment extends CI_Model {
     }
 
     public function get_gst_ledger($from_date, $to_date, $company_name) {
-      //  echo $company_name;
-   //  print_r($to_date);die();
-        $this->db->select('*,invoice.invoice_date,invoice.invoice_number, invoice_total.total,customer.company_name,customer.fullname, invoice_total.balance');
+        $this->db->select('invoice.invoice_date, invoice.invoice_number, invoice_total.total, customer.company_name, customer.fullname, customer.address, customer.gst, invoice_total.balance');
         $this->db->from('invoice');
-        //echo "$invoice.invoice_date"; die();
         $this->db->where('invoice.invoice_date >=', $from_date);
         $this->db->where('invoice.invoice_date <=', $to_date);
         $this->db->where('customer.customer_id', $company_name);
         $this->db->join('customer', 'customer.customer_id=invoice.customer_id');
         $this->db->join('invoice_total', 'invoice_total.number_fk=invoice.invoice_number');
-        
-
-        $this->db->group_by('invoice.invoice_number');
-        $this->db->order_by('invoice_date', 'asc');
+        $this->db->group_by(array('invoice.invoice_number', 'invoice.invoice_date', 'invoice_total.total', 'customer.company_name', 'customer.fullname', 'customer.address', 'customer.gst', 'invoice_total.balance'));
+        $this->db->order_by('invoice.invoice_date', 'asc');
         $query = $this->db->get();
-        
-  //var_dump($query->result());die();
         return $query->result();
-              
-
     }
 
     public function get_payment_ledger($from_date, $to_date, $company_name) {
-
-  // print_r($company_name);die();
-        //$this->db->select('invocie_payment_gst.invoice_pay_date,invocie_payment_gst.payment_type, invocie_payment_gst.invocie_pay_amount, invoice.invoice_number, customer.company_name');
-        $this->db->select('*');
-        $this->db->from('invoice');
-        $this->db->where('invoice_date >=', $from_date);
-        $this->db->where('invoice_date <=', $to_date);
-        $this->db->where('customer.customer_id', $company_name);
-        
-        $this->db->join('invocie_payment_gst', 'invocie_payment_gst.customer_id_fk=invoice.customer_id');
-        $this->db->join('customer', 'customer.customer_id=invocie_payment_gst.customer_id_fk');
-        $this->db->join('invoice_total', 'invoice_total.number_fk=invoice.invoice_number');
-
-    //  $this->db->where('customer.company_name', $company_name);
-        $this->db->group_by('invocie_pay_id');
-        $this->db->order_by('invocie_payment_gst.invoice_pay_date', 'desc');
-       $this->db->order_by('invoice_total.balance', 'desc'); 
+        $this->db->select('invocie_payment_gst.*, customer.company_name');
+        $this->db->from('invocie_payment_gst');
+        $this->db->join('customer', 'customer.customer_id=invocie_payment_gst.customer_id_fk', 'left');
+        $this->db->where('invocie_payment_gst.customer_id_fk', $company_name);
+        $this->db->order_by('invocie_payment_gst.invocie_pay_id', 'asc');
         $query = $this->db->get();
-    //    var_dump($query->result());die();
-        return $query->result();
+        $results = $query->result();
+
+        $filtered = array();
+        $from_ts = strtotime($from_date);
+        $to_ts = strtotime($to_date);
+        foreach ($results as $row) {
+            $pay_ts = strtotime($row->invoice_pay_date);
+            if ($pay_ts !== false && $pay_ts >= $from_ts && $pay_ts <= $to_ts) {
+                $filtered[] = $row;
+            }
+        }
+        return $filtered;
     }
 
     public function get_non_gst_ledger($from_date, $to_date, $company_name) {
@@ -191,50 +180,39 @@ Class Payment extends CI_Model {
 
 
     public function get_purchse_bill_ledger($from_date, $to_date, $company_name) {
-        //  echo $company_name;
-     //  print_r($to_date);die();
-          $this->db->select('*,purchase_bill.date,purchase_bill.number, purchase_bill_total.total,supplier.company_name,supplier.company_name, supplier.address, purchase_bill_total.balance');
-          $this->db->from('purchase_bill');
-          //echo "$purchase_bill.date"; die();
-          $this->db->where('purchase_bill.date >=', $from_date);
-          $this->db->where('purchase_bill.date <=', $to_date);
-          $this->db->where('supplier.supplier_id', $company_name);
-          $this->db->join('supplier', 'supplier.supplier_id=purchase_bill.supplier_id_fk');
-          $this->db->join('purchase_bill_total', 'purchase_bill_total.number_fk=purchase_bill.number');
-          
-  
-          $this->db->group_by('purchase_bill.number');
-          $this->db->order_by('date', 'asc');
-          $query = $this->db->get();
-          
-          //var_dump($query->result());die();
-          return $query->result();
-                
-  
-      }
-  
-      public function get_purchse_bill_payment_history($from_date, $to_date, $company_name) {
-  
-    // print_r($company_name);die();
-          //$this->db->select('purchase_bill_payment_gst.purchase_pay_date,purchase_bill_payment_gst.payment_type, purchase_bill_payment_gst.purchase_pay_amount, purchase_bill.number, supplier.company_name');
-          $this->db->select('*');
-          $this->db->from('purchase_bill');
-          $this->db->where('date >=', $from_date);
-          $this->db->where('date <=', $to_date);
-          $this->db->where('supplier.supplier_id', $company_name);
-          
-          $this->db->join('purchase_bill_payment_gst', 'purchase_bill_payment_gst.supplier_id_fk=purchase_bill.supplier_id_fk');
-          $this->db->join('supplier', 'supplier.supplier_id=purchase_bill_payment_gst.supplier_id_fk');
-          $this->db->join('purchase_bill_total', 'purchase_bill_total.number_fk=purchase_bill.number');
-  
-      //  $this->db->where('supplier.company_name', $company_name);
-          $this->db->group_by('purchase_pay_id');
-          $this->db->order_by('purchase_bill_payment_gst.purchase_pay_date', 'desc');
-         $this->db->order_by('purchase_bill_total.balance', 'desc'); 
-          $query = $this->db->get();
-         // var_dump($query->result());die();
-          return $query->result();
-      }
+        $this->db->select('purchase_bill.date, purchase_bill.number, purchase_bill_total.invoice_no, purchase_bill_total.total, supplier.company_name, supplier.address, supplier.gst, purchase_bill_total.balance');
+        $this->db->from('purchase_bill');
+        $this->db->where('purchase_bill.date >=', $from_date);
+        $this->db->where('purchase_bill.date <=', $to_date);
+        $this->db->where('supplier.supplier_id', $company_name);
+        $this->db->join('supplier', 'supplier.supplier_id=purchase_bill.supplier_id_fk');
+        $this->db->join('purchase_bill_total', 'purchase_bill_total.number_fk=purchase_bill.number');
+        $this->db->group_by(array('purchase_bill.number', 'purchase_bill.date', 'purchase_bill_total.invoice_no', 'purchase_bill_total.total', 'supplier.company_name', 'supplier.address', 'supplier.gst', 'purchase_bill_total.balance'));
+        $this->db->order_by('purchase_bill.date', 'asc');
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    public function get_purchse_bill_payment_history($from_date, $to_date, $company_name) {
+        $this->db->select('purchase_bill_payment_gst.*, supplier.company_name');
+        $this->db->from('purchase_bill_payment_gst');
+        $this->db->join('supplier', 'supplier.supplier_id=purchase_bill_payment_gst.supplier_id_fk', 'left');
+        $this->db->where('purchase_bill_payment_gst.supplier_id_fk', $company_name);
+        $this->db->order_by('purchase_bill_payment_gst.purchase_pay_id', 'asc');
+        $query = $this->db->get();
+        $results = $query->result();
+
+        $filtered = array();
+        $from_ts = strtotime($from_date);
+        $to_ts = strtotime($to_date);
+        foreach ($results as $row) {
+            $pay_ts = strtotime($row->purchase_pay_date);
+            if ($pay_ts !== false && $pay_ts >= $from_ts && $pay_ts <= $to_ts) {
+                $filtered[] = $row;
+            }
+        }
+        return $filtered;
+    }
 
 
       public function get_purchase_gst_ledger_payment_out($from_date, $to_date, $supplier_name) {
