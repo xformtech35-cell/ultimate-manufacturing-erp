@@ -99,34 +99,25 @@ require_once(APPPATH . '/third_party/amount_convert.php');
          <h5>Address : <?php echo isset($address) ? $address : ''; ?></h5>
         </div>
 
-        <div style="padding-left:75px;">
-            <b>From : </b><?php print_r($from_date) ?>
-            <b>To : </b><?php print_r($to_date) ?>
+        <div style="padding-left:75px; margin-bottom: 10px;">
+            <b>From : </b><?php echo htmlspecialchars($from_date); ?>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <b>To : </b><?php echo htmlspecialchars($to_date); ?>
         </div>
 
         <table> 
-            <tr>
-                <th style="background-color: #444444; color: white">Sr.No.</th>
-                <th style="background-color: #444444; color: white; width:10%" >Date</th>
-                <th style="background-color: #444444; color: white; width:15%">Particular Name</th>
-                <th style="background-color: #444444; color: white; width:10%">Voucher Type</th>
-
-        <div style="padding-left:75px;">
-            <b>From : </b><?php print_r($from_date) ?>
-            <b>To : </b><?php print_r($to_date) ?>
-        </div>
-
-        <table> 
-            <tr>
-                <th style="background-color: #444444; color: white">Sr.No.</th>
-                <th style="background-color: #444444; color: white; width:10%" >Date</th>
-                <th style="background-color: #444444; color: white; width:15%">Particular Name</th>
-                <th style="background-color: #444444; color: white; width:10%">Voucher Type</th>
-                <th style="background-color: #444444; color: white; width:15%"> Voucher No</th>
-                
-                <th style="background-color: #444444; color: white">Debit</th>
-                <th style="background-color: #444444; color: white">Credit</th>
-            </tr>
+            <thead>
+                <tr>
+                    <th style="background-color: #444444; color: white; width: 5%;">Sr.No.</th>
+                    <th style="background-color: #444444; color: white; width: 10%;">Date</th>
+                    <th style="background-color: #444444; color: white; width: 25%;">Particular Name</th>
+                    <th style="background-color: #444444; color: white; width: 12%;">Voucher Type</th>
+                    <th style="background-color: #444444; color: white; width: 18%;">Voucher No</th>
+                    <th style="background-color: #444444; color: white; width: 15%; text-align: right;">Debit</th>
+                    <th style="background-color: #444444; color: white; width: 15%; text-align: right;">Credit</th>
+                </tr>
+            </thead>
+            <tbody>
 
             <?php
             $i = 0;

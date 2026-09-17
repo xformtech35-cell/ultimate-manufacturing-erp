@@ -204,7 +204,7 @@ class PaymentController extends MY_Controller {
                     continue;
                 }
                 $p_date = date('Y-m-d', strtotime($key1->invoice_pay_date));
-                $bank_info = !empty($key1->bank_name) ? ' (' . $key1->bank_name . ')' : '';
+                $bank_info = !empty(trim($key1->bank_name)) ? ' (' . trim($key1->bank_name) . ')' : '';
                 $inv_fk = !empty($key1->invoice_number_fk) ? $key1->invoice_number_fk : '';
                 $ledger_array[] = array(
                     "invoice_date"       => $p_date,
@@ -224,7 +224,8 @@ class PaymentController extends MY_Controller {
         // 4. Bank Receipts / Payment In
         if (!empty($payment_in) && is_array($payment_in)) {
             foreach ($payment_in as $key1) {
-                $pay_amount = (float)$key1->payment;
+                // If payment_in was used to pay an invoice, only include remaining unallocated balance to avoid double-counting
+                $pay_amount = ($key1->status === 'used') ? (float)$key1->pay_balance : (float)$key1->payment;
                 if ($pay_amount < 0) {
                     log_message('error', "Negative payment_in amount detected: $pay_amount. Skipped.");
                     continue;
@@ -234,7 +235,7 @@ class PaymentController extends MY_Controller {
                 }
                 $p_date = $key1->payment_date;
                 $v_type = !empty($key1->bank_voucher_type) ? $key1->bank_voucher_type : 'Receipt';
-                $bank_name = !empty($key1->payment_bank) ? ' (' . $key1->payment_bank . ')' : '';
+                $bank_name = !empty(trim($key1->payment_bank)) ? ' (' . trim($key1->payment_bank) . ')' : '';
                 $is_refund = (strtolower($v_type) === 'payment');
 
                 $ledger_array[] = array(
@@ -441,7 +442,8 @@ class PaymentController extends MY_Controller {
         // 4. Bank Payments Out (Debit)
         if (!empty($payment_out) && is_array($payment_out)) {
             foreach ($payment_out as $key1) {
-                $pay_amount = (float)$key1->payment;
+                // If payment_out was used to pay a purchase bill, only include remaining unallocated balance to avoid double-counting
+                $pay_amount = ($key1->status === 'used') ? (float)$key1->pay_balance : (float)$key1->payment;
                 if ($pay_amount < 0) {
                     log_message('error', "Negative payment_out amount detected: $pay_amount. Skipped.");
                     continue;
@@ -451,7 +453,7 @@ class PaymentController extends MY_Controller {
                 }
                 $p_date = $key1->payment_date;
                 $v_type = !empty($key1->bank_voucher_type) ? $key1->bank_voucher_type : 'Payment';
-                $bank_name = !empty($key1->payment_bank) ? ' (' . $key1->payment_bank . ')' : '';
+                $bank_name = !empty(trim($key1->payment_bank)) ? ' (' . trim($key1->payment_bank) . ')' : '';
                 $is_refund = (strtolower($v_type) === 'receipt');
 
                 $ledger_array[] = array(

@@ -80,9 +80,10 @@ require_once(APPPATH . '/third_party/amount_convert.php');
          <h5>Address : <?php echo isset($address) ? $address : ''; ?></h5>
         </center>
 
-        <div style="padding-left:75px;">
-            <b>From : </b><?php print_r($from_date) ?>
-            <b>To : </b><?php print_r($to_date) ?>
+        <div style="padding-left:75px; margin-bottom: 10px;">
+            <b>From : </b><?php echo htmlspecialchars($from_date); ?>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <b>To : </b><?php echo htmlspecialchars($to_date); ?>
         </div>
 
         <table border="1" cellpadding="5" cellspacing="0">
